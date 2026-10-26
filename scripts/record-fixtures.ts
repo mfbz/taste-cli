@@ -175,7 +175,7 @@ async function main(): Promise<number> {
       `${JSON.stringify(recording, null, 2)}\n`
     );
     process.stderr.write(
-      `Wrote tmp-fixtures/${recipe.name}.json (${recording.calls.length} calls). Next: npm run fixtures:scrub -- ${recipe.name}\n`
+      `Wrote tmp-fixtures/${recipe.name}.json (${recording.calls.length} calls). Next: npm run fixtures:scrub (it reads every recording in tmp-fixtures/)\n`
     );
     return 0;
   } catch (error) {

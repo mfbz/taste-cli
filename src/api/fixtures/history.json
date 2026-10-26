@@ -77,6 +77,7 @@
           "status": "completed",
           "reference_url": "https://www.tastelabs.com/",
           "candidate_url": "https://www.tastelabs.com/research",
+          "source_url": "https://www.tastelabs.com/research",
           "accepted_at": "2026-10-26T10:00:00Z",
           "current_step": null,
           "completed_at": "2026-10-26T10:03:00Z",

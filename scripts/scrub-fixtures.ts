@@ -25,6 +25,9 @@ type Visit = (path: string, key: string, value: unknown) => unknown;
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const RAW_DIR = join(ROOT, "tmp-fixtures");
 const FAKE = "00000000-0000-4000-8000-";
+// The fake user of the hand-written me.json.
+const FAKE_USER = `${FAKE}000000000001`;
+// Ids the recipes created, under these keys, when the value is a whole UUID.
 const ID_KEYS = new Set([
   "submission_id",
   "job_id",
@@ -32,24 +35,34 @@ const ID_KEYS = new Set([
   "search_id",
   "id",
 ]);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Account metadata on recorded submissions and jobs, set to fixed values at any depth.
+const ACCOUNT_KEYS: Readonly<Record<string, string | null>> = {
+  api_key_name: "example",
+  credit_ref_id: null,
+  batch_id: null,
+  batch_label: null,
+  user_id: FAKE_USER,
+};
 const TASTE_API_HOST = "api.tastelabs.com";
 const WEB_URL = /https?:\/\/[^\s"'<>()]+/g;
 const CHECKS: readonly [string, RegExp][] = [
   // example.com is the placeholder; logo@2x.png is a file name.
   [
     "email",
-    /[\w.%+-]+@(?!example\.com\b)[\w-]+(?:\.[\w-]+)*\.(?!(?:png|jpe?g|gif|svg|webp|css|js|pdf)\b)[a-z]{2,}/i,
+    /[\p{L}\p{N}._%+-]+(?:@|%40)(?!example\.com\b)[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.(?!(?:png|jpe?g|gif|svg|webp|css|js|pdf)\b)\p{L}{2,}/iu,
   ],
   ["JWT", /eyJ[\w-]+\.eyJ[\w-]+/],
   ["Taste key", /taste_[A-Za-z0-9_-]{16,}/],
   ["Bearer token", /Bearer\s+\S{8,}/i],
   [
     "unmapped UUID",
-    /\b(?!00000000-0000-4000-8000-)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i,
+    // No edges: a UUID glued to hex (jobb<uuid>, <uuid>ff) is still found, leftmost first.
+    /(?!00000000-0000-4000-8000-)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
   ],
   [
     "credential in a URL",
-    /[?&](?:sig|signature|token|key|x-amz-[^=&]*|x-goog-[^=&]*|expires)=/i,
+    /[?&][\w-]*(?:sig|signature|token|key|secret|auth|credential|expires)[\w-]*=/i,
   ],
 ];
 
@@ -87,21 +100,35 @@ function normalise(docs: Docs): Docs {
       if (
         ID_KEYS.has(key) &&
         typeof value === "string" &&
+        UUID.test(value) &&
         !value.startsWith(FAKE) &&
-        !ids.has(value)
+        !ids.has(value.toLowerCase())
       )
-        ids.set(value, fakeId(name, n++));
+        ids.set(value.toLowerCase(), fakeId(name, n++));
       return value;
     });
   }
-  const clean: Visit = (_, __, value) => {
+  // One pass over each string: a fake that was just written is never replaced again.
+  const real = ids.size ? new RegExp([...ids.keys()].join("|"), "gi") : null;
+  const clean: Visit = (_, key, value) => {
+    if (key in ACCOUNT_KEYS) return ACCOUNT_KEYS[key];
     if (typeof value !== "string") return value;
-    let text = value;
-    for (const [real, fake] of ids) text = text.replaceAll(real, fake);
-    return text.replace(WEB_URL, unsign);
+    const mapped = real
+      ? value.replace(real, (id) => ids.get(id.toLowerCase()) ?? id)
+      : value;
+    return mapped.replace(WEB_URL, unsign);
   };
   return Object.fromEntries(
     Object.entries(docs).map(([name, doc]) => [name, walk(doc, "", clean)])
+  );
+}
+
+// A recipe's ids are numbered after those of the recipe it builds on, so that one must be here too.
+function missingNeeds(docs: Docs): string[] {
+  return RECIPES.filter(
+    (r) => r.needs && r.name in docs && !(r.needs in docs)
+  ).map(
+    (r) => `${r.name}.json: record ${r.needs ?? ""} too, its ids come first`
   );
 }
 
@@ -133,15 +160,21 @@ async function main(): Promise<number> {
     process.stderr.write("No tmp-fixtures/ yet: record a recipe first.\n");
     return 1;
   }
+  // Only recipes' recordings: a stray me.json never overwrites the hand-written one.
   const raw: Docs = {};
-  for (const file of readdirSync(RAW_DIR).filter((f) => f.endsWith(".json")))
-    raw[file.slice(0, -".json".length)] = JSON.parse(
-      readFileSync(join(RAW_DIR, file), "utf8")
-    ) as unknown;
+  for (const file of readdirSync(RAW_DIR)) {
+    const name = file.replace(/\.json$/, "");
+    if (RECIPES.some((r) => r.name === name) && file.endsWith(".json"))
+      raw[name] = JSON.parse(
+        readFileSync(join(RAW_DIR, file), "utf8")
+      ) as unknown;
+    else process.stderr.write(`Skipped tmp-fixtures/${file}: not a recipe.\n`);
+  }
   const docs = normalise(raw);
-  const problems = Object.entries(docs).flatMap(([name, doc]) =>
-    check(name, doc)
-  );
+  const problems = [
+    ...missingNeeds(docs),
+    ...Object.entries(docs).flatMap(([name, doc]) => check(name, doc)),
+  ];
   if (problems.length) {
     process.stderr.write(
       `Nothing written. Fix these by hand in tmp-fixtures/, then run again:\n${problems.join("\n")}\n`
@@ -160,4 +193,4 @@ async function main(): Promise<number> {
 
 if (import.meta.main) void main().then((code) => (process.exitCode = code));
 
-export { check, fakeId, normalise };
+export { check, FAKE_USER, fakeId, missingNeeds, normalise };
