@@ -1,20 +1,18 @@
-import { Command } from "@commander-js/extra-typings";
+import { Command, Option } from "@commander-js/extra-typings";
 
 import pkg from "../package.json" with { type: "json" };
+import { login } from "./commands/login.ts";
+import { logout } from "./commands/logout.ts";
+import { whoami } from "./commands/whoami.ts";
+import { createContext } from "./context.ts";
+import type { Context } from "./context.ts";
+import type { Io } from "./io.ts";
 import { CliError } from "./output/errors.ts";
 import type { ErrorCode } from "./output/errors.ts";
 import { createOutput } from "./output/output.ts";
-import type { Output, Writer } from "./output/output.ts";
+import type { Output } from "./output/output.ts";
 import { createTheme } from "./output/theme.ts";
-import type { TerminalInfo } from "./output/terminal.ts";
 
-// Everything taste touches outside itself comes through here, so tests run it without a process.
-type Io = {
-  stdout: Writer;
-  stderr: Writer;
-  // Absent means plain text and no motion, which is what tests and pipes get.
-  terminal?: TerminalInfo;
-};
 type Captured = { text: string };
 
 const FOOTER =
@@ -33,9 +31,17 @@ const USAGE_CODES: Readonly<Record<string, ErrorCode>> = {
   "commander.optionMissingArgument": "USAGE_MISSING_ARGUMENT",
   "commander.missingMandatoryOptionValue": "USAGE_MISSING_ARGUMENT",
   "commander.invalidArgument": "USAGE_INVALID_VALUE",
+  "commander.conflictingOption": "USAGE_CONFLICTING_OPTIONS",
 };
 // The whole option as typed, up to "=" or the closing quote; errors.ts decides whether it may be shown.
 const OPTION_NAME = /'(-[^'=\s]*)/;
+// A Taste key or a JWT, as a whole argument or a whole option value, so a file name or a query that
+// merely starts with taste_ still gets through. Checked before parsing, so no command, error or usage
+// message ever sees it.
+// A key's body is long random text: a 16-character run without underscores, or 32 characters in all.
+// Words joined by underscores (taste_engine_reviews) are neither.
+const KEY_ARG =
+  /(?:^|=)(?:taste_(?:[A-Za-z0-9_-]*[A-Za-z0-9-]{16}[A-Za-z0-9_-]*|[A-Za-z0-9_-]{32,})|eyJ[\w-]{8,}\.eyJ[\w-]{8,}(?:\.[\w-]*)?)$/;
 
 function isCommanderError(error: unknown): error is { code: string } {
   const code: unknown =
@@ -51,6 +57,22 @@ function usageError(error: { code: string; message?: unknown }): CliError {
   // The option's name only (never what follows "="); the catalogue shows it only if it looks like one.
   const option = OPTION_NAME.exec(message)?.[1] ?? "…";
   return new CliError(code, { option });
+}
+
+// Each command gets a fresh context; a final 401 is explained by the credential that was sent.
+function withContext<A extends unknown[]>(
+  io: Io,
+  output: Output,
+  command: (ctx: Context, ...args: A) => Promise<void>
+) {
+  return async (...args: A) => {
+    const ctx = createContext(io, output);
+    try {
+      await command(ctx, ...args);
+    } catch (error) {
+      throw ctx.auth.explain(error);
+    }
+  };
 }
 
 function buildProgram(io: Io, output: Output, captured: Captured) {
@@ -87,6 +109,30 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
       const help = `${program.helpInformation()}${FOOTER}`;
       output.result({ help: `${help}\n` }, () => help);
     });
+
+  program
+    .command("login")
+    .description("sign in with your browser, or save an API key")
+    .addOption(
+      new Option("--api-key", "type an API key at a hidden prompt").conflicts(
+        "withApiKey"
+      )
+    )
+    .option("--with-api-key", "read an API key from stdin")
+    .addHelpText(
+      "after",
+      "\nA key is never taken as an argument. TASTE_API_KEY, when set, is used instead of any saved sign in."
+    )
+    .action(withContext(io, output, (ctx, options) => login(ctx, options)));
+  program
+    .command("logout")
+    .description("forget the saved sign in")
+    .action(withContext(io, output, (ctx) => logout(ctx)));
+  program
+    .command("whoami")
+    .description("show which account taste is signed in to")
+    .action(withContext(io, output, (ctx) => whoami(ctx)));
+  for (const command of program.commands) command.addHelpText("after", FOOTER);
   return program;
 }
 
@@ -101,6 +147,9 @@ async function run(argv: string[], io: Io): Promise<number> {
     stdout: io.stdout,
     stderr: io.stderr,
   });
+  // A key in argv is already in shell history; say so, and never parse or echo it.
+  if (argv.some((arg) => KEY_ARG.test(arg)))
+    return output.fail(new CliError("KEY_IN_ARGV"));
   const captured: Captured = { text: "" };
   try {
     await buildProgram(io, output, captured).parseAsync(argv, {

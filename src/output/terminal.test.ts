@@ -56,6 +56,13 @@ describe("detectTerminal", () => {
     expect(detectTerminal(tty(), {}, MOTION).motion).toBe(true);
   });
 
+  it("reads TASTE_NO_MOTION=0 or false as motion allowed, as readEnv does", () => {
+    for (const value of ["0", "false", " FALSE "])
+      expect(
+        detectTerminal(tty(), { TASTE_NO_MOTION: value }, MOTION).motion
+      ).toBe(true);
+  });
+
   it("reports the real width, however narrow", () => {
     expect(detectTerminal(tty(24, 30), {}, MOTION).width).toBe(30);
   });

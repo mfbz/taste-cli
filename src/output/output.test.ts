@@ -67,6 +67,22 @@ describe("--json output", () => {
     }
   });
 
+  it("says to run the command again after an interrupt with no job, and taste wait with one", () => {
+    const h = harness(true);
+    h.output.fail(new CliError("INTERRUPTED"));
+    const error = (JSON.parse(h.out()) as { error: Record<string, unknown> })
+      .error;
+    expect(error.hint).toBe("Run the command again.");
+    expect(error).not.toHaveProperty("details");
+  });
+
+  it("writes warnings to stderr even under --json, keeping stdout for the document", () => {
+    const h = harness(true);
+    h.output.warn("The saved sign in can't be read.");
+    expect(h.out()).toBe("");
+    expect(h.err()).toBe("warning: The saved sign in can't be read.\n");
+  });
+
   it("keeps notes out of the document", () => {
     const h = harness(true);
     h.output.note("waiting…");

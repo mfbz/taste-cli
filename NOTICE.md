@@ -5,3 +5,5 @@ taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engi
 Taste, Taste Labs and the Taste Engine are names of Taste Labs, used here only to say which service this tool works with. Questions about the Taste Engine, its API, credits or accounts belong to Taste Labs ([docs.tastelabs.com](https://docs.tastelabs.com)).
 
 The [MIT licence](LICENSE) covers taste-cli's own code and documentation. It does not cover Taste Labs' names or marks.
+
+The TASTE wordmark on the page shown after signing in is Taste Labs' trademark, used only to style that page and removed on request ([assets/brand/NOTICE.md](assets/brand/NOTICE.md)).

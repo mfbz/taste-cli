@@ -52,6 +52,11 @@ const CATALOGUE = {
     "The value for {option} isn't valid.",
     "See --help after the command."
   ),
+  USAGE_CONFLICTING_OPTIONS: entry(
+    2,
+    "Those options can't be used together.",
+    "Pick one. See --help after the command."
+  ),
   KEY_IN_ARGV: entry(
     2,
     "That looks like a Taste key or token on the command line. taste never takes one that way.",
@@ -66,6 +71,11 @@ const CATALOGUE = {
     2,
     "That address points at this computer or a private network.",
     "Taste can only read public websites. Use a public address."
+  ),
+  INVALID_ENV: entry(
+    2,
+    "{name} is not valid.",
+    "TASTE_API_URL takes an https address, or http on 127.0.0.1, ::1 or localhost. Fix or unset it."
   ),
   NOT_SIGNED_IN: entry(
     1,
@@ -82,6 +92,11 @@ const CATALOGUE = {
     "Taste did not accept that API key.",
     "Check the key, or run taste login to sign in with your browser."
   ),
+  CREDENTIALS_STORE_FAILED: entry(
+    1,
+    "Couldn't update your saved sign in.",
+    "Check that your keychain is unlocked and your config folder can be written, then try again."
+  ),
   LOGIN_TIMEOUT: entry(
     1,
     "The sign in was not finished in time.",
@@ -97,10 +112,29 @@ const CATALOGUE = {
     "No local port was free to finish the sign in.",
     "Close what is using ports on this computer and run taste login again."
   ),
+  // The sign in service answered in a way taste can't use: a bad document, an error in the redirect,
+  // a refused exchange. Its own words are never shown.
+  LOGIN_FAILED: entry(
+    1,
+    "The sign in couldn't be finished.",
+    "Run taste login again. If it keeps failing, wait a few minutes first.",
+    true
+  ),
   LOGIN_NOT_INTERACTIVE: entry(
     1,
-    "Signing in with a browser needs a terminal.",
-    "Run taste login in a terminal, or give a key with --api-key or --with-api-key."
+    "This way of signing in needs a terminal.",
+    "Run taste login in a terminal, pipe a key to taste login --with-api-key, or set TASTE_API_KEY."
+  ),
+  LOGIN_CANCELLED: entry(
+    130,
+    "Sign in cancelled.",
+    "Nothing was saved. Run taste login when you are ready."
+  ),
+  // Never says what came in: it may be a key with a typo.
+  INVALID_KEY_INPUT: entry(
+    2,
+    "No usable API key came in.",
+    "Give the key alone, such as taste login --with-api-key < key.txt."
   ),
   INSUFFICIENT_CREDITS: entry(
     1,
@@ -208,7 +242,8 @@ const CATALOGUE = {
   INTERRUPTED: entry(
     130,
     "Interrupted.",
-    "If a job was running it carries on. Run taste wait {id} to pick it up.",
+    // Shown when no job was started; JOB_HINTS has the hint for when one was.
+    "Run the command again.",
     true
   ),
   INTERNAL: entry(
@@ -248,6 +283,11 @@ function isJobId(value: string): boolean {
       !/^(?:taste_|eyJ)/.test(value))
   );
 }
+
+// With a job id the job carries on server side, so the hint says how to pick it up.
+const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
+  INTERRUPTED: "The job carries on. Run taste wait {id} to pick it up.",
+};
 
 const DETAIL_CODES = new Set<ErrorCode>([
   "INTERRUPTED",
@@ -289,14 +329,16 @@ function fill(template: string, params: Params): string {
 }
 
 function report(code: ErrorCode, params: Params = {}): FullReport {
-  const { exit, retryable, message, hint } = CATALOGUE[code];
+  const { exit, retryable, message } = CATALOGUE[code];
+  const hasJob = isJobId(String(params.id ?? ""));
+  const hint = (hasJob ? JOB_HINTS[code] : undefined) ?? CATALOGUE[code].hint;
   return {
     code,
     message: fill(message, params),
     hint: fill(hint, params),
     retryable,
     exitCode: exit,
-    ...(DETAIL_CODES.has(code) && isJobId(String(params.id ?? ""))
+    ...(DETAIL_CODES.has(code) && hasJob
       ? { details: { id: String(params.id) } }
       : {}),
   };
@@ -349,18 +391,23 @@ function upstreamReport({ status, code, balance, required }: UpstreamError) {
   return report("INTERNAL");
 }
 
-// Class name and stack frames only: frames hold file names and line numbers, never values.
+// Class name and stack frames only: frames hold file names and line numbers, never values. The stack
+// starts with the message, which may span lines (some may even start with "at "), so those lines are
+// dropped by count; a stack that doesn't start with the message gives no frames at all.
 function debugInfo(error: unknown): DebugInfo {
   const className =
     error instanceof Error ? error.constructor.name : typeof error;
-  const frames =
-    error instanceof Error && error.stack
-      ? error.stack
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.startsWith("at "))
-          .slice(0, 12)
-      : [];
+  if (!(error instanceof Error) || !error.stack)
+    return { className, frames: [] };
+  const head = String(error);
+  if (!error.stack.startsWith(head)) return { className, frames: [] };
+  const frames = error.stack
+    .split("\n")
+    .slice(head.split("\n").length)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("at "))
+    .map((line) => line.replace(KEY_TOKEN, "…"))
+    .slice(0, 12);
   return { className, frames };
 }
 
