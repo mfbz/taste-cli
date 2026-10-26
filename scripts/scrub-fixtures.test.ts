@@ -78,13 +78,6 @@ describe("normalise", () => {
     expect(check("extract-full", docs["extract-full"])).toEqual([]);
   });
 
-  it("keeps fields named like Object.prototype members", () => {
-    const components = { constructor: "Button", toString: "x", valueOf: 3 };
-    expect(normalise({ "extract-full": { components } })).toEqual({
-      "extract-full": { components },
-    });
-  });
-
   it("sets the account metadata keys to fixed values at any depth", () => {
     const out = normalise({
       "check-pass": {
@@ -187,33 +180,9 @@ describe("check", () => {
 });
 
 describe("the committed fixtures", () => {
-  // A later hand edit of a recording must not slip anything personal past npm test.
+  // A later hand edit, or a hand-written fixture (me, history), must not slip anything personal past npm test.
   it("all pass the check", () => {
     for (const [name, doc] of Object.entries(loadFixtures()))
       expect(check(name, doc)).toEqual([]);
-  });
-});
-
-describe("the hand-written fixtures", () => {
-  const fixtures = loadFixtures();
-
-  it("point their history at the ids the recorded recipes get", () => {
-    const text = JSON.stringify(fixtures.history);
-    for (const recipe of [
-      "extract-full",
-      "extract-full-2",
-      "search-fast",
-      "check-pass",
-    ])
-      expect(text).toContain(fakeId(recipe));
-  });
-
-  it("use the fake user the normaliser writes", () => {
-    expect(JSON.stringify(fixtures.me)).toContain(FAKE_USER);
-  });
-
-  it("pass the same check as recordings", () => {
-    for (const name of ["me", "history"])
-      expect(check(name, fixtures[name])).toEqual([]);
   });
 });

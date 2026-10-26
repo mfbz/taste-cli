@@ -35,8 +35,6 @@ type FakeOAuth = {
     // Status codes the loopback answered, in order.
     answers: number[];
   };
-  // What another process's refresh does on the server: spends a refresh token, issues new ones.
-  rotate(refreshToken: string): { accessToken: string; refreshToken: string };
 };
 
 const RESOURCE = "https://mcp.tastelabs.com/mcp";
@@ -85,17 +83,7 @@ function fakeOAuth(): FakeOAuth {
     tokenErrors: [],
     tokenDelayMs: 0,
     browser,
-    rotate,
   };
-
-  function rotate(refreshToken: string) {
-    if (!fake.refreshTokens.delete(refreshToken)) throw new Error("unknown");
-    const accessToken = token("access");
-    const next = token("refresh");
-    fake.accessTokens.push(accessToken);
-    fake.refreshTokens.add(next);
-    return { accessToken, refreshToken: next };
-  }
 
   function issue(): Response {
     const access = token("access");

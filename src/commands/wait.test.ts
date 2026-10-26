@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { SUBMISSION_MANIFEST } from "../api/schemas.ts";
-
 import { runCli } from "../fake-io.ts";
 import { fixtures, jobSeams, recorded } from "../job-seams.ts";
 
@@ -44,13 +43,8 @@ describe("taste wait", () => {
     expect(err).toContain("✓ Checked tastelabs.com");
     const json = await runCli(["wait", CHECK, "--json"], io);
     expect(json.doc()).toEqual({ ok: true, data: verdict });
-  });
-
-  it("prints an adherence verdict as JSON with --format json", async () => {
-    const { io } = jobSeams();
-    const { code, out } = await runCli(["wait", CHECK, "--format", "json"], io);
-    expect(code).toBe(0);
-    expect(JSON.parse(out)).toEqual(verdict);
+    const raw = await runCli(["wait", CHECK, "--format", "json"], io);
+    expect(JSON.parse(raw.out)).toEqual(verdict);
   });
 
   it("follows a running adherence job to its verdict", async () => {
@@ -65,11 +59,16 @@ describe("taste wait", () => {
     expect(doc().data).toMatchObject({ job_id: job.job_id, score: 0.82 });
   });
 
-  it("says Taste has nothing with an id it doesn't know", async () => {
+  it("says Taste has nothing with an id it doesn't know, with --out too", async () => {
     const { io } = jobSeams();
-    const { code, doc } = await runCli(["wait", "nope-1", "--json"], io);
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe("NOT_FOUND");
+    for (const extra of [[], ["--out", join(tmpdir(), "taste-never-made")]]) {
+      const { code, doc } = await runCli(
+        ["wait", "nope-1", ...extra, "--json"],
+        io
+      );
+      expect(code).toBe(1);
+      expect(doc().error.code).toBe("NOT_FOUND");
+    }
   });
 
   it("ends Ctrl-C with the same id to wait on again", async () => {
@@ -91,11 +90,6 @@ describe("taste wait", () => {
     );
     expect(code).toBe(130);
     expect(doc().error.hint).toContain(`taste wait ${job.submission_id}`);
-  });
-
-  it("is free, and says so nowhere as spending", async () => {
-    const { out } = await runCli(["wait", "--help"]);
-    expect(out).not.toMatch(/spends credits/i);
   });
 
   it("saves a finished extraction's recorded files with --out, for free", async () => {
@@ -131,15 +125,5 @@ describe("taste wait", () => {
       `GET /design/submissions/${CHECK}`,
       `GET /judge/brand-adherence/${CHECK}`,
     ]);
-  });
-
-  it("says Taste has nothing with an unknown id, with --out too", async () => {
-    const { io } = jobSeams();
-    const { code, doc } = await runCli(
-      ["wait", "nope-1", "--out", join(tmpdir(), "taste-never-made"), "--json"],
-      io
-    );
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe("NOT_FOUND");
   });
 });

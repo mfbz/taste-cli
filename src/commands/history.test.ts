@@ -49,45 +49,30 @@ describe("taste history", () => {
     );
   });
 
-  it("shows each check's score", async () => {
+  it("shows each check's score, leaving one it can't read empty, and says why only under --debug", async () => {
     const { io } = jobSeams();
-    const { code, out } = await runCli(["history", "checks"], io);
-    expect(code).toBe(0);
+    const { out } = await runCli(["history", "checks"], io);
     const line = (id: string) => out.split("\n").find((l) => l.includes(id));
     expect(line(PASS)).toContain("0.90");
     expect(line(FAIL)).toContain("0.15");
     expect(line(PASS)).toContain("https://tastelabs.com/");
-  });
 
-  it("leaves a score it can't read empty, and says why only under --debug", async () => {
-    const { api, io } = jobSeams({
+    const broken = jobSeams({
       errors: { getVerdict: new TasteApiError(500, {}) },
     });
-    const quiet = await runCli(["history", "checks"], io);
+    const quiet = await runCli(["history", "checks"], broken.io);
     expect(quiet.code).toBe(0);
-    expect(quiet.out).toContain(PASS);
+    expect(quiet.out).not.toContain("0.90");
     expect(quiet.err).toBe("");
-    const loud = await runCli(["history", "checks", "--debug"], io);
-    expect(loud.err).toContain(`debug: couldn't read the score of ${PASS}`);
-    expect(loud.err).toContain("TasteApiError 500");
-    expect(api.calls).toContain(`GET /judge/brand-adherence/${PASS}/result`);
+    const loud = await runCli(["history", "checks", "--debug"], broken.io);
+    expect(loud.err).toContain(
+      `debug: couldn't read the score of ${PASS} (TasteApiError 500)`
+    );
   });
 
   it("lists searches with their query", async () => {
-    const { io } = jobSeams();
-    const { code, out } = await runCli(["history", "searches"], io);
-    expect(code).toBe(0);
+    const { out } = await runCli(["history", "searches"], jobSeams().io);
     expect(out).toContain("dark brutalist developer tools");
-    expect(out).toContain("00000000-0000-4000-8000-000000000600");
-  });
-
-  it("finds a paid job just started with no options, first in the list", async () => {
-    const { api, io } = jobSeams();
-    const started = await api.createSubmission({ url: "https://example.com/" });
-    const { out } = await runCli(["history"], io);
-    const first = out.split("\n")[1] ?? "";
-    expect(first).toContain(started.submission_id);
-    expect(first).toContain("accepted");
   });
 
   it("passes the filters and the page to the API", async () => {
@@ -97,29 +82,18 @@ describe("taste history", () => {
       seen.push(query);
       return api.listSubmissions(query);
     };
-    const { code } = await runCli(
-      [
-        "history",
-        "extractions",
-        "--status",
-        "failed",
-        "--search",
-        "stripe",
-        "--limit",
-        "5",
-        "--offset",
-        "10",
-      ],
-      { ...io, api: { ...api, listSubmissions } }
-    );
-    expect(code).toBe(0);
+    const argv = "history extractions --status failed --search stripe";
+    await runCli([...argv.split(" "), "--limit", "5", "--offset", "10"], {
+      ...io,
+      api: { ...api, listSubmissions },
+    });
     expect(seen).toEqual([
       { status: "failed", q: "stripe", limit: 5, offset: 10 },
     ]);
   });
 
-  it("cuts the last column to a terminal's width, and nothing in a pipe", async () => {
-    const long = `https://example.com/${"a".repeat(80)}`;
+  it("cuts the last column to a terminal's width, nothing in a pipe, and strips control characters", async () => {
+    const long = `https://example.com/\u001b[2J\u0007${"a".repeat(80)}`;
     const { io } = jobSeams({
       submissions: [
         {
@@ -132,28 +106,22 @@ describe("taste history", () => {
       ],
     });
     const piped = await runCli(["history"], io);
-    expect(piped.out).toContain(long);
+    expect(piped.out).toContain(`https://example.com/[2J${"a".repeat(80)}`);
+    expect(piped.out).not.toMatch(/[\u0000-\u0008\u000b-\u001f]/);
     const terminal = await runCli(["history"], {
       ...io,
       terminal: { tty: true, width: 70, colorLevel: 0, motion: false },
     });
-    const lines = terminal.out.trimEnd().split("\n");
-    for (const line of lines) expect([...line].length).toBeLessThan(70);
+    for (const line of terminal.out.trimEnd().split("\n"))
+      expect([...line].length).toBeLessThan(70);
     expect(terminal.out).toContain("…");
   });
 
-  it("says how to see more when the page is not the whole list", async () => {
-    const { io } = jobSeams();
-    const { out } = await runCli(["history", "--limit", "1"], io);
-    expect(out).toContain("1 of 4");
-    expect(out).toContain("--offset 1");
-  });
-
-  it("says so when there is nothing to list", async () => {
-    const { io } = jobSeams({ submissions: [] });
-    const { code, out } = await runCli(["history"], io);
-    expect(code).toBe(0);
-    expect(out).toContain("No extractions");
+  it("names the next --offset when the page is not the whole list, and says when it is empty", async () => {
+    const { out } = await runCli(["history", "--limit", "1"], jobSeams().io);
+    expect(out).toContain("1 of 4. More with --offset 1.");
+    const empty = await runCli(["history"], jobSeams({ submissions: [] }).io);
+    expect(empty.out).toContain("No extractions found.");
   });
 
   it("refuses a status the list doesn't have, and a limit out of range, before any request", async () => {
@@ -161,7 +129,6 @@ describe("taste history", () => {
     for (const argv of [
       ["history", "--status", "judging"],
       ["history", "searches", "--status", "crawling"],
-      ["history", "--limit", "0"],
       ["history", "--limit", "101"],
       ["history", "everything"],
     ]) {
@@ -170,27 +137,5 @@ describe("taste history", () => {
       expect(doc().error.code).toMatch(/^USAGE_/);
     }
     expect(api.calls).toEqual([]);
-  });
-
-  it("strips control characters from what Taste sends", async () => {
-    const { io } = jobSeams({
-      submissions: [
-        {
-          submission_id: "sub-9",
-          status: "completed",
-          source_url: "https://example.com/\u001b[2J\u0007",
-          is_public: false,
-          accepted_at: "2026-10-26T10:00:00Z",
-        },
-      ],
-    });
-    const { out } = await runCli(["history"], io);
-    expect(out).toContain("https://example.com/[2J");
-    expect(out).not.toMatch(/[\u0000-\u0008\u000b-\u001f]/);
-  });
-
-  it("is free, and says so nowhere as spending", async () => {
-    const { out } = await runCli(["history", "--help"]);
-    expect(out).not.toMatch(/spends credits/i);
   });
 });

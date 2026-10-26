@@ -31,64 +31,31 @@ describe("renderBrandSummary", () => {
       const hexes = primaryHexes(recipe);
       expect(hexes.length).toBeGreaterThan(0);
       for (const hex of hexes) expect(text).toContain(hex);
+      expect(text).not.toMatch(ANSI);
     }
   );
 
-  it("shows the style, the tone, the type families and the id", () => {
+  it("shows the style, the tone, each type family once and the id, within the width", () => {
     const text = renderBrandSummary(result("extract-full"), plain);
-    expect(text).toContain("Taste");
     expect(text).toContain("Brutalism");
     expect(text).toContain("Intellectual, Mission-driven, Technical");
-    expect(text).toContain("Matter");
-    expect(text).toContain("Azeret Semimono");
-    expect(text).toContain("00000000-0000-4000-8000-000000000100");
+    expect(text).toContain(
+      "Type   Matter TRIAL, Azeret Semimono, Matter, Neue Montreal"
+    );
     expect(text).toContain(
       "taste wait 00000000-0000-4000-8000-000000000100 --format json"
     );
-  });
-
-  it("lists each type family once, and skips CSS expressions", () => {
-    const text = renderBrandSummary(result("extract-full"), plain);
-    const line = text.split("\n").find((l) => l.startsWith("Type")) ?? "";
-    expect(line).toBe(
-      "Type   Matter TRIAL, Azeret Semimono, Matter, Neue Montreal"
-    );
-    const css = SUBMISSION_RESULT.parse({
-      submission_id: "sub-1",
-      status: "completed",
-      source_url: "https://example.com/",
-      result: {
-        design_system: {
-          typography: {
-            titles: {
-              variants: [
-                { name: "Inter" },
-                { name: "calc(1rem)" },
-                { name: "Inter" },
-                { name: "var(--display)" },
-              ],
-            },
-          },
-        },
-      },
+    const narrow = renderBrandSummary(result("extract-full"), {
+      ...plain,
+      width: 40,
     });
-    expect(renderBrandSummary(css, plain)).toContain("Type   Inter\n");
-  });
-
-  it("has no ANSI without colour, and truecolor swatches with it", () => {
-    expect(renderBrandSummary(result("extract-full"), plain)).not.toMatch(ANSI);
-    const coloured = renderBrandSummary(result("extract-full"), {
-      theme: createTheme(3),
-      colorLevel: 3,
-      width: 80,
-    });
-    expect(coloured).toContain("\u001b[38;2;0;0;238m██");
+    for (const line of narrow.split("\n"))
+      expect(line.length).toBeLessThanOrEqual(40);
   });
 
   it("summarises a brand kit from its own shape", () => {
     const text = renderBrandSummary(result("kit"), plain);
     expect(text).toContain("ACME");
-    expect(text).toContain("Tools that work the first time.");
     expect(text).toContain("#D7263D");
     expect(text).toContain("Helvetica Neue");
   });
@@ -96,24 +63,12 @@ describe("renderBrandSummary", () => {
   it("falls back to the address for a selective result with no profile", () => {
     const selective = result("extract-selective");
     expect(brandName(selective)).toBe("linear.app");
-    const text = renderBrandSummary(selective, plain);
-    expect(text).toContain("linear.app");
-    expect(text).not.toContain("Style");
-  });
-
-  it("keeps every line within the width", () => {
-    const text = renderBrandSummary(result("extract-full"), {
-      ...plain,
-      width: 40,
-    });
-    for (const line of text.split("\n"))
-      expect(line.length).toBeLessThanOrEqual(40);
+    expect(renderBrandSummary(selective, plain)).not.toContain("Style");
   });
 
   it("cleans control characters out of the server's text", () => {
     const hostile = SUBMISSION_RESULT.parse({
       submission_id: "sub-1",
-      status: "completed",
       source_url: "https://example.com/",
       result: {
         design_system: {

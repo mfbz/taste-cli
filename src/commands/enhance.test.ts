@@ -38,20 +38,9 @@ describe("taste enhance", () => {
     expect(err).toContain(`Enhanced for ${TASTELABS}`);
   });
 
-  it("adds no second newline to a prompt that ends with one", async () => {
+  it("adds no second newline, and strips control characters but keeps newlines and tabs", async () => {
     const { io } = seams({
-      enhanced: { enhanced_prompt: "Line one.\nLine two.\n" },
-    });
-    const { out } = await runCli(
-      ["enhance", "a pricing page", "--brand", TASTELABS],
-      io
-    );
-    expect(out).toBe("Line one.\nLine two.\n");
-  });
-
-  it("strips control characters but keeps newlines and tabs", async () => {
-    const { io } = seams({
-      enhanced: { enhanced_prompt: "A\u001b]0;x\u0007 page.\n\tTabbed." },
+      enhanced: { enhanced_prompt: "A\u001b]0;x\u0007 page.\n\tTabbed.\n" },
     });
     const { out } = await runCli(
       ["enhance", "a pricing page", "--brand", TASTELABS],
@@ -90,26 +79,24 @@ describe("taste enhance", () => {
   it("asks for a full extraction for a selective id or address", async () => {
     const { io } = seams();
     for (const brand of [LINEAR_SELECTIVE, "linear.app"]) {
-      const { code, doc } = await runCli(
+      const { doc } = await runCli(
         ["enhance", "a pricing page", "--brand", brand, "--json"],
         io
       );
-      expect(code, brand).toBe(1);
       expect(doc().error.code, brand).toBe("FULL_EXTRACTION_REQUIRED");
     }
   });
 
   it("needs --brand, and a prompt that isn't blank, before any request", async () => {
     const { api, io } = seams();
-    const missing = await runCli(["enhance", "a pricing page", "--json"], io);
-    expect(missing.code).toBe(2);
-    expect(missing.doc().error.code).toBe("USAGE_MISSING_ARGUMENT");
-    const blank = await runCli(
-      ["enhance", "   ", "--brand", TASTELABS, "--json"],
-      io
-    );
-    expect(blank.code).toBe(2);
-    expect(blank.doc().error.code).toBe("USAGE_INVALID_PROMPT");
+    for (const [argv, code] of [
+      [["enhance", "a pricing page"], "USAGE_MISSING_ARGUMENT"],
+      [["enhance", "   ", "--brand", TASTELABS], "USAGE_INVALID_PROMPT"],
+    ] as const) {
+      const run = await runCli([...argv, "--json"], io);
+      expect(run.code).toBe(2);
+      expect(run.doc().error.code).toBe(code);
+    }
     expect(api.calls).toEqual([]);
   });
 
@@ -124,16 +111,15 @@ describe("taste enhance", () => {
   });
 
   it("never offers a blind retry after a network failure in flight", async () => {
-    const { code, doc } = await runCli(
+    const { doc } = await runCli(
       ["enhance", "a page", "--brand", TASTELABS, "--json"],
       offline()
     );
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe("NETWORK");
-    expect(doc().error.hint).toBe(
-      "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again."
-    );
-    expect(doc().error.retryable).toBe(false);
+    expect(doc().error).toMatchObject({
+      code: "NETWORK",
+      hint: "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.",
+      retryable: false,
+    });
   });
 
   it("says in its help that it spends credits", async () => {

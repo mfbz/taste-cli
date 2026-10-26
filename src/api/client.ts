@@ -29,19 +29,16 @@ import type {
   AdherenceJobList,
   AdherenceStatus,
   AdherenceVerdict,
-  BrandKitSectionName,
   BrandSearchRequest,
   BrandSearchResults,
   EnhanceResponse,
   Me,
   SearchStatus,
   SearchSubmissionList,
-  SectionName,
   SimilarBrandsResults,
   Submission,
   SubmissionAccepted,
   SubmissionCreate,
-  SubmissionKind,
   SubmissionList,
   SubmissionManifest,
   SubmissionResult,
@@ -66,13 +63,13 @@ type TasteApi = {
     bytes: Uint8Array;
   }): Promise<SubmissionAccepted>;
   listSubmissions(
-    q: ListQuery & { status?: SubmissionStatus; kind?: SubmissionKind }
+    q: ListQuery & {
+      status?: SubmissionStatus;
+      kind?: "website" | "brand_kit";
+    }
   ): Promise<SubmissionList>;
   getSubmission(id: string): Promise<Submission>;
-  getResult(
-    id: string,
-    sections?: (SectionName | BrandKitSectionName)[]
-  ): Promise<SubmissionResult | "not_ready">;
+  getResult(id: string): Promise<SubmissionResult | "not_ready">;
   getManifest(id: string): Promise<SubmissionManifest>;
   setSubmissionVisibility(id: string, isPublic: boolean): Promise<Submission>;
   enhance(body: {
@@ -462,15 +459,10 @@ function createTasteApi(deps: Deps): TasteApi {
         get(endpoint(`/design/submissions/${id(submissionId)}`))
       ),
 
-    getResult: (submissionId, sections) =>
+    getResult: (submissionId) =>
       callUnlessNotReady(
         SUBMISSION_RESULT,
-        get(
-          // One comma-separated parameter: the API drops repeated ones.
-          endpoint(`/design/submissions/${id(submissionId)}/result`, {
-            sections: sections?.length ? sections.join(",") : undefined,
-          })
-        )
+        get(endpoint(`/design/submissions/${id(submissionId)}/result`))
       ),
 
     getManifest: (submissionId) =>

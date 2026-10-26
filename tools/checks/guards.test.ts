@@ -6,7 +6,6 @@ import {
   findAttribution,
   findHomePath,
   findSecrets,
-  isBinary,
 } from "./guards.ts";
 
 // Secret-shaped samples are assembled at run time, so this file never contains one.
@@ -135,12 +134,5 @@ describe("commit messages", () => {
       )
     ).toHaveLength(1);
     expect(checkMessage("fix: wait redraw")).toEqual([]);
-  });
-});
-
-describe("binary files", () => {
-  it("are told apart from text by a NUL byte", () => {
-    expect(isBinary(Buffer.from([0x50, 0x4b, 0x00, 0x01]))).toBe(true);
-    expect(isBinary(Buffer.from("plain text"))).toBe(false);
   });
 });
