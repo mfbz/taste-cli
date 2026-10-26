@@ -201,7 +201,7 @@ taste wait <id> --out stripe --overwrite         # save them again, for free
 - Use a folder only you can write to: on macOS and Linux one that others can write to fails with `BUNDLE_PATH_UNSAFE`, so `--out /tmp` is refused before anything is spent.
 - Nothing is ever written outside the folder or through a symlink: a file path from Taste that would leave it fails with `BUNDLE_PATH_UNSAFE`, and nothing is written.
 - An asset that is gone for good (refused at its own address, or over 100 MB) is skipped with a warning; under `--json` the data gains `"skipped":[{"path","status"}]`.
-- Once the job is done, every failure to save keeps its id (`error.details.id`) and says how to save again for free with `taste wait <id> --out`.
+- Once the job is done, every failure to save keeps its id (`error.details.id`) and says how to get it again for free: `taste wait <id> --out`, or `taste wait <id>` for `BUNDLE_INVALID`.
 
 ## Search brands
 
@@ -310,7 +310,7 @@ The codes scripts most often branch on. Every code, with its message and hint, i
 | `SEARCH_BUSY`                                                                                                     | 1    | Taste turned the search away as busy; retryable                                                 |
 | `NETWORK`, `TIMEOUT`                                                                                              | 1    | Taste couldn't be reached or didn't answer; after a paid request, check before running it again |
 | `UPSTREAM`, `RATE_LIMITED`                                                                                        | 1    | A problem on Taste's side, or too many requests; try again in a minute                          |
-| `OUTPUT_EXISTS`, `OUTPUT_UNUSABLE`, `BUNDLE_PATH_UNSAFE`, `BUNDLE_INVALID`, `BUNDLE_INCOMPLETE`, `SAVE_FAILED`    | 1    | `--out` couldn't save; the hint names the free way to save again                                |
+| `OUTPUT_EXISTS`, `OUTPUT_UNUSABLE`, `BUNDLE_PATH_UNSAFE`, `BUNDLE_INVALID`, `BUNDLE_INCOMPLETE`, `SAVE_FAILED`    | 1    | `--out` couldn't save; the hint names the free way to get it again                              |
 | `INTERRUPTED`                                                                                                     | 130  | Ctrl-C                                                                                          |
 | `INTERNAL`                                                                                                        | 1    | A bug in taste-cli; run again with `--debug` and report it                                      |
 

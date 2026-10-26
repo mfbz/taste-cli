@@ -148,7 +148,7 @@ const SUBMISSION = z.looseObject({
   submission_id: z.string(),
   status: z.string(),
   source_url: z.string(),
-  is_public: z.boolean(),
+  is_public: z.boolean().optional(),
   kind: z.string().optional(),
   current_step: z.string().nullish(),
   accepted_at: z.string().nullish(),
