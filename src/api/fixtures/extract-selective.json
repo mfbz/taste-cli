@@ -1,0 +1,513 @@
+{
+  "recipe": "extract-selective",
+  "paid": true,
+  "calls": [
+    "POST /design/submissions 202",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000300 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000300/result 200"
+  ],
+  "steps": [{ "status": "completed", "current_step": "completed" }],
+  "data": {
+    "accepted": {
+      "submission_id": "00000000-0000-4000-8000-000000000300",
+      "status": "completed",
+      "source_url": "https://linear.app/",
+      "accepted_at": "2026-10-26T15:06:43.963503Z"
+    },
+    "submission": {
+      "submission_id": "00000000-0000-4000-8000-000000000300",
+      "status": "completed",
+      "source_url": "https://linear.app/",
+      "is_public": false,
+      "kind": "website",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:06:43.963503Z",
+      "accepted_at": "2026-10-26T15:06:43.963503Z",
+      "completed_at": "2026-10-22T14:03:47.660882Z",
+      "cache_hit": true,
+      "extraction_id": "00000000-0000-4000-8000-000000000301",
+      "error": null,
+      "credits_consumed": 2,
+      "batch_id": null,
+      "batch_label": null,
+      "api_key_name": "example",
+      "sections": ["colors", "typography"],
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "team_id": null,
+      "credit_ref_id": null
+    },
+    "result": {
+      "submission_id": "00000000-0000-4000-8000-000000000300",
+      "status": "completed",
+      "source_url": "https://linear.app/",
+      "extraction_id": "00000000-0000-4000-8000-000000000301",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:06:43.963503Z",
+      "result_updated_at": "2026-10-22T14:04:00.846824Z",
+      "accepted_at": "2026-10-26T15:06:43.963503Z",
+      "completed_at": "2026-10-22T14:03:47.660882Z",
+      "cache_hit": true,
+      "sections": ["colors", "typography"],
+      "result": {
+        "design_system": {
+          "kind": "website",
+          "colors": {
+            "baseline": [
+              {
+                "name": "Primary White",
+                "type": "Light",
+                "rules": {
+                  "description": "Provides maximum contrast for top-level typography, prominent brand marks, and primary call-to-action buttons.",
+                  "when_to_use": [
+                    "Global primary text and headings",
+                    "Primary CTA button backgrounds ('Open app', 'Sign up')",
+                    "Main navigation logo fill"
+                  ]
+                },
+                "hex": "#F7F8F8",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#FFFFFF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#E2E4E7",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#E5E5E6",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#E2E4E6",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#E4E5E9", "alpha": null, "aliases": [] }
+                ],
+                "score": 1.1140999999999999
+              },
+              {
+                "name": "Highlight Gray",
+                "type": "Cool Color",
+                "rules": {
+                  "description": "Serves as a high-visibility text color for important data points, titles, and active interface elements without the harshness of pure white.",
+                  "when_to_use": [
+                    "Issue card titles and IDs",
+                    "Active sidebar navigation labels",
+                    "'New' feature badges",
+                    "Key illustration stroke accents"
+                  ]
+                },
+                "hex": "#D0D6E0",
+                "alpha": null,
+                "shades": [],
+                "score": 0.0949
+              }
+            ],
+            "secondary": [
+              {
+                "name": "Muted Text",
+                "type": "Cool Color",
+                "rules": {
+                  "description": "Balances readability and subtlety for body copy, navigation links, and secondary interface details.",
+                  "when_to_use": [
+                    "Top navigation links",
+                    "Section description paragraphs",
+                    "Metadata and timestamps",
+                    "Secondary action icon fills"
+                  ]
+                },
+                "hex": "#8A8F98",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#9C9DA1",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#949496", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.0838
+              },
+              {
+                "name": "Tertiary Accents",
+                "type": "Neutral",
+                "rules": {
+                  "description": "Used for the lowest-contrast legible text and subtle structural elements, pushing non-critical information to the background.",
+                  "when_to_use": [
+                    "Collapsible sidebar section headers ('Workspace', 'Favorites')",
+                    "Activity log and history text",
+                    "Inactive or utility icon fills",
+                    "Subtle illustration paths"
+                  ]
+                },
+                "hex": "#62666D",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#626366",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#585A5C",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#6B6B6B",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#555557", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.0587
+              },
+              {
+                "name": "Dark Surfaces",
+                "type": "Dark",
+                "rules": {
+                  "description": "Forms the foundation of the dark-mode aesthetic, providing a range of deep blacks and grays to establish elevation and depth.",
+                  "when_to_use": [
+                    "Main page and body backgrounds",
+                    "Mockup app frame backgrounds",
+                    "Floating chat, comment, and issue panels",
+                    "Feature card backgrounds"
+                  ]
+                },
+                "hex": "#08090A",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#0F1011",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#0B0B0B",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#101112",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#161718",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#090A0B",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#121414",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#1C1C1D",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#191A1B",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#191D20",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#080808", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.033600000000000005
+              }
+            ],
+            "insights": [
+              "Purely Grayscale Identity: The design completely eschews highly saturated hues in its core palette, relying entirely on a strict, cool grayscale ramp to convey a premium, technical feel.",
+              "Alpha-Driven Elevation: Rather than defining dozens of distinct opaque gray hexes, the design builds depth by layering translucent whites (e.g., `#ffffff14` for borders, `#ffffff05` for fills) over the deep black base.",
+              "Precision through Contrast: Text hierarchy is meticulously controlled by stepping down the lightness of grays, allowing data-dense app views to remain legible without feeling overwhelming."
+            ]
+          },
+          "typography": {
+            "titles": {
+              "variants": [
+                {
+                  "name": "Inter Variable",
+                  "role": "Title 9 / Hero",
+                  "specs": {
+                    "size": "var(--title-9-size)",
+                    "line_height": "var(--title-9-line-height)",
+                    "font_weight": "var(--font-weight-medium)",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Title 8 / Display",
+                  "specs": {
+                    "size": "var(--title-8-size)",
+                    "line_height": "1",
+                    "font_weight": "var(--font-weight-medium)",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Title 6 / H2",
+                  "specs": {
+                    "size": "var(--title-6-size)",
+                    "line_height": "var(--title-6-line-height)",
+                    "font_weight": "var(--font-weight-medium)",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Title 2 / H3",
+                  "specs": {
+                    "size": "var(--title-2-size)",
+                    "line_height": "var(--title-2-line-height)",
+                    "font_weight": "var(--font-weight-semibold)",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "H4 / Subsection",
+                  "specs": {
+                    "size": "16px",
+                    "line_height": "28px",
+                    "font_weight": "var(--font-weight-semibold)",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "paragraphs": {
+              "description": "Body are used for longer passages of text in your app. Use typefaces intended for body styles, which are readable at smaller sizes and can be comfortably read in longer passages.",
+              "variants": [
+                {
+                  "name": "Inter Variable",
+                  "role": "Body Large / Lists",
+                  "specs": {
+                    "size": "16px",
+                    "line_height": "24px",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Body Regular",
+                  "specs": {
+                    "size": "var(--text-regular-size)",
+                    "line_height": "var(--text-regular-line-height)",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "labels": {
+              "description": "Label styles are smaller, utilitarian styles, used for things like the text inside components or for very small text in the content body, such as captions.",
+              "variants": [
+                {
+                  "name": "Berkeley Mono",
+                  "role": "Code Snippet",
+                  "specs": {
+                    "size": "14px",
+                    "line_height": "24px",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Berkeley Mono\", ui-monospace, \"SF Mono\", Menlo, monospace",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Berkeley Mono",
+                  "role": "Inline Code",
+                  "specs": {
+                    "size": "12px",
+                    "line_height": "20px",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Berkeley Mono\", ui-monospace, \"SF Mono\", Menlo, monospace",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Nav / Small UI",
+                  "specs": {
+                    "size": "13px",
+                    "line_height": "19.5px",
+                    "font_weight": "var(--font-weight-medium)",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Text Micro",
+                  "specs": {
+                    "size": "var(--text-micro-size)",
+                    "line_height": "16px",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Badge / Label Button",
+                  "specs": {
+                    "size": "12px",
+                    "line_height": "14px",
+                    "font_weight": "510",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Inter Variable",
+                  "role": "Badge Small",
+                  "specs": {
+                    "size": "10px",
+                    "line_height": "14px",
+                    "font_weight": "510",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Inter Variable\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "others": {
+              "description": "Font that does not have a classifier, that is small like regular.",
+              "variants": []
+            },
+            "highlights": "Gradient text variants achieved via `-webkit-background-clip: text` and `text-fill-color: transparent`. Elevated contrast on `<mark>` tags with `font-weight: 590` and `#f7f8f8` text color.",
+            "insights": [
+              "The extensive use of 'Inter Variable' with non-standard weights (510 for Medium, 590 for Semibold) suggests a highly tuned approach to UI legibility and visual hierarchy without being overtly heavy.",
+              "'Berkeley Mono' is purposefully utilized not just for code blocks but also for UI micro-components and metadata, reinforcing a technical and developer-centric brand identity.",
+              "Typography sizing and line-heights are heavily driven by CSS variables (e.g., `--title-9-size`), enabling a systemic, responsive approach to the application scale."
+            ]
+          }
+        },
+        "artifacts": {
+          "html": {
+            "path": "00000000-0000-4000-8000-000000000301/crawl/source.html",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000301/crawl/source.html",
+            "content_type": "text/html"
+          },
+          "css": {
+            "path": "00000000-0000-4000-8000-000000000301/crawl/styles.css",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000301/crawl/styles.css",
+            "content_type": "text/css"
+          },
+          "screenshot": {
+            "path": "00000000-0000-4000-8000-000000000301/crawl/viewport.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000301/crawl/viewport.jpg",
+            "content_type": "image/jpeg"
+          },
+          "full_page_screenshot": {
+            "path": "00000000-0000-4000-8000-000000000301/crawl/full.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000301/crawl/full.jpg",
+            "content_type": "image/jpeg"
+          },
+          "element_layout": {
+            "path": "00000000-0000-4000-8000-000000000301/crawl/element-layout.json",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000301/crawl/element-layout.json",
+            "content_type": "application/json"
+          }
+        }
+      }
+    }
+  }
+}
