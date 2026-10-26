@@ -74,6 +74,14 @@ describe("CliError", () => {
     expect(report.hint).toContain("taste wait sub_2");
   });
 
+  it("names the file and status of a failed download", () => {
+    const report = toErrorReport(
+      new CliError("DOWNLOAD_FAILED", { file: "logo.png", status: 403 })
+    );
+    expect(report.message).toBe("Couldn't download logo.png (403).");
+    expect(report.retryable).toBe(true);
+  });
+
   it("replaces a parameter that is not safe to show", () => {
     const keys = [
       ["tas", "te_", "Ab3_d-".repeat(5)].join(""),
@@ -131,6 +139,14 @@ describe("a job id", () => {
       expect(report.hint).toContain(`taste wait ${UUID}`);
       expect(report.details).toEqual({ id: UUID });
     }
+  });
+
+  it("puts a failed job's id in details", () => {
+    const report = toErrorReport(
+      new CliError("JOB_FAILED", { id: UUID, reason: "blocked" })
+    );
+    expect(report.details).toEqual({ id: UUID });
+    expect(report.message).toBe("The job failed: blocked");
   });
 
   it("leaves details out when there is no usable id or the code has none", () => {

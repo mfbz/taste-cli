@@ -192,6 +192,13 @@ const CATALOGUE = {
     "The download names a file outside the output folder.",
     "Nothing was written. Try again, and report it if it keeps happening."
   ),
+  // An asset from a manifest: its host is a CDN, not the Taste Engine, so API codes would mislead.
+  DOWNLOAD_FAILED: entry(
+    1,
+    "Couldn't download {file} ({status}).",
+    "Run the command again. Each run gets fresh download links.",
+    true
+  ),
   OUTPUT_EXISTS: entry(
     1,
     "That output folder already has files in it.",
@@ -242,7 +249,11 @@ function isJobId(value: string): boolean {
   );
 }
 
-const DETAIL_CODES = new Set<ErrorCode>(["INTERRUPTED", "WAIT_TIMEOUT"]);
+const DETAIL_CODES = new Set<ErrorCode>([
+  "INTERRUPTED",
+  "WAIT_TIMEOUT",
+  "JOB_FAILED",
+]);
 
 class CliError extends Error {
   readonly code: ErrorCode;

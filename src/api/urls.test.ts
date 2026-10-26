@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CliError } from "../output/errors.ts";
-import { normalizeUrl } from "./urls.ts";
+import { isPrivateHost, normalizeUrl } from "./urls.ts";
 
 function codeOf(input: string): string {
   try {
@@ -41,6 +41,8 @@ describe("normalizeUrl", () => {
       "100.128.0.1",
       "192.169.0.1",
       "https://[2606:4700::1111]/",
+      "https://[::ffff:808:808]/",
+      "https://[64:ff9b::808:808]/",
       "localhost.com",
       "notlocal.dev",
     ])
@@ -77,6 +79,14 @@ describe("normalizeUrl", () => {
       "http://[febf::1]/",
       "http://[::ffff:127.0.0.1]/",
       "http://[::ffff:192.168.0.1]/",
+      "http://localhost../",
+      "http://printer.local../",
+      "http://[::127.0.0.1]/",
+      "http://[::a00:1]/",
+      "http://[::ffff:0:a00:1]/",
+      "http://[::ffff:0:7f00:1]/",
+      "http://[64:ff9b::7f00:1]/",
+      "http://[64:ff9b::c0a8:101]/",
       "file:///etc/passwd",
       "file:",
     ])
@@ -96,5 +106,11 @@ describe("normalizeUrl", () => {
       "https://user:pass@stripe.com/",
     ])
       expect(codeOf(input), input).toBe("INVALID_URL");
+  });
+
+  it("exposes the private-host check for other callers", () => {
+    expect(isPrivateHost("LOCALHOST...")).toBe(true);
+    expect(isPrivateHost("[fe80::1]")).toBe(true);
+    expect(isPrivateHost("cdn.example.com")).toBe(false);
   });
 });

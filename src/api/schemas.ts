@@ -174,6 +174,16 @@ const LAYOUT = z.enum([
   "overlapping_layered",
 ]);
 
+// Response fields take any string but keep the known values typed: a status, kind or tier Taste adds
+// later must never turn a paid answer or a whole list page into an error. The strict enums above
+// are for what a person types.
+const OPEN_SUBMISSION_STATUS = SUBMISSION_STATUS.or(z.string());
+const OPEN_SUBMISSION_KIND = SUBMISSION_KIND.or(z.string());
+const OPEN_ADHERENCE_STATUS = ADHERENCE_STATUS.or(z.string());
+const OPEN_SEARCH_DEPTH = SEARCH_DEPTH.or(z.string());
+const OPEN_MATCH = z.enum(["strong", "good", "related"]).or(z.string());
+const OPEN_SEARCH_KIND = z.enum(["search", "similar"]).or(z.string());
+
 const ME = z.looseObject({
   user_id: z.string(),
   email: z.string().nullish(),
@@ -182,17 +192,17 @@ const ME = z.looseObject({
 
 const SUBMISSION_ACCEPTED = z.looseObject({
   submission_id: z.string(),
-  status: SUBMISSION_STATUS,
+  status: OPEN_SUBMISSION_STATUS,
   source_url: z.string(),
   accepted_at: z.string(),
 });
 
 const SUBMISSION = z.looseObject({
   submission_id: z.string(),
-  status: SUBMISSION_STATUS,
+  status: OPEN_SUBMISSION_STATUS,
   source_url: z.string(),
   is_public: z.boolean(),
-  kind: SUBMISSION_KIND.optional(),
+  kind: OPEN_SUBMISSION_KIND.optional(),
   current_step: z.string().nullish(),
   step_started_at: z.string().nullish(),
   updated_at: z.string().nullish(),
@@ -281,7 +291,7 @@ const BRAND_SEARCH_CARD = z.looseObject({
   url: z.string(),
   identity_paragraph: z.string(),
   brand_name: z.string().nullish(),
-  match: z.enum(["strong", "good", "related"]).nullish(),
+  match: OPEN_MATCH.nullish(),
   reason: z.string().nullish(),
   badge: z.string().nullish(),
   tags: STRING_LIST.optional(),
@@ -292,7 +302,7 @@ const BRAND_SEARCH_CARD = z.looseObject({
 
 const BRAND_SEARCH_RESULTS = z.looseObject({
   search_id: z.string().optional(),
-  depth: SEARCH_DEPTH.optional(),
+  depth: OPEN_SEARCH_DEPTH.optional(),
   results: z.array(BRAND_SEARCH_CARD).default([]),
   query_tags: z
     .looseObject({
@@ -312,9 +322,9 @@ const SIMILAR_BRANDS_RESULTS = z.looseObject({
 // The spec marks nothing required here; an entry without an id is of no use to history.
 const SEARCH_SUBMISSION = z.looseObject({
   id: z.string(),
-  kind: z.enum(["search", "similar"]).optional(),
+  kind: OPEN_SEARCH_KIND.optional(),
   query: z.string().optional(),
-  depth: SEARCH_DEPTH.nullish(),
+  depth: OPEN_SEARCH_DEPTH.nullish(),
   filters: LOOSE_RECORD.nullish(),
   query_tags: LOOSE_RECORD.nullish(),
   status: z.string().optional(),
@@ -342,7 +352,7 @@ const ADHERENCE_CACHE_HIT = z.looseObject({
 
 const ADHERENCE_ACCEPTED = z.looseObject({
   job_id: z.string(),
-  status: ADHERENCE_STATUS,
+  status: OPEN_ADHERENCE_STATUS,
   reference_url: z.string(),
   candidate_url: z.string(),
   accepted_at: z.string(),
@@ -352,7 +362,7 @@ const ADHERENCE_ACCEPTED = z.looseObject({
 
 const ADHERENCE_JOB = z.looseObject({
   job_id: z.string(),
-  status: ADHERENCE_STATUS,
+  status: OPEN_ADHERENCE_STATUS,
   reference_url: z.string(),
   candidate_url: z.string(),
   accepted_at: z.string(),
@@ -376,13 +386,14 @@ const ADHERENCE_JOB_LIST = z.looseObject({
 // A running job may answer with a partial verdict: score null, lists still filling.
 const ADHERENCE_VERDICT = z.looseObject({
   job_id: z.string(),
-  status: ADHERENCE_STATUS,
+  status: OPEN_ADHERENCE_STATUS,
   reference_url: z.string(),
   candidate_url: z.string(),
   accepted_at: z.string(),
   completed_at: z.string().nullish(),
   is_public: z.boolean().optional(),
-  score: z.number().min(0).max(1).nullable(),
+  // 0 to 1 by the spec; not enforced, so a change of scale shows rather than fails.
+  score: z.number().nullable(),
   recommendations: STRING_LIST,
   fixes: z.array(LOOSE_RECORD),
 });

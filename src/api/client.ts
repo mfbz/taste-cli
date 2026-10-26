@@ -21,6 +21,7 @@ import {
   SUBMISSION_MANIFEST,
   SUBMISSION_RESULT,
 } from "./schemas.ts";
+import { isPrivateHost } from "./urls.ts";
 import type {
   AdherenceAccepted,
   AdherenceJob,
@@ -98,7 +99,10 @@ type Deps = {
   fetch: typeof globalThis.fetch;
   baseUrl: string;
   auth: AuthProvider;
-  sleep: (ms: number) => Promise<void>;
+  // Given the signal so a real sleep can clear its timer the moment Ctrl-C lands.
+  sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
+  // Ctrl-C: aborts the request in flight and any retry wait, and the call ends with INTERRUPTED.
+  signal?: AbortSignal;
 };
 type Query = Readonly<Record<string, string | number | boolean | undefined>>;
 // "read": free and safe to repeat, retried on a network failure or 5xx. "once": spends credits or
@@ -131,6 +135,7 @@ const ATTEMPTS = 3;
 const BACKOFF_MS = 500;
 const MAX_RETRY_AFTER_MS = 30_000;
 const SERVER_MESSAGE_LIMIT = 500;
+const MAX_REDIRECTS = 5;
 // The three error envelopes Taste sends: an object detail ({error, message, and on a 402 balance and
 // required}), a validation list ([{loc, msg, type}]) and a plain string (search 502/503).
 const ERROR_BODY = z.object({
@@ -205,6 +210,14 @@ function parse<T>(schema: z.ZodType<T>, body: unknown): T {
   return parsed.data;
 }
 
+function assetUrl(raw: string): URL {
+  if (!URL.canParse(raw)) throw new CliError("INVALID_URL");
+  const url = new URL(raw);
+  if (url.protocol !== "https:") throw new CliError("INVALID_URL");
+  if (isPrivateHost(url.hostname)) throw new CliError("PRIVATE_URL");
+  return url;
+}
+
 function shouldRetry(retry: Retry, status: number): boolean {
   if (retry === "read") return status >= 500;
   return retry === "busy" && status === 503;
@@ -230,21 +243,35 @@ function createTasteApi(deps: Deps): TasteApi {
       ...(x.json === undefined ? {} : { "content-type": "application/json" }),
       ...credential,
     };
+    const timeoutMs = x.timeoutMs ?? TIMEOUT_MS;
     const response = await deps.fetch(x.url, {
       method: x.method,
       headers,
       body:
         x.form ?? (x.json === undefined ? undefined : JSON.stringify(x.json)),
       // A redirect would carry an x-api-key header to another host, so the API gets none. Asset
-      // downloads carry no credential and may follow a CDN's redirects.
-      redirect: x.authenticated ? "error" : "follow",
-      signal: AbortSignal.timeout(x.timeoutMs ?? TIMEOUT_MS),
+      // downloads follow redirects by hand, so every hop is checked (see download).
+      redirect: x.authenticated ? "error" : "manual",
+      signal: deps.signal
+        ? AbortSignal.any([deps.signal, AbortSignal.timeout(timeoutMs)])
+        : AbortSignal.timeout(timeoutMs),
     });
     // The timeout covers the body too; a stalled or dropped body is the network's failure.
     const bytes = new Uint8Array(await response.arrayBuffer());
-    if (!x.authenticated && response.url && !response.url.startsWith("https:"))
-      throw new CliError("INVALID_URL");
     return { status: response.status, headers: response.headers, bytes };
+  }
+
+  function interrupted(cause?: unknown): CliError {
+    return new CliError("INTERRUPTED", {}, { cause });
+  }
+
+  async function pause(ms: number): Promise<void> {
+    try {
+      await sleep(ms, deps.signal);
+    } catch (error) {
+      if (!deps.signal?.aborted) throw error;
+    }
+    if (deps.signal?.aborted) throw interrupted();
   }
 
   // Sends with retries per x.retry and one re-try after a refreshed credential; returns the last
@@ -258,9 +285,9 @@ function createTasteApi(deps: Deps): TasteApi {
       try {
         answer = await send(x, credential);
       } catch (error) {
-        if (error instanceof CliError) throw error;
+        if (deps.signal?.aborted) throw interrupted(error);
         if (x.retry === "read" && attempt < ATTEMPTS) {
-          await sleep(BACKOFF_MS * 2 ** (attempt - 1));
+          await pause(BACKOFF_MS * 2 ** (attempt - 1));
           continue;
         }
         throw new CliError("NETWORK", {}, { cause: error });
@@ -273,7 +300,7 @@ function createTasteApi(deps: Deps): TasteApi {
         }
       }
       if (attempt < ATTEMPTS && shouldRetry(x.retry, answer.status)) {
-        await sleep(
+        await pause(
           retryAfterMs(answer.headers) ?? BACKOFF_MS * 2 ** (attempt - 1)
         );
         continue;
@@ -459,19 +486,43 @@ function createTasteApi(deps: Deps): TasteApi {
         )
       ),
 
-    async download(url) {
-      if (!URL.canParse(url) || new URL(url).protocol !== "https:")
-        throw new CliError("INVALID_URL");
-      const answer = await exchange({
-        url: new URL(url),
-        method: "GET",
-        retry: "read",
-        authenticated: false,
-        timeoutMs: LONG_TIMEOUT_MS,
-      });
-      if (answer.status < 200 || answer.status >= 300)
-        throw new TasteApiError(answer.status);
-      return answer.bytes;
+    // The URL comes from the server and is fetched from this machine, so it and every redirect hop
+    // must be public https. A failure is the CDN's, never the API's, so it has its own code.
+    async download(raw) {
+      let url = assetUrl(raw);
+      const file = url.pathname.split("/").pop() || url.hostname;
+      for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+        let answer: Answer;
+        try {
+          answer = await exchange({
+            url,
+            method: "GET",
+            retry: "read",
+            authenticated: false,
+            timeoutMs: LONG_TIMEOUT_MS,
+          });
+        } catch (error) {
+          if (error instanceof CliError && error.code === "NETWORK")
+            throw new CliError(
+              "DOWNLOAD_FAILED",
+              { file, status: "network" },
+              { cause: error }
+            );
+          throw error;
+        }
+        const location = answer.headers.get("location");
+        if (answer.status >= 300 && answer.status < 400 && location) {
+          url = assetUrl(new URL(location, url).href);
+          continue;
+        }
+        if (answer.status < 200 || answer.status >= 300)
+          throw new CliError("DOWNLOAD_FAILED", {
+            file,
+            status: answer.status,
+          });
+        return answer.bytes;
+      }
+      throw new CliError("DOWNLOAD_FAILED", { file, status: "redirects" });
     },
   };
 }

@@ -63,7 +63,8 @@ function keyAuth(key = KEY): AuthProvider {
 
 function setup(
   script: (Reply | Error)[],
-  auth: AuthProvider = keyAuth()
+  auth: AuthProvider = keyAuth(),
+  signal?: AbortSignal
 ): {
   api: ReturnType<typeof createTasteApi>;
   calls: Call[];
@@ -76,7 +77,7 @@ function setup(
     slept.push(ms);
     return Promise.resolve();
   };
-  const api = createTasteApi({ fetch, baseUrl: BASE, auth, sleep });
+  const api = createTasteApi({ fetch, baseUrl: BASE, auth, sleep, signal });
   return { api, calls, fetch, slept };
 }
 
@@ -515,10 +516,131 @@ describe("createTasteApi download", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("reports a failed asset fetch by its status", async () => {
-    const { api } = setup([{ status: 403, text: "denied" }]);
-    expect(await caught(api.download("https://cdn.test/a.png"))).toMatchObject({
-      status: 403,
+  it("refuses a private or loopback asset address before fetching", async () => {
+    const { api, fetch } = setup([]);
+    for (const url of [
+      "https://localhost/a.png",
+      "https://127.0.0.1/a.png",
+      "https://10.0.0.5/a.png",
+      "https://[::1]/a.png",
+    ])
+      expect(((await caught(api.download(url))) as CliError).code).toBe(
+        "PRIVATE_URL"
+      );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("follows a redirect to another public https host", async () => {
+    const { api, calls, fetch } = setup([
+      { status: 302, headers: { location: "https://cdn2.test/b.png" } },
+      { status: 200, text: "png" },
+    ]);
+    await api.download("https://cdn.test/a.png");
+    expect(calls.map((c) => c.url.href)).toEqual([
+      "https://cdn.test/a.png",
+      "https://cdn2.test/b.png",
+    ]);
+    expect(vi.mocked(fetch).mock.calls[0]?.[1]?.redirect).toBe("manual");
+  });
+
+  it("never follows a redirect to a private host or to plain http", async () => {
+    for (const [location, code] of [
+      ["https://169.254.169.254/latest", "PRIVATE_URL"],
+      ["https://localhost/x", "PRIVATE_URL"],
+      ["http://cdn.test/a.png", "INVALID_URL"],
+    ] as const) {
+      const { api, calls } = setup([{ status: 302, headers: { location } }]);
+      const error = await caught(api.download("https://cdn.test/a.png"));
+      expect((error as CliError).code, location).toBe(code);
+      expect(calls).toHaveLength(1);
+    }
+  });
+
+  it("gives up after too many redirects", async () => {
+    const hop: Reply = {
+      status: 302,
+      headers: { location: "https://cdn.test/loop" },
+    };
+    const { api, calls } = setup(Array<Reply>(10).fill(hop));
+    const error = (await caught(
+      api.download("https://cdn.test/a.png")
+    )) as CliError;
+    expect(error.code).toBe("DOWNLOAD_FAILED");
+    expect(calls.length).toBeLessThanOrEqual(6);
+  });
+
+  it("reports a failed asset fetch as DOWNLOAD_FAILED with its status, not as an API error", async () => {
+    for (const status of [401, 403, 404, 503]) {
+      const replies: Reply[] = Array<Reply>(3).fill({ status, text: "no" });
+      const { api } = setup(replies);
+      const error = await caught(api.download("https://cdn.test/dir/logo.png"));
+      expect(error).toBeInstanceOf(CliError);
+      expect((error as CliError).code).toBe("DOWNLOAD_FAILED");
+      expect(toErrorReport(error).message).toBe(
+        `Couldn't download logo.png (${status}).`
+      );
+    }
+  });
+
+  it("reports a network failure while downloading as DOWNLOAD_FAILED", async () => {
+    const failure = new TypeError("fetch failed");
+    const { api } = setup([failure, failure, failure]);
+    const error = (await caught(
+      api.download("https://cdn.test/logo.png")
+    )) as CliError;
+    expect(error.code).toBe("DOWNLOAD_FAILED");
+    expect(toErrorReport(error).message).toBe(
+      "Couldn't download logo.png (network)."
+    );
+  });
+});
+
+describe("createTasteApi interrupt", () => {
+  it("passes the interrupt signal to fetch alongside the timeout", async () => {
+    const controller = new AbortController();
+    const { api, fetch } = setup(
+      [{ status: 200, body: { user_id: "u-1" } }],
+      keyAuth(),
+      controller.signal
+    );
+    await api.me();
+    const signal = vi.mocked(fetch).mock.calls[0]?.[1]?.signal;
+    expect(signal?.aborted).toBe(false);
+    controller.abort();
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it("turns an aborted request into INTERRUPTED without retrying", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const { api, fetch } = setup(
+      [new DOMException("aborted", "AbortError")],
+      keyAuth(),
+      controller.signal
+    );
+    const error = (await caught(api.getSubmission("sub-1"))) as CliError;
+    expect(error.code).toBe("INTERRUPTED");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("hands the signal to the retry sleep and stops when it fires", async () => {
+    const controller = new AbortController();
+    const { fetch } = fakeFetch({ status: 502, text: "bad" });
+    const signals: (AbortSignal | undefined)[] = [];
+    const api = createTasteApi({
+      fetch,
+      baseUrl: BASE,
+      auth: keyAuth(),
+      signal: controller.signal,
+      sleep: (_ms, signal) => {
+        signals.push(signal);
+        controller.abort();
+        return Promise.reject(new Error("sleep aborted"));
+      },
     });
+    const error = (await caught(api.getSubmission("sub-1"))) as CliError;
+    expect(signals).toEqual([controller.signal]);
+    expect(error.code).toBe("INTERRUPTED");
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

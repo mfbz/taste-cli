@@ -95,7 +95,8 @@ describe("createFakeApi", () => {
     });
     expect(await api.download("https://cdn.test/a.png")).toEqual(bytes);
     await expect(api.download("https://cdn.test/b.png")).rejects.toMatchObject({
-      status: 404,
+      code: "DOWNLOAD_FAILED",
+      params: { file: "b.png", status: 404 },
     });
   });
 });

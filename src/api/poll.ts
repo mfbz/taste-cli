@@ -12,7 +12,8 @@ type Check<T> = {
 type WaitOptions<T> = {
   check: () => Promise<Check<T>>;
   onStep: (step: string, elapsedMs: number) => void;
-  sleep: (ms: number) => Promise<void>;
+  // Given the signal so a real sleep can clear its timer the moment Ctrl-C lands.
+  sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
   now: () => number;
   timeoutMs: number;
   signal: AbortSignal;
@@ -50,6 +51,19 @@ function unlessAborted<T>(
   });
 }
 
+// A submission or adherence job as the API reports it. Only completed and failed are final; any other
+// status, including one Taste adds later, means keep polling.
+function jobCheck<T>(
+  job: { status: string; current_step?: string | null; error?: string | null },
+  value?: T
+): Check<T> {
+  const step = job.current_step ?? job.status;
+  if (job.status === "completed") return { done: true, step, value };
+  if (job.status === "failed")
+    return { done: false, step, failed: job.error ?? "" };
+  return { done: false, step };
+}
+
 async function waitForJob<T>(options: WaitOptions<T>): Promise<T> {
   const { check, onStep, sleep, now, timeoutMs, signal } = options;
   const params: Record<string, string> =
@@ -65,16 +79,16 @@ async function waitForJob<T>(options: WaitOptions<T>): Promise<T> {
       onStep(state.step, elapsed);
     }
     if (state.failed !== undefined)
-      throw new CliError("JOB_FAILED", { reason: state.failed });
+      throw new CliError("JOB_FAILED", { ...params, reason: state.failed });
     if (state.done) return state.value as T;
     if (elapsed >= timeoutMs) throw new CliError("WAIT_TIMEOUT", params);
     await unlessAborted(
-      sleep(Math.min(intervalMs(elapsed), timeoutMs - elapsed)),
+      sleep(Math.min(intervalMs(elapsed), timeoutMs - elapsed), signal),
       signal,
       params
     );
   }
 }
 
-export { waitForJob };
+export { jobCheck, waitForJob };
 export type { Check, WaitOptions };

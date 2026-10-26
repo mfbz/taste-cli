@@ -2,6 +2,7 @@
 // recording each call as "METHOD /path". Jobs it creates move one status forward each time they are
 // read, so a command's wait loop runs for real. Failures answer as the client would: a TasteApiError
 // with the status and the API's code.
+import { CliError } from "../output/errors.ts";
 import { TasteApiError } from "./client.ts";
 import type { TasteApi } from "./client.ts";
 import type {
@@ -203,7 +204,7 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
         const found = submission(id);
         const next = advance(id);
         if (next) {
-          found.status = next as SubmissionStatus;
+          found.status = next;
           found.current_step = next;
           if (next === "completed") found.completed_at = NOW;
         }
@@ -337,7 +338,7 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
         const found = job(id);
         const next = advance(id);
         if (next) {
-          found.status = next as AdherenceStatus;
+          found.status = next;
           found.current_step = next;
           if (next === "completed") found.completed_at = NOW;
         }
@@ -382,7 +383,11 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
       later(() => {
         enter("download", "GET", url);
         const bytes = state.downloads[url];
-        if (!bytes) throw new TasteApiError(404);
+        if (!bytes)
+          throw new CliError("DOWNLOAD_FAILED", {
+            file: url.split("/").pop() ?? "",
+            status: 404,
+          });
         return bytes;
       }),
   };

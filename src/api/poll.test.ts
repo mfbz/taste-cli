@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CliError, toErrorReport } from "../output/errors.ts";
-import { waitForJob } from "./poll.ts";
+import { jobCheck, waitForJob } from "./poll.ts";
 
 type Check = { done: boolean; failed?: string; step?: string; value?: string };
 
@@ -134,7 +134,39 @@ describe("waitForJob", () => {
     expect(toErrorReport(error).details).toEqual({ id: "sub-1" });
   });
 
-  it("stops with INTERRUPTED during a sleep that never ends", async () => {
+  it("hands the signal to sleep, so an interrupt clears its timer at once", async () => {
+    const controller = new AbortController();
+    const received: (AbortSignal | undefined)[] = [];
+    let cleared = false;
+    // A sleep like the real one: a long timer that is cleared when the signal fires.
+    const sleep = (ms: number, signal?: AbortSignal) => {
+      received.push(signal);
+      return new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(resolve, ms);
+        signal?.addEventListener("abort", () => {
+          clearTimeout(timer);
+          cleared = true;
+          reject(new Error("aborted"));
+        });
+      });
+    };
+    const pending = waitForJob({
+      check: () => Promise.resolve({ done: false }),
+      onStep: () => {},
+      sleep,
+      now: () => 0,
+      timeoutMs: 600_000,
+      signal: controller.signal,
+    });
+    setTimeout(() => controller.abort(), 0);
+    const started = Date.now();
+    expect((await caught(pending)).code).toBe("INTERRUPTED");
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(received).toEqual([controller.signal]);
+    expect(cleared).toBe(true);
+  });
+
+  it("stops with INTERRUPTED even when sleep ignores the signal", async () => {
     const controller = new AbortController();
     const pending = waitForJob({
       check: () => Promise.resolve({ done: false }),
@@ -176,11 +208,60 @@ describe("waitForJob", () => {
         ...clock(),
         timeoutMs: 60_000,
         signal: new AbortController().signal,
+        id: "sub-1",
       })
     );
     expect(error.code).toBe("JOB_FAILED");
     expect(toErrorReport(error).message).toBe(
       "The job failed: Site blocked the crawler"
     );
+    expect(toErrorReport(error).details).toEqual({ id: "sub-1" });
+  });
+});
+
+describe("jobCheck", () => {
+  it("is done only on completed, with the value", () => {
+    expect(jobCheck({ status: "completed" }, "v")).toEqual({
+      done: true,
+      step: "completed",
+      value: "v",
+    });
+  });
+
+  it("fails on failed, with the job's error", () => {
+    expect(jobCheck({ status: "failed", error: "Blocked" })).toMatchObject({
+      done: false,
+      failed: "Blocked",
+    });
+    expect(jobCheck({ status: "failed", error: null }).failed).toBe("");
+  });
+
+  it("reports the current step, or the status when there is none", () => {
+    expect(
+      jobCheck({ status: "extracting", current_step: "colors" }).step
+    ).toBe("colors");
+    expect(jobCheck({ status: "judging", current_step: null }).step).toBe(
+      "judging"
+    );
+  });
+
+  it("keeps polling through a status it does not know", async () => {
+    const time = clock();
+    const statuses = ["queued", "verifying", "completed"];
+    let index = 0;
+    const steps: string[] = [];
+    const value = await waitForJob({
+      check: () => {
+        const status = statuses[index] ?? "completed";
+        index += 1;
+        return Promise.resolve(jobCheck({ status }, status));
+      },
+      onStep: (step) => steps.push(step),
+      ...time,
+      timeoutMs: 60_000,
+      signal: new AbortController().signal,
+    });
+    expect(value).toBe("completed");
+    expect(steps).toEqual(["queued", "verifying", "completed"]);
   });
 });
