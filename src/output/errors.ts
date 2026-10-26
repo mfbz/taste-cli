@@ -67,6 +67,11 @@ const CATALOGUE = {
     "That address points at this computer or a private network.",
     "Taste can only read public websites. Use a public address."
   ),
+  INVALID_ENV: entry(
+    2,
+    "{name} is not valid.",
+    "TASTE_API_URL takes an https address, or http on 127.0.0.1, ::1 or localhost. Fix or unset it."
+  ),
   NOT_SIGNED_IN: entry(
     1,
     "You are not signed in.",
@@ -81,6 +86,11 @@ const CATALOGUE = {
     1,
     "Taste did not accept that API key.",
     "Check the key, or run taste login to sign in with your browser."
+  ),
+  CREDENTIALS_STORE_FAILED: entry(
+    1,
+    "Couldn't update your saved sign in.",
+    "Check that your keychain is unlocked and your config folder can be written, then try again."
   ),
   LOGIN_TIMEOUT: entry(
     1,
