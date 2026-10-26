@@ -35,10 +35,13 @@ const USAGE_CODES: Readonly<Record<string, ErrorCode>> = {
 };
 // The whole option as typed, up to "=" or the closing quote; errors.ts decides whether it may be shown.
 const OPTION_NAME = /'(-[^'=\s]*)/;
-// A Taste key or a JWT, as a whole argument or an option's value. Checked before parsing, so no
-// command, error or usage message ever sees it.
+// A Taste key or a JWT, as a whole argument or a whole option value, so a file name or a query that
+// merely starts with taste_ still gets through. Checked before parsing, so no command, error or usage
+// message ever sees it.
+// A key's body is long random text: a 16-character run without underscores, or 32 characters in all.
+// Words joined by underscores (taste_engine_reviews) are neither.
 const KEY_ARG =
-  /(?:^|=)(?:taste_[A-Za-z0-9_-]{12,}|eyJ[\w-]{8,}\.eyJ[\w-]{8,})/;
+  /(?:^|=)(?:taste_(?:[A-Za-z0-9_-]*[A-Za-z0-9-]{16}[A-Za-z0-9_-]*|[A-Za-z0-9_-]{32,})|eyJ[\w-]{8,}\.eyJ[\w-]{8,}(?:\.[\w-]*)?)$/;
 
 function isCommanderError(error: unknown): error is { code: string } {
   const code: unknown =

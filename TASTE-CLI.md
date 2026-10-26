@@ -29,6 +29,9 @@ Planned global flags: `--no-motion`, `-y, --yes`.
 - Without `--json`, results go to stdout and errors, notes, progress and prompts to stderr. A pipe gets no ANSI.
 - Exit codes: 0 ok, 1 failure, 2 usage, 130 interrupted.
 - Errors come only from a catalogue (`src/output/errors.ts`): code, message, hint, retryable. Untrusted server text is stripped of control characters before display.
+- Warnings a person must see (a saved sign in ignored, a keychain that may still hold one) go to stderr in both modes, prefixed `warning:`; under `--json` stdout still carries only the one document.
+- Ctrl-C aborts what is in flight and the command ends through the usual output. A second Ctrl-C, or a command that hasn't stopped two seconds later, ends the process at once, with the same exit code and document.
+- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up.
 
 Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 
@@ -36,9 +39,10 @@ Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 - `taste --help`, and `taste` with no command, print the help with the unofficial line and exit 0; under `--json` the help is `data.help`.
 - An unknown option exits 2 and names the option but never its value; under `--json` it is one document with `error.code` `USAGE_UNKNOWN_OPTION`. An unknown command exits 2 with `USAGE_UNKNOWN_COMMAND`.
 - A reader that closes the pipe early is not an error.
-- A Taste key (`taste_…`) or a token (a JWT) anywhere in argv, as an argument or an option's value, is refused with `KEY_IN_ARGV` (exit 2) before any command runs, and is never echoed (`src/cli.test.ts`).
+- A Taste key (`taste_` followed by long random text) or a token (a JWT) anywhere in argv, as a whole argument or a whole option value, is refused with `KEY_IN_ARGV` (exit 2) before any command runs, and is never echoed. File names and words that only start with `taste_`, such as `taste_logo_final.pdf` or `taste_engine_reviews`, go through (`src/cli.test.ts`).
 - `--debug` adds only the error's class name and stack frames; an error's message and its cause never reach output, in either mode (`src/cli.test.ts`).
-- Ctrl-C ends a running command with exit 130 and, under `--json`, one `INTERRUPTED` document (`src/main.test.ts`). A second Ctrl-C, or a command that hasn't stopped two seconds later, ends the process at once.
+- Ctrl-C ends a running command with exit 130 and, under `--json`, one `INTERRUPTED` document (`src/main.test.ts`); without a job the hint is "Run the command again." (`src/output/output.test.ts`).
+- Store warnings reach stderr under `--json` too, with exactly one document on stdout (`src/output/output.test.ts`, `src/commands/whoami.test.ts`).
 
 ### Configuration
 
@@ -70,7 +74,7 @@ Signs in and saves the sign in. Free: no credits are spent.
 
 - `taste login`: in a terminal, opens the browser to sign in to Taste (OAuth with PKCE and a redirect to a local port). The address is printed on stderr too, in case the browser doesn't open. The session refreshes itself shortly before it ends.
 - `taste login --api-key`: asks for an API key at a hidden prompt on stderr. Needs a terminal.
-- `taste login --with-api-key`: reads an API key from stdin to the end (`taste login --with-api-key < key.txt`). For scripts and CI.
+- `taste login --with-api-key`: reads an API key from stdin to the end (`taste login --with-api-key < key.txt`). For scripts and CI. When stdin is a terminal it first says how to end the input (Ctrl-D, or Ctrl-Z then Enter on Windows).
 
 A key is checked with `GET /design/me` before it is saved, so a wrong key replaces nothing. A key is never taken as an argument (see `KEY_IN_ARGV`). `--api-key` and `--with-api-key` can't be combined (`USAGE_CONFLICTING_OPTIONS`).
 
@@ -86,6 +90,8 @@ Acceptance (proven by `src/commands/login.test.ts`):
 - `taste login` without a terminal, or under `--json`, fails with `LOGIN_NOT_INTERACTIVE` and opens no browser.
 - In a terminal, the browser sign in prints the address on stderr, stores the session and prints `Signed in as <email>`; no token appears in any output. Ctrl-C while it waits exits 130 and saves nothing.
 - With `TASTE_API_KEY` set, a note says it is used instead of the saved sign in.
+- `--with-api-key` on a terminal stdin says how to end the input; from a pipe it says nothing.
+- `--api-key` without a terminal fails with `error.code` `LOGIN_NOT_INTERACTIVE` under `--json`.
 
 ### `taste logout`
 
@@ -97,7 +103,7 @@ Acceptance (proven by `src/commands/logout.test.ts`):
 
 - `taste logout` twice exits 0 both times and leaves nothing stored.
 - With `TASTE_API_KEY` set, a note says the key is still used.
-- When the keychain can't be reached, the file is cleared and a warning says a sign in saved there earlier may remain.
+- When the keychain can't be reached, the credentials file is removed and a warning on stderr, in both modes, says a sign in saved in the keychain earlier may remain.
 
 ### `taste whoami`
 
@@ -105,7 +111,7 @@ Shows which credential taste would use and whose account it is, confirmed with o
 
 `--json`: `{"ok":true,"data":{"method":"env-key"|"key"|"session","email":string|null,"store":"keychain"|"file"|null}}` (`store` is `null` for `env-key`). Human: `Signed in as <email> (browser session).`, `Signed in as <email> (API key).` or `Using an API key from TASTE_API_KEY (<email>).`
 
-Errors: `NOT_SIGNED_IN` (nothing saved, or a saved sign in that can't be read), `SESSION_EXPIRED` (a session Taste refuses and that can't be refreshed; it is removed), `INVALID_API_KEY` (a key Taste refuses).
+Errors: `NOT_SIGNED_IN` (nothing saved, or a saved sign in that can't be read), `SESSION_EXPIRED` (a session Taste refuses and that can't be refreshed; it is removed only when the sign in service refuses the refresh), `INVALID_API_KEY` (a key Taste refuses).
 
 Acceptance (proven by `src/commands/whoami.test.ts` and `src/auth/provider.test.ts`):
 

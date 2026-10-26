@@ -242,7 +242,8 @@ const CATALOGUE = {
   INTERRUPTED: entry(
     130,
     "Interrupted.",
-    "If a job was running it carries on. Run taste wait {id} to pick it up.",
+    // Shown when no job was started; JOB_HINTS has the hint for when one was.
+    "Run the command again.",
     true
   ),
   INTERNAL: entry(
@@ -282,6 +283,11 @@ function isJobId(value: string): boolean {
       !/^(?:taste_|eyJ)/.test(value))
   );
 }
+
+// With a job id the job carries on server side, so the hint says how to pick it up.
+const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
+  INTERRUPTED: "The job carries on. Run taste wait {id} to pick it up.",
+};
 
 const DETAIL_CODES = new Set<ErrorCode>([
   "INTERRUPTED",
@@ -323,14 +329,16 @@ function fill(template: string, params: Params): string {
 }
 
 function report(code: ErrorCode, params: Params = {}): FullReport {
-  const { exit, retryable, message, hint } = CATALOGUE[code];
+  const { exit, retryable, message } = CATALOGUE[code];
+  const hasJob = isJobId(String(params.id ?? ""));
+  const hint = (hasJob ? JOB_HINTS[code] : undefined) ?? CATALOGUE[code].hint;
   return {
     code,
     message: fill(message, params),
     hint: fill(hint, params),
     retryable,
     exitCode: exit,
-    ...(DETAIL_CODES.has(code) && isJobId(String(params.id ?? ""))
+    ...(DETAIL_CODES.has(code) && hasJob
       ? { details: { id: String(params.id) } }
       : {}),
   };

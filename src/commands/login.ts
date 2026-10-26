@@ -11,6 +11,8 @@ import type { Theme } from "../output/theme.ts";
 type LoginOptions = { apiKey?: boolean; withApiKey?: boolean };
 type LoginResult = Omit<Identity, "method"> & { method: "key" | "session" };
 
+const STDIN_NOTE =
+  "Reading a key from stdin. End with Ctrl-D (Ctrl-Z then Enter on Windows).";
 // One word of printable ASCII: what a key looks like, and all an HTTP header can carry.
 const KEY_TEXT = /^[\x21-\x7e]{1,1024}$/;
 
@@ -66,9 +68,11 @@ function renderLogin(result: LoginResult, theme: Theme): string {
 async function login(ctx: Context, options: LoginOptions): Promise<void> {
   if (ctx.env.apiKey) ctx.output.note(ENV_KEY_NOTE);
   let result: LoginResult;
-  if (options.withApiKey)
+  if (options.withApiKey) {
+    // A terminal on stdin waits for an end of input that a person may not know to give.
+    if (ctx.interactive) ctx.output.note(STDIN_NOTE);
     result = await saveKey(ctx, parseKey(await ctx.stdinText()));
-  else if (options.apiKey) result = await saveKey(ctx, await promptKey(ctx));
+  } else if (options.apiKey) result = await saveKey(ctx, await promptKey(ctx));
   else result = await browserLogin(ctx);
   ctx.output.result(result, (theme) => renderLogin(result, theme));
 }

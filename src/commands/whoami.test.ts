@@ -80,6 +80,19 @@ describe("taste whoami", () => {
     expect(err).not.toMatch(/\bat \S+:\d+/);
   });
 
+  it("puts the store's warning on stderr under --json too, with one document on stdout", async () => {
+    writeFileSync(credentialsFile(dir), "{not json", { mode: 0o600 });
+    const { io } = seams(null, {
+      store: (warn) => openStore({ dir, keychain: null, warn }),
+    });
+    const { code, out, err, doc } = await runCli(["whoami", "--json"], io);
+    expect(code).toBe(1);
+    expect(err).toContain("No system keychain");
+    expect(err).toContain("can't be read");
+    expect(out.trim().split("\n")).toHaveLength(1);
+    expect(doc().error.code).toBe("NOT_SIGNED_IN");
+  });
+
   it("uses TASTE_API_KEY without opening the store", async () => {
     const { io, me, opened } = seams(session(), {
       env: { TASTE_API_KEY: KEY },

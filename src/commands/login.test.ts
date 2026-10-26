@@ -89,6 +89,19 @@ describe("taste login --with-api-key", () => {
     }
   });
 
+  it("says how to end the input when stdin is a terminal, and only then", async () => {
+    for (const interactive of [true, false]) {
+      const { io } = seams({
+        interactive,
+        stdinText: () => Promise.resolve(KEY),
+      });
+      const { code, err } = await runCli(["login", "--with-api-key"], io);
+      expect(code).toBe(0);
+      if (interactive) expect(err).toContain("End with Ctrl-D");
+      else expect(err).not.toContain("Ctrl-D");
+    }
+  });
+
   it("uses TASTE_API_URL for the check", async () => {
     const { io, me } = seams({
       stdinText: () => Promise.resolve(KEY),
@@ -128,6 +141,11 @@ describe("taste login --api-key", () => {
       expect(code).toBe(1);
       expect(out + err).toContain("terminal");
       expect(asked).toBe(0);
+      const json = await runCli(["login", "--api-key", "--json"], {
+        ...io,
+        interactive: false,
+      });
+      expect(json.doc().error.code).toBe("LOGIN_NOT_INTERACTIVE");
       expect(store.value).toBeNull();
     }
   });
@@ -247,8 +265,10 @@ describe("taste login with the browser", () => {
       },
       signal: controller.signal,
     });
-    const { code } = await runCli(["login"], io);
+    const { code, err } = await runCli(["login"], io);
     expect(code).toBe(130);
+    expect(err).toContain("Run the command again.");
+    expect(err).not.toContain("taste wait");
     expect(store.value).toBeNull();
   });
 });

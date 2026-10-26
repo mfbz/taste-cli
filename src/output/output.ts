@@ -10,6 +10,8 @@ type Output = {
   result<T>(data: T, human: (theme: Theme) => string): void;
   /** Progress or context for a person, on stderr; silent with --json so stdout stays one document. */
   note(text: string): void;
+  /** Something a person must know (a credential ignored or left behind), on stderr in every mode. */
+  warn(text: string): void;
   /** Reports a failure the same way everywhere and returns the exit code. */
   fail(error: unknown): ExitCode;
 };
@@ -44,6 +46,9 @@ function createOutput(options: OutputOptions): Output {
     },
     note(text) {
       if (!json) stderr(`${text}\n`);
+    },
+    warn(text) {
+      stderr(`${theme.warning("warning:")} ${plain(text)}\n`);
     },
     fail(error) {
       const { exitCode, debug: trace, ...report } = toErrorReport(error);

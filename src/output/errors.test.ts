@@ -92,9 +92,13 @@ describe("CliError", () => {
       "line\nbreak",
     ];
     for (const id of keys) {
-      const report = toErrorReport(new CliError("INTERRUPTED", { id }));
+      const report = toErrorReport(new CliError("WAIT_TIMEOUT", { id }));
       expect(report.hint).not.toContain(id);
       expect(report.hint).toContain("taste wait …");
+      // An id that can't be shown isn't a job to pick up, so the interrupt says to run it again.
+      expect(toErrorReport(new CliError("INTERRUPTED", { id })).hint).toBe(
+        "Run the command again."
+      );
     }
   });
 

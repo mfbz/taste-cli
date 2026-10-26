@@ -45,7 +45,7 @@ function createContext(io: Io, output: Output): Context {
   const sleep = (ms: number, s?: AbortSignal) =>
     need(io.sleep)(ms, s ?? signal);
   let opening: Promise<SecretStore> | undefined;
-  const store = () => (opening ??= need(io.store)((line) => output.note(line)));
+  const store = () => (opening ??= need(io.store)((line) => output.warn(line)));
   const refreshDeps = () => ({
     fetch: need(io.fetch),
     dir: need(io.configDir),

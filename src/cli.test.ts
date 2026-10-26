@@ -108,7 +108,9 @@ describe("taste", () => {
         return Promise.reject(new Error("no network in tests"));
       },
     };
-    for (const secret of [key, jwt]) {
+    const long = ["taste", "Ab3_d-".repeat(6)].join("_");
+    const signed = [jwt, "c".repeat(20)].join(".");
+    for (const secret of [key, jwt, long, signed]) {
       for (const argv of [
         ["whoami", secret],
         ["whoami", `--x=${secret}`],
@@ -125,6 +127,19 @@ describe("taste", () => {
       }
     }
     expect(fetched).toBe(0);
+  });
+
+  it("lets through file names, queries and words that only start like a key", async () => {
+    for (const arg of [
+      ["taste", "brand", "guidelines.pdf"].join("_"),
+      "taste_engine_reviews",
+      "taste_ like a calm fintech brand",
+      `--out=${["taste", "brand", "guidelines.pdf"].join("_")}`,
+      "eyJhbGciOiJIUzI1NiJ9 is a header",
+    ]) {
+      const { doc } = await runCli(["--json", "whoami", arg]);
+      expect(doc().error.code, arg).not.toBe("KEY_IN_ARGV");
+    }
   });
 
   it("never shows an error's cause or message under --debug, only its class and frames", async () => {

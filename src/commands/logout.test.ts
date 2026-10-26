@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { memoryStore } from "../auth/fake-oauth.ts";
 import type { KeychainLike } from "../auth/keychain.ts";
 import { openStore } from "../auth/store.ts";
+import { credentialsFile } from "../config/paths.ts";
 import { runCli } from "../fake-io.ts";
 
 // Built at run time so the guards never see a key-shaped literal.
@@ -52,10 +53,23 @@ describe("taste logout", () => {
       set: () => Promise.reject(new Error("locked")),
       delete: () => Promise.reject(new Error("locked")),
     };
-    const { code, err } = await runCli(["logout"], {
-      store: (warn) => openStore({ dir, keychain: broken, warn }),
+    const file = credentialsFile(dir);
+    writeFileSync(file, JSON.stringify({ kind: "key", apiKey: KEY }), {
+      mode: 0o600,
     });
-    expect(code).toBe(0);
-    expect(err).toContain("keychain could not be reached");
+    for (const json of [false, true]) {
+      const { code, out, err } = await runCli(
+        ["logout", ...(json ? ["--json"] : [])],
+        { store: (warn) => openStore({ dir, keychain: broken, warn }) }
+      );
+      expect(code).toBe(0);
+      expect(err).toContain("keychain could not be reached");
+      expect(existsSync(file)).toBe(false);
+      if (json)
+        expect(JSON.parse(out)).toEqual({
+          ok: true,
+          data: { signedOut: true },
+        });
+    }
   });
 });
