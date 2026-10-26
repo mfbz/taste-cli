@@ -34,6 +34,12 @@ function colorLevel(stream: StreamLike, env: EnvLike): ColorLevel {
   return depthToLevel(stream.getColorDepth?.() ?? 4);
 }
 
+// The same reading as readEnv: set and not "0" or "false".
+function asksNoMotion(value: string | undefined): boolean {
+  const text = value?.trim().toLowerCase();
+  return Boolean(text) && text !== "0" && text !== "false";
+}
+
 function detectTerminal(
   stream: StreamLike,
   env: EnvLike,
@@ -47,7 +53,7 @@ function detectTerminal(
     tty &&
     !env.NO_COLOR &&
     !env.CI &&
-    !env.TASTE_NO_MOTION &&
+    !asksNoMotion(env.TASTE_NO_MOTION) &&
     env.TERM !== "dumb";
   return {
     tty,

@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import pkg from "../package.json" with { type: "json" };
 import { run } from "./cli.ts";
 import type { Io } from "./cli.ts";
+import { runCli } from "./fake-io.ts";
+import { CliError } from "./output/errors.ts";
 
 type Doc = {
   ok: boolean;
@@ -87,8 +89,65 @@ describe("taste", () => {
           );
           expect(code, argv[0]).toBe(2);
           expect(out + err, argv[0]).not.toContain(key);
-          expect(out + err, argv[0]).toContain("…");
+          // Taste keys and tokens are refused by name before parsing; others show as "…".
+          expect(out + err, argv[0]).toMatch(/…|key or token/);
         }
+      }
+    }
+  });
+
+  it("refuses a Taste key or token anywhere in argv before any command runs, never echoing it", async () => {
+    const key = ["taste", "TESTKEY", "x".repeat(16)].join("_");
+    const jwt = ["ey", "J", "a".repeat(12), ".ey", "J", "b".repeat(12)].join(
+      ""
+    );
+    let fetched = 0;
+    const io = {
+      fetch: () => {
+        fetched += 1;
+        return Promise.reject(new Error("no network in tests"));
+      },
+    };
+    for (const secret of [key, jwt]) {
+      for (const argv of [
+        ["whoami", secret],
+        ["whoami", `--x=${secret}`],
+        ["extract", "x.com", "--key", secret],
+        ["login", `--api-key=${secret}`],
+      ]) {
+        const human = await runCli(argv, io);
+        expect(human.code, argv.join(" ")).toBe(2);
+        expect(human.err).toContain("key or token");
+        expect(human.out + human.err).not.toContain(secret);
+        const json = await runCli(["--json", ...argv], io);
+        expect(json.doc().error.code).toBe("KEY_IN_ARGV");
+        expect(json.out + json.err).not.toContain(secret);
+      }
+    }
+    expect(fetched).toBe(0);
+  });
+
+  it("never shows an error's cause or message under --debug, only its class and frames", async () => {
+    const token = ["taste", "CAUSE", "q".repeat(16)].join("_");
+    const raw = new Error(`failed with ${token}\n    at ${token} (x.ts:1:1)`);
+    for (const thrown of [
+      new CliError("CREDENTIALS_STORE_FAILED", {}, { cause: raw }),
+      raw,
+    ]) {
+      const store = {
+        name: "keychain" as const,
+        read: () => Promise.reject(thrown),
+        write: () => Promise.resolve(),
+        clear: () => Promise.resolve(),
+      };
+      for (const json of [false, true]) {
+        const argv = ["whoami", "--debug", ...(json ? ["--json"] : [])];
+        const { code, out, err } = await runCli(argv, {
+          store: () => Promise.resolve(store),
+        });
+        expect(code).toBe(1);
+        expect(out + err).not.toContain(token);
+        expect(out + err).not.toContain("failed with");
       }
     }
   });

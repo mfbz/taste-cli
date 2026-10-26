@@ -27,6 +27,16 @@ In a terminal the user's own foreground and background are kept. Motion is off i
 
 The page the browser shows when `taste login` finishes: `field` ground, `paper` type in a monospace stack, the TASTE wordmark inline above one line of copy ("You're signed in. You can close this tab and go back to the terminal."). It is self-contained: no fonts, images or scripts are fetched, and a strict content security policy holds it to that. A failed sign in shows the catalogue message and "Go back to the terminal to try again.", never words from the request. The wordmark is Taste Labs' trademark (`assets/brand/NOTICE.md`).
 
+## Sign in results
+
+```text
+✓ Signed in as person@example.com.
+✓ Signed out.
+Signed in as person@example.com (browser session).
+```
+
+A `success` check mark starts a line that reports a change; `whoami` only reports, so it has none. The email is the server's text, cleaned of control characters before it is shown.
+
 ## Errors
 
 ```text

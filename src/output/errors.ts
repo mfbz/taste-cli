@@ -52,6 +52,11 @@ const CATALOGUE = {
     "The value for {option} isn't valid.",
     "See --help after the command."
   ),
+  USAGE_CONFLICTING_OPTIONS: entry(
+    2,
+    "Those options can't be used together.",
+    "Pick one. See --help after the command."
+  ),
   KEY_IN_ARGV: entry(
     2,
     "That looks like a Taste key or token on the command line. taste never takes one that way.",
@@ -117,8 +122,19 @@ const CATALOGUE = {
   ),
   LOGIN_NOT_INTERACTIVE: entry(
     1,
-    "Signing in with a browser needs a terminal.",
-    "Run taste login in a terminal, or give a key with --api-key or --with-api-key."
+    "This way of signing in needs a terminal.",
+    "Run taste login in a terminal, pipe a key to taste login --with-api-key, or set TASTE_API_KEY."
+  ),
+  LOGIN_CANCELLED: entry(
+    130,
+    "Sign in cancelled.",
+    "Nothing was saved. Run taste login when you are ready."
+  ),
+  // Never says what came in: it may be a key with a typo.
+  INVALID_KEY_INPUT: entry(
+    2,
+    "No usable API key came in.",
+    "Give the key alone, such as taste login --with-api-key < key.txt."
   ),
   INSUFFICIENT_CREDITS: entry(
     1,
@@ -367,18 +383,23 @@ function upstreamReport({ status, code, balance, required }: UpstreamError) {
   return report("INTERNAL");
 }
 
-// Class name and stack frames only: frames hold file names and line numbers, never values.
+// Class name and stack frames only: frames hold file names and line numbers, never values. The stack
+// starts with the message, which may span lines (some may even start with "at "), so those lines are
+// dropped by count; a stack that doesn't start with the message gives no frames at all.
 function debugInfo(error: unknown): DebugInfo {
   const className =
     error instanceof Error ? error.constructor.name : typeof error;
-  const frames =
-    error instanceof Error && error.stack
-      ? error.stack
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.startsWith("at "))
-          .slice(0, 12)
-      : [];
+  if (!(error instanceof Error) || !error.stack)
+    return { className, frames: [] };
+  const head = String(error);
+  if (!error.stack.startsWith(head)) return { className, frames: [] };
+  const frames = error.stack
+    .split("\n")
+    .slice(head.split("\n").length)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("at "))
+    .map((line) => line.replace(KEY_TOKEN, "…"))
+    .slice(0, 12);
   return { className, frames };
 }
 
