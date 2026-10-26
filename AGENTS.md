@@ -15,7 +15,7 @@ Read in this order, only as far as the task needs:
 | `src/`              | the CLI: `main.ts` (bin entry), `cli.ts` (`run(argv, io)`), then one folder per layer |
 | `src/output/`       | the error catalogue and the one way results and failures are written                  |
 | `tools/checks/`     | guards (keys, tokens, personal paths, AI attribution, size) and repo-invariant tests  |
-| `scripts/`          | the fixture recorder and scrubber, the sample PDF generator, the local mock           |
+| `scripts/`          | the fixture recorder and checker, the sample PDF generator, the local mock            |
 | `fixtures-input/`   | the made-up Acme brand guidelines PDF the kit recipe uploads (generated, committed)   |
 | `.githooks/`        | `pre-commit` and `commit-msg`, running the guards with plain Node                     |
 | `.agents/skills/`   | skills for agents working on this repo                                                |
