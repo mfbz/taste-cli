@@ -39,14 +39,14 @@ description: Use when a person asks you to extract a brand or design system from
 Exit codes: `0` ok, `1` failure, `2` usage error (nothing was sent), `130` interrupted.
 
 - `retryable: true`: running the same command again is safe and costs nothing extra.
-- `error.details.id` present: a job started and runs on. Run `taste wait <id> --json`; never start it again.
+- `error.details.id` with a `taste wait` hint: a job started and runs on. Run `taste wait <id> --json`; never start it again.
 - `NOT_SIGNED_IN`, `SESSION_EXPIRED`, `INVALID_API_KEY`: ask the person to run `taste login`, or to set `TASTE_API_KEY`. Don't try to sign in for them.
 - `INSUFFICIENT_CREDITS`: tell the person their balance and the price from the message; stop.
 - `BELOW_THRESHOLD`: the check ran. Report the score and the recommendations from `error.details`.
 - `WAIT_TIMEOUT`: still running. `taste wait <id> --json` picks it up.
-- `NETWORK`, `TIMEOUT` after a paid command: it may have been charged. Look first: `taste history --json` for an extraction or a kit, `taste history checks --json` for a check, `taste history searches --json` for a search.
+- `NETWORK`, `TIMEOUT`, `UPSTREAM` after a paid command: it may have been charged. Look first: `taste history --json` for an extraction or a kit, `taste history checks --json` for a check, `taste history searches --json` for a search, and for an enhancement, the credits in the Taste account (no history lists it).
 - `JOB_FAILED`, `ADHERENCE_FAILED`: Taste refunds it. Show the reason; ask before running it again.
 - `FULL_EXTRACTION_REQUIRED`, `NOT_FOUND` from `similar` or `enhance`: the brand needs `taste extract <url>` first, which spends credits: ask.
 - `PRIVATE_URL`, `INVALID_URL`, `USAGE_INVALID_VALUE` and other `USAGE_*` codes: fix the command; nothing was spent.
-- `SEARCH_BUSY`, `RATE_LIMITED`, `UPSTREAM`: wait a minute, then try again.
+- `SEARCH_BUSY`, `RATE_LIMITED`, `UPSTREAM`: wait a minute, then try again, only when `retryable` is true.
 - `OUTPUT_EXISTS`: the `--out` folder has files. Ask before adding `--overwrite`.

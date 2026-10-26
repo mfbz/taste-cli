@@ -369,6 +369,9 @@ function createTasteApi(deps: Deps): TasteApi {
     if (answer.status < 200 || answer.status >= 300) {
       if (x.retry === "busy" && answer.status === 503)
         throw new CliError("SEARCH_BUSY");
+      // A 5xx (a gateway timeout above all) may come after Taste accepted and charged the request.
+      if (x.paid && answer.status >= 500)
+        throw new CliError("UPSTREAM", { paid: x.paid });
       throw toApiError(answer);
     }
     return parse(schema, decodeJson(answer.bytes));

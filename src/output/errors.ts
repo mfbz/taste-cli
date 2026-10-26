@@ -174,7 +174,7 @@ const CATALOGUE = {
   JOB_FAILED: entry(
     1,
     "The job failed: {reason}",
-    "Check the address or file and try again. Failed jobs are refunded. Fix the input and run it again."
+    "Failed jobs are refunded. Fix the address or file and run it again."
   ),
   ADHERENCE_FAILED: entry(
     1,
@@ -425,6 +425,7 @@ const PAID_CODES = new Set<ErrorCode>([
   "TIMEOUT",
   "INTERRUPTED",
   "RESPONSE_TOO_LARGE",
+  "UPSTREAM",
 ]);
 // A failed save after a finished job: the result is safe on Taste, and wait --out saves it for free.
 const SAVE_AGAIN =
