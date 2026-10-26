@@ -39,11 +39,12 @@ Credits are the maintainer's money. Every paid call is approved by the maintaine
 
 ## Fixtures
 
-Tests never call the Taste Engine: they use the fake API and recorded responses.
+Tests never call the Taste Engine: they use the fake API (`src/api/fake-api.ts`, seeded from the fixtures with `fixtureState()` from `src/api/fixtures.ts`), recorded responses and the local mock (`npm run mock`, CONTRIBUTING "Fixtures and credits").
 
-- Recording runs one named recipe per invocation, after the maintainer's yes, using the maintainer's own sign-in; raw output goes to a gitignored `tmp-…` folder, never into `src/`.
-- Scrub before committing: emails become `person@example.com`, user IDs a fixed placeholder UUID, keys and tokens are removed, and long arrays are trimmed so every file stays well under the 1 MB guard. The guards run on the result.
-- The recorder and scrubber scripts arrive with the first fixtures; until they exist, no paid call is made at all.
+- Recording runs one named recipe per invocation (`npm run fixtures:record -- <recipe>`; `--list` shows them, paid or free, with what each calls), after the maintainer's yes, using the maintainer's own sign in. A paid recipe asks for `yes` at a terminal and refuses without one. Raw output goes to the gitignored `tmp-fixtures/`, never into `src/`.
+- An agent never runs a paid recipe itself: it asks in the shape above, and the maintainer runs it. Develop and demo against the mock instead.
+- Scrub before committing (`npm run fixtures:scrub`): emails become `person@example.com`, user IDs a fixed placeholder UUID, the key id `key_example`, keys and tokens are removed, and long arrays and strings are trimmed so every file stays under 200 KB. The guards run on the result, and nothing is written if one trips.
+- Log every recorded recipe in the pull request's credit log, free ones and refused ones included.
 
 ## Releasing
 

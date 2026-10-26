@@ -32,11 +32,13 @@ Coding agents (Claude Code, Codex and others) read [AGENTS.md](AGENTS.md) and th
 
 ## Fixtures and credits
 
-Tests never call the Taste Engine. They run against recorded responses (fixtures) and a local mock, so `npm test` is free and works offline.
+Tests never call the Taste Engine. They run against recorded responses (fixtures, in `src/api/fixtures/`) and a local mock, so `npm test` is free and works offline.
 
 - **Recording spends real credits.** Every paid call costs the maintainer money, so each one is approved by the maintainer first (what the call is, why it is needed, what it should cost) and logged in the pull request's credit log (the call, why, credits before and after when known). Free calls, such as reading the signed-in account, need no approval but are still listed.
-- **Recorded responses are scrubbed before they are committed:** emails, user IDs, API keys and tokens are replaced with placeholders. The guards back this up for keys and tokens on every commit.
-- A failed or refunded call is logged too: the log is the record of what was spent and why.
+- **One recipe per run.** `npm run fixtures:record -- --list` shows every recipe, whether it is paid and what it calls. `npm run fixtures:record -- <recipe>` uses your own sign in (`taste login`) or `TASTE_API_KEY`, prints what it will call, and for a paid recipe waits for `yes` typed at a terminal (it refuses without one, and never retries). `kit` takes `--file <pdf>`; the PDF is never committed. Recipes that build on another (`manifest`, `similar`, `enhance`, `similar-selective`) read its id from the earlier recording, or take `--id <id>`. Raw answers go to `tmp-fixtures/<recipe>.json`, which Git ignores.
+- **Recorded responses are scrubbed before they are committed.** `npm run fixtures:scrub` (or `-- <recipe>` for one) writes `src/api/fixtures/<recipe>.json`: emails become `person@example.com`, user IDs a fixed placeholder, the key id `key_example`, keys and tokens are removed, and long lists and strings are trimmed so every file stays under 200 KB. It runs the guards on the result and writes nothing if any file would still trip one. Read the diff before committing it.
+- A failed or refunded call is logged too: the log is the record of what was spent and why. The recorder prints the calls it made even when a recipe fails.
+- **The mock.** `npm run mock` serves every endpoint the CLI calls on `127.0.0.1:4010` (`--port`, `--fast`, `--credits`), from the fixtures when they exist and synthetic data otherwise, with jobs moving through their steps over a few polls. Point taste at it with `TASTE_API_URL=http://127.0.0.1:4010` and `TASTE_API_KEY=taste_mock` (any key starting with `taste_mock`). A URL on a `.invalid` host makes a job fail, and `--credits 0` answers 402.
 
 ## Guards
 
