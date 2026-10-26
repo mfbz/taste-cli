@@ -22,7 +22,7 @@ async function enhance(
   if (prompt.trim() === "") throw new CliError("USAGE_INVALID_PROMPT");
   const api = ctx.api();
   const id = await resolveBrand(api, options.brand);
-  const answer = await paidCall(ctx, () =>
+  const answer = await paidCall(ctx, "enhance", () =>
     api.enhance({ submission_id: id, prompt })
   );
   // Newlines and tabs are the prompt's own; any other control character is stripped, as everywhere.
@@ -34,7 +34,9 @@ async function enhance(
     plain(answer.brand_name ?? "").trim() ||
     plain(hostOf(answer.source_url)) ||
     // resolveBrand hands an id back as it came; anything else was an address it has checked.
-    (id === options.brand ? plain(id) : normalizeUrl(options.brand).hostname);
+    (id === options.brand.trim()
+      ? plain(id)
+      : normalizeUrl(options.brand).hostname);
   ctx.output.note(`${ctx.output.theme.success("✓")} Enhanced for ${brand}.`);
 }
 

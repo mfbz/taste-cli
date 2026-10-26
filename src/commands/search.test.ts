@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { TasteApiError } from "../api/client.ts";
 import type { BrandSearchRequest } from "../api/schemas.ts";
-import { runCli } from "../fake-io.ts";
+import { offline, runCli } from "../fake-io.ts";
 import { fixtures, jobSeams } from "../job-seams.ts";
 import { CliError } from "../output/errors.ts";
 
@@ -135,20 +135,19 @@ describe("taste search", () => {
       { inFlight: (params) => seen.push({ ...params }) }
     );
     await runCli(["search", "calm fintech", "--json"], io);
-    expect(seen).toEqual([{ paid: "yes" }, {}]);
+    expect(seen).toEqual([{ paid: "search" }, {}]);
   });
 
   it("never offers a blind retry after a network failure in flight", async () => {
-    const { io } = seams({
-      errors: { search: new CliError("NETWORK", { paid: "yes" }) },
-    });
     const { code, doc } = await runCli(
       ["search", "calm fintech", "--json"],
-      io
+      offline()
     );
     expect(code).toBe(1);
     expect(doc().error.code).toBe("NETWORK");
-    expect(doc().error.hint).toContain("taste history");
+    expect(doc().error.hint).toBe(
+      "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice."
+    );
     expect(doc().error.retryable).toBe(false);
   });
 

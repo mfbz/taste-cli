@@ -1,8 +1,10 @@
 // Every message taste-cli shows comes from this catalogue. Nothing else is ever printed as an error:
-// not a library's message, not what was typed, not the Taste Engine's error text. The one exception is
-// a failed job's own reason ({reason}), which is shortened and has key-shaped tokens redacted. Agents
-// branch on `code`; `message` and `hint` are ours, so they are safe to show to a person and to put in
-// an agent's context.
+// not a library's message, not what was typed, not the Taste Engine's error text. The exceptions are
+// a failed job's own reason ({reason}), shortened with key-shaped tokens redacted, and a brand's
+// address ({url}) or word ({word}), cleaned so the hint stays a command to copy. Agents branch on
+// `code`; `message` and `hint` are ours, so they are safe to show to a person and to put in an
+// agent's context.
+import { PAGE_TYPE } from "../api/schemas.ts";
 
 type ExitCode = 1 | 2 | 130;
 type Entry = {
@@ -21,6 +23,8 @@ type ErrorReport = {
   details?: { id: string };
 };
 type DebugInfo = { className: string; frames: string[] };
+// What a paid request was, for the hint after it fails in flight.
+type PaidKind = "job" | "search" | "enhance";
 type FullReport = ErrorReport & { exitCode: ExitCode; debug?: DebugInfo };
 
 const entry = (
@@ -200,7 +204,13 @@ const CATALOGUE = {
   USAGE_INVALID_PAGE_TYPE: entry(
     2,
     "--page-type takes one of Taste's page types.",
-    "Page types: homepage, about, pricing, careers, case_study, features, customer_stories, portfolio, product, collections, solutions, blog, landing_page, team, services."
+    `Page types: ${PAGE_TYPE.options.join(", ")}.`
+  ),
+  // A bare word given where a brand goes: Taste's ids are UUIDs, so it was most likely a site.
+  USAGE_INVALID_BRAND: entry(
+    2,
+    "That isn't an extraction's id or a site's address.",
+    "Give the site's address, such as {word}.com, or an extraction's id from taste history."
   ),
   USAGE_INVALID_PROMPT: entry(
     2,
@@ -360,6 +370,9 @@ const TEXT_LIMIT = 120;
 // A file's path from a download manifest: server text but no secret, so it is shown, cleaned of
 // control characters, cut, with key-shaped tokens redacted. Never a URL: the signed link stays out.
 const PATH_PARAMS = new Set(["file"]);
+// An address taste normalized (a brand to extract): shown so the hint stays a command to copy, without
+// a user name, password, query or fragment, cleaned and cut like a path.
+const URL_PARAMS = new Set(["url"]);
 const CONTROL = /[\u0000-\u001f\u007f-\u009f]/g;
 const KEY_TOKEN =
   /\btaste_\S+|\bsk-[A-Za-z0-9_-]{8,}|\beyJ[\w-]+\.[\w-]+(?:\.[\w-]+)?/g;
@@ -388,10 +401,16 @@ const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
   UPSTREAM: RESUME_HINT,
   RATE_LIMITED: RESUME_HINT,
 };
-// A paid request that failed in flight (params.paid "yes") may still have reached Taste and been
-// charged, so it is never offered as a retry: running it again could pay twice.
-const PAID_HINT =
-  "It may have reached Taste and started anyway. Check taste history before you run it again, so you don't pay twice.";
+// A paid request that failed in flight (params.paid names its kind) may still have reached Taste and
+// been charged, so it is never offered as a retry: running it again could pay twice. Where to look
+// first depends on what was sent.
+const PAID_HINTS: Readonly<Record<PaidKind, string>> = {
+  job: "It may have reached Taste and started anyway. Check taste history before you run it again, so you don't pay twice.",
+  search:
+    "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.",
+  enhance:
+    "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.",
+};
 const PAID_CODES = new Set<ErrorCode>([
   "NETWORK",
   "TIMEOUT",
@@ -475,6 +494,19 @@ function cleanPath(value: string): string {
   return cut === "" ? "…" : cut;
 }
 
+function cleanUrl(value: string): string {
+  const url = URL.parse(value);
+  if (!url) return "…";
+  url.username = "";
+  url.password = "";
+  url.search = "";
+  url.hash = "";
+  const text = [...url.href.replace(CONTROL, "").replace(KEY_TOKEN, "…")];
+  return text.length > TEXT_LIMIT
+    ? `${text.slice(0, TEXT_LIMIT - 1).join("")}…`
+    : text.join("");
+}
+
 function fill(template: string, params: Params): string {
   return template.replace(/\{(\w+)\}/g, (_match, name: string) => {
     const value = String(params[name] ?? "");
@@ -484,6 +516,7 @@ function fill(template: string, params: Params): string {
       return text === "" ? "…" : text;
     }
     if (PATH_PARAMS.has(name)) return cleanPath(value);
+    if (URL_PARAMS.has(name)) return cleanUrl(value);
     if (KEY_SHAPED.test(value)) return "…";
     const safe = NAME_PARAMS.has(name)
       ? NAME.test(value) && !KEY_PREFIX.test(value)
@@ -497,10 +530,15 @@ function report(code: ErrorCode, params: Params = {}): FullReport {
   const byUrl = params.url === undefined ? undefined : BRAND_URL[code];
   const message = byUrl?.message ?? CATALOGUE[code].message;
   const hasJob = isJobId(String(params.id ?? ""));
-  const paid = params.paid === "yes" && PAID_CODES.has(code);
+  const paidKind = params.paid === undefined ? undefined : String(params.paid);
+  // An unknown kind still warns: the job hint, never a plain retry.
+  const paidHint = paidKind
+    ? (PAID_HINTS[paidKind as PaidKind] ?? PAID_HINTS.job)
+    : undefined;
+  const paid = paidHint !== undefined && PAID_CODES.has(code);
   const hint =
     (hasJob ? (JOB_HINTS[code] ?? SAVE_HINTS[code]) : undefined) ??
-    (paid ? PAID_HINT : (byUrl?.hint ?? CATALOGUE[code].hint));
+    (paid ? paidHint : (byUrl?.hint ?? CATALOGUE[code].hint));
   return {
     code,
     message: fill(message, params),
@@ -645,4 +683,4 @@ export {
   whileSaving,
   whileWaiting,
 };
-export type { DebugInfo, ErrorCode, ErrorReport, ExitCode };
+export type { DebugInfo, ErrorCode, ErrorReport, ExitCode, PaidKind };

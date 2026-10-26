@@ -59,7 +59,13 @@ describe("resolveBrand", () => {
     expect(await resolveBrand(api, "stripe.com")).toBe(STRIPE);
     expect(api.calls).toEqual(["GET /design/submissions"]);
     expect(queries).toEqual([
-      { q: "stripe.com", status: "completed", kind: "website", limit: 100 },
+      {
+        q: "stripe.com",
+        status: "completed",
+        kind: "website",
+        limit: 100,
+        offset: 0,
+      },
     ]);
   });
 
@@ -69,17 +75,74 @@ describe("resolveBrand", () => {
     expect(await resolveBrand(api, "www.tastelabs.com/")).toBe(TASTELABS);
   });
 
-  it("takes the newest full extraction and skips selective ones", async () => {
+  it("takes the newest full extraction by when it was accepted, whatever the list's order", async () => {
+    const at = (day: number) => `2026-10-${day}T10:00:00Z`;
     const { api } = seams({
       submissions: [
+        extraction("sub-older-full", "https://acme.example/", {
+          accepted_at: at(10),
+        }),
         extraction("sub-new-selective", "https://acme.example/", {
           sections: ["colors"],
+          accepted_at: at(25),
         }),
-        extraction("sub-newest-full", "https://acme.example/"),
-        extraction("sub-older-full", "https://acme.example/"),
+        extraction("sub-newest-full", "https://acme.example/", {
+          accepted_at: at(20),
+        }),
+        extraction("sub-undated-full", "https://acme.example/", {
+          accepted_at: null,
+        }),
       ],
     });
     expect(await resolveBrand(api, "acme.example")).toBe("sub-newest-full");
+  });
+
+  it("matches over http or https, but never another port", async () => {
+    const { api } = seams({
+      submissions: [extraction("sub-8443", "https://acme.example:8443/")],
+    });
+    expect(await resolveBrand(api, "http://acme.example:8443")).toBe(
+      "sub-8443"
+    );
+    expect((await failure(resolveBrand(api, "acme.example"))).code).toBe(
+      "NOT_FOUND"
+    );
+  });
+
+  it("reads further pages, up to three, before giving up", async () => {
+    const other = (n: number) =>
+      extraction(`sub-other-${n}`, `https://acme.example/page-${n}`);
+    const many = (count: number) =>
+      Array.from({ length: count }, (_, n) => other(n));
+    const second = seams({
+      submissions: [
+        ...many(150),
+        extraction("sub-home", "https://acme.example/"),
+      ],
+    });
+    expect(await resolveBrand(second.api, "acme.example")).toBe("sub-home");
+    expect(second.queries.map((q) => q.offset)).toEqual([0, 100]);
+    const beyond = seams({
+      submissions: [
+        ...many(320),
+        extraction("sub-home", "https://acme.example/"),
+      ],
+    });
+    expect((await failure(resolveBrand(beyond.api, "acme.example"))).code).toBe(
+      "NOT_FOUND"
+    );
+    expect(beyond.queries.map((q) => q.offset)).toEqual([0, 100, 200]);
+  });
+
+  it("refuses a bare word before any request, suggesting it as an address", async () => {
+    const { api } = seams();
+    const report = await failure(resolveBrand(api, "stripe"));
+    expect(report.code).toBe("USAGE_INVALID_BRAND");
+    expect(report.exitCode).toBe(2);
+    expect(report.hint).toContain("stripe.com");
+    expect(api.calls).toEqual([]);
+    const odd = await failure(resolveBrand(api, "sub_1!"));
+    expect(odd.hint).toContain("example.com");
   });
 
   it("never takes another page of the same site", async () => {

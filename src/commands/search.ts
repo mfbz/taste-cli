@@ -69,7 +69,10 @@ function showCards(
     renderCards(cards, {
       theme,
       colorLevel: ctx.terminal?.colorLevel ?? 0,
-      width: Math.max(ctx.terminal?.width || DEFAULT_WIDTH, MIN_WIDTH),
+      // A pipe gets every line whole, as history's table does.
+      width: ctx.terminal?.tty
+        ? Math.max(ctx.terminal.width || DEFAULT_WIDTH, MIN_WIDTH)
+        : undefined,
     })
   );
 }
@@ -81,7 +84,7 @@ async function search(
 ): Promise<void> {
   const body = buildRequest(query, options);
   const api = ctx.api();
-  const answer = await paidCall(ctx, () => api.search(body));
+  const answer = await paidCall(ctx, "search", () => api.search(body));
   showCards(ctx, answer, answer.results);
 }
 

@@ -78,6 +78,34 @@ describe("renderCards", () => {
     }
   });
 
+  it("cuts nothing without a width, as for a pipe", () => {
+    const card = deep.results[0];
+    const text = renderCards(card ? [card] : [], {
+      theme: createTheme(0),
+      colorLevel: 0,
+    });
+    expect(text).toContain(card?.reason ?? "missing");
+    expect(text).toContain((card?.tags ?? []).join(", "));
+    expect(text).not.toContain("…");
+  });
+
+  it("keeps a cut's ellipsis out of the bold name", () => {
+    const text = renderCards(
+      [
+        {
+          url: "https://example.com/",
+          brand_name: "A brand with a rather long name indeed",
+          identity_paragraph: "Calm.",
+          match: "strong",
+        },
+      ],
+      { theme: createTheme(3), colorLevel: 3, width: 20 }
+    );
+    const head = text.split("\n")[0] ?? "";
+    expect(head).toContain("\u001b[1mA brand with a r\u001b[0m");
+    expect(head).toContain("\u001b[2m…\u001b[0m");
+  });
+
   it("falls back to the address's host when a card has no brand name", () => {
     const text = renderCards(
       [{ url: "https://example.com/pricing", identity_paragraph: "Calm." }],

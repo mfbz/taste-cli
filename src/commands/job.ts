@@ -13,6 +13,7 @@ import type {
 import type { Context } from "../context.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
 import type { Saved, Skipped } from "../download/bundle.ts";
+import type { PaidKind } from "../output/errors.ts";
 import {
   cleanPath,
   CliError,
@@ -138,7 +139,7 @@ async function startJob(
   ctx: Context,
   send: () => Promise<SubmissionAccepted>
 ): Promise<SubmissionAccepted> {
-  ctx.inFlight({ paid: "yes" });
+  ctx.inFlight({ paid: "job" });
   const accepted = await send();
   ctx.inFlight({ id: accepted.submission_id });
   return accepted;
@@ -146,8 +147,12 @@ async function startJob(
 
 // A paid request that answers at once (search, similar, enhance): while it is in flight the hard stop
 // says to check taste history, and once it has answered nothing is left behind.
-async function paidCall<T>(ctx: Context, send: () => Promise<T>): Promise<T> {
-  ctx.inFlight({ paid: "yes" });
+async function paidCall<T>(
+  ctx: Context,
+  kind: PaidKind,
+  send: () => Promise<T>
+): Promise<T> {
+  ctx.inFlight({ paid: kind });
   const answer = await send();
   ctx.inFlight({});
   return answer;

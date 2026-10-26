@@ -138,7 +138,13 @@ describe("the mock Taste Engine", () => {
       seams
     );
     expect(enhance.code).toBe(0);
-    expect(enhance.out.trim()).not.toBe("");
+    // stdout is the prompt alone, ending with one newline; the brand line is on stderr.
+    expect(enhance.out).toMatch(/\S/);
+    expect(enhance.out.endsWith("\n")).toBe(true);
+    expect(enhance.out.endsWith("\n\n")).toBe(false);
+    expect(enhance.out).not.toContain("Enhanced for");
+    expect(enhance.out).not.toContain("✓");
+    expect(enhance.err).toContain("Enhanced for");
     const missing = await runCli(["similar", "linear.app", "--json"], seams);
     expect(missing.doc().error.code).toBe("NOT_FOUND");
   });

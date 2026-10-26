@@ -15,7 +15,9 @@ async function similar(
 ): Promise<void> {
   const api = ctx.api();
   const id = await resolveBrand(api, brand);
-  const answer = await paidCall(ctx, () => api.similar(id, options.top));
+  const answer = await paidCall(ctx, "search", () =>
+    api.similar(id, options.top)
+  );
   showCards(ctx, answer, answer.results);
 }
 

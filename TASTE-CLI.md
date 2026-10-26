@@ -32,9 +32,9 @@ Planned global flags: `--no-motion`, `-y, --yes`.
 - `retryable: true` means running the same command again is safe and costs nothing extra. It is `false` whenever the hint is `taste wait <id>` (a started job runs on; running the command again would start and pay for another) or the paid in-flight hint (the request may already have been charged).
 - Warnings a person must see (a saved sign in ignored, a keychain that may still hold one) go to stderr in both modes, prefixed `warning:`; under `--json` stdout still carries only the one document.
 - Ctrl-C aborts what is in flight and the command ends through the usual output. A second Ctrl-C, or a command that hasn't stopped two seconds later, ends the process at once, with the same exit code and document.
-- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up, or, while a paid request is being sent, to check `taste history` first. The hard stop (a second Ctrl-C, or the two seconds running out) uses the same hint from what the command said is in flight, and without `--json` clears any progress line before its message. It never adds a second document: once the command has written its own, it exits without another, and a Ctrl-C after the command finished exits with the command's own code.
+- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up, or, while a paid request is being sent, where to look first (see "Credits"). The hard stop (a second Ctrl-C, or the two seconds running out) uses the same hint from what the command said is in flight, and without `--json` clears any progress line before its message. It never adds a second document: once the command has written its own, it exits without another, and a Ctrl-C after the command finished exits with the command's own code.
 - A request that gets no answer within its deadline fails with `TIMEOUT` ("The Taste Engine didn't answer in time."), a connection that fails with `NETWORK` ("Couldn't reach the Taste Engine.").
-- An API answer is at most 8 MB (the largest recorded result is under 200 KB): a larger one is cut off and fails with `RESPONSE_TOO_LARGE`, never retried, and for a paid request with the hint to check `taste history`.
+- An API answer is at most 8 MB (the largest recorded result is under 200 KB): a larger one is cut off and fails with `RESPONSE_TOO_LARGE`, never retried, and for a paid request with the paid in-flight hint.
 
 Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 
@@ -70,10 +70,10 @@ Credits are real money. These rules hold for every command that spends them (tod
 
 - The command's `--help` says it spends credits. A command typed directly does not ask for confirmation: typing it is the decision. (The planned menu will confirm before spending.)
 - Every flag, the address and the file are checked before the one request that spends credits, so a mistake costs nothing.
-- A paid request is never retried automatically, not after a network failure, a timeout or a 5xx. The one exception is search's 503, which Taste sends when it turns a search away before any work (refunded); it is retried, then ends with `SEARCH_BUSY`.
-- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says to check `taste history` before running it again, never to try again. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
+- A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds. Not after a network failure, a timeout or any other 5xx; a busy search that stays busy ends with `SEARCH_BUSY`.
+- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says where to look before running it again, never to try again: `taste history` for an extraction or a brand kit, `taste history searches` for a search or similar brands, and for an enhancement, which no history lists, the credits in the Taste account. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
 - Once a job has started, it runs on Taste's side whatever happens to taste: Ctrl-C, `--timeout`, a network failure or a Taste error while waiting all end with the job's id and the hint `taste wait <id>`, which picks it up for free (`error.details.id` under `--json`).
-- Failed jobs are refunded by Taste.
+- Failed jobs, searches and similar-brand requests are refunded by Taste.
 
 ## Commands
 
@@ -208,11 +208,11 @@ Searches Taste's corpus of brands for the look you describe. **Spends credits** 
 - `--top <n>`: how many brands, 1 to 30 (`top_k`; Taste's default is 6). Out of range fails with `USAGE_INVALID_VALUE`.
 - `--industry <industry>`, `--page-type <type>`: hard filters (`filters.industry`, `filters.page_type`), checked against the API's values (`src/api/schemas.ts`, `INDUSTRY` and `PAGE_TYPE`). An unknown one fails with `USAGE_INVALID_INDUSTRY` (the hint names a few and points at `taste search --help`, which lists them all) or `USAGE_INVALID_PAGE_TYPE` (the hint lists them all), never echoing what was typed.
 
-Human output on stdout: numbered cards. Each one: the brand's name in bold (or its address's host), its match and badge dimmed; its address; the reason it matched, or its identity paragraph when Taste gave no reason, dimmed; its primary palette (`palette.primary`) as swatches and hexes, as many as fit, or the hexes alone without colour, left out when there is none; its tags, dimmed. Each line is cut with `…` to the width (at least 40 columns; 80 for a pipe). Then, dimmed: `Extract one in full with taste extract <url> (spends credits).` No results: `No brands found.`
+Human output on stdout: numbered cards. Each one: the brand's name in bold (or its address's host), its match and badge dimmed; its address; the reason it matched, or its identity paragraph when Taste gave no reason, dimmed; its primary palette (`palette.primary`) as swatches and hexes, as many as fit, or the hexes alone without colour, left out when there is none; its tags, dimmed. In a terminal each line is cut with `…` to the width (at least 40 columns), the `…` never in bold; a pipe gets every line whole, as `taste history` does. Then, dimmed: `Extract one in full with taste extract <url> (spends credits).` No results: `No brands found.`
 
 `--json`: `{"ok":true,"data":<the answer exactly as POST /search returned it>}` (`search_id`, `depth`, `results`, `query_tags`).
 
-While the request is in flight Ctrl-C ends with the paid hint (check `taste history searches`); a network failure or a timeout too, never retryable. A 503 is `SEARCH_BUSY` (retryable: Taste turned it away before any work).
+While the request is in flight, Ctrl-C, a network failure and a timeout end with the hint "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.", never retryable. A 503 is `SEARCH_BUSY` (retryable: Taste turned it away before any work).
 
 Errors: `USAGE_INVALID_QUERY`, `USAGE_INVALID_INDUSTRY`, `USAGE_INVALID_PAGE_TYPE`, `USAGE_INVALID_VALUE`, `INSUFFICIENT_CREDITS`, `SEARCH_BUSY`, `REQUEST_REJECTED`, `UPSTREAM`, `RATE_LIMITED`, `NETWORK`, `TIMEOUT`, `INTERRUPTED`, and the sign in errors of `taste whoami`.
 
@@ -221,25 +221,27 @@ Acceptance (proven by `src/commands/search.test.ts`, `src/render/cards.test.ts` 
 - The recorded fast and deep searches render as numbered cards with each brand's name, match, address and primary hexes; a card without a palette has no colour line; one without a name shows its host; control characters from Taste are stripped; swatches only in a colour terminal, and only for real hexes.
 - `--json` data equals the recorded answer; `--deep`, `--top`, `--industry` and `--page-type` reach the API as `depth`, `top_k` and `filters`.
 - `--industry nope`, `--page-type nope`, `--top 0` or `31`, a one-character and a 401-character query exit 2 with no request; `--industry nope` names a few valid industries.
-- The hard stop is told a paid request is in flight, then that nothing is; a network failure in flight names `taste history` and is not retryable; `--help` says it spends credits.
+- The hard stop is told a paid request is in flight, then that nothing is; a network failure in flight ends with the exact search hint above, not retryable; `--help` says it spends credits.
 
 ### `taste similar <id|url>`
 
 Brands from Taste's corpus that look like one of your full extractions, as the same cards as `taste search`. **Spends credits**; a failed request is refunded. One `GET /search/similar`, sent once like a paid `POST`.
 
-- `<id|url>`: an extraction's id, or a site's address (anything with a dot, a slash or a colon; checked as `taste extract` checks it). An address is looked up with one free `GET /design/submissions?q=<host>&status=completed&kind=website&limit=100`: the newest entry for the same address (the host with or without `www.`, the path without a trailing slash, the query) that is a full extraction, made without `--sections`. taste never starts an extraction on its own. With none, it fails with `NOT_FOUND` and the hint `Run taste extract <url> first. It spends credits.`; with only selective ones, `FULL_EXTRACTION_REQUIRED` and the hint `Run taste extract <url> without --sections first.`; both before anything is spent. An id goes to the API as it is; a selective extraction's id gets the API's 422, the same `FULL_EXTRACTION_REQUIRED`.
+- `<id|url>`: an extraction's id (a UUID, sent as it is), or a site's address, checked as `taste extract` checks it. Anything else, such as the bare word `stripe`, fails with `USAGE_INVALID_BRAND` (exit 2) before any request, its hint suggesting `stripe.com`. An address is looked up with free reads of `GET /design/submissions?q=<host>&status=completed&kind=website&limit=100`, paging with `offset` up to three pages (the list keeps every extraction, several per address). An entry matches on its host without a leading `www.` (the port counts) and its path without a trailing slash; the scheme and the query don't count. Of the matches, sorted by `accepted_at`, newest first, without relying on the list's order, the first full extraction (made without `--sections`) is used. taste never starts an extraction on its own. With no match, it fails with `NOT_FOUND` and the hint `Run taste extract <url> first. It spends credits.`; with only selective ones, `FULL_EXTRACTION_REQUIRED` and `Run taste extract <url> without --sections first. It spends credits.`; both before anything is spent. The address in a hint drops any user name, password, query and fragment, and is cut to 120 characters. A selective extraction's id gets the API's 422, the same `FULL_EXTRACTION_REQUIRED`.
 - `--top <n>`: how many brands, 1 to 30 (`top_k`; Taste's default is 18).
 
 Human output, `--json` (`{"ok":true,"data":<the answer exactly as GET /search/similar returned it>}`), Ctrl-C and network failures: as `taste search`.
 
-Errors: `NOT_FOUND`, `FULL_EXTRACTION_REQUIRED`, `INVALID_URL`, `PRIVATE_URL`, `USAGE_INVALID_VALUE`, `INSUFFICIENT_CREDITS`, `UPSTREAM`, `RATE_LIMITED`, `NETWORK`, `TIMEOUT`, `INTERRUPTED`, and the sign in errors of `taste whoami`.
+Errors: `NOT_FOUND`, `FULL_EXTRACTION_REQUIRED`, `USAGE_INVALID_BRAND`, `INVALID_URL`, `PRIVATE_URL`, `USAGE_INVALID_VALUE`, `INSUFFICIENT_CREDITS`, `UPSTREAM`, `RATE_LIMITED`, `NETWORK`, `TIMEOUT`, `INTERRUPTED`, and the sign in errors of `taste whoami`.
 
 Acceptance (proven by `src/commands/similar.test.ts`, `src/commands/resolve-brand.test.ts` and `scripts/mock-taste.test.ts`):
 
 - The recorded tastelabs.com extraction's id shows the recorded similar brands as cards; `--json` data equals the recorded answer.
-- `tastelabs.com` finds the recorded extraction with one list read (`q`, `status`, `kind`, `limit`) and sends `--top` as `top_k`; `www.` and a trailing slash don't matter, another page of the site never matches, the newest full extraction wins over a newer selective one, and a running one is skipped.
+- `tastelabs.com` finds the recorded extraction with one list read (`q`, `status`, `kind`, `limit`, `offset`) and sends `--top` as `top_k`; `www.`, a trailing slash and the scheme don't matter, a port and another page of the site do, the newest full extraction by `accepted_at` wins whatever the list's order, a running one is skipped, and a match on the second page is found while one past the third is not.
+- `stripe` alone exits 2 with `USAGE_INVALID_BRAND`, suggesting `stripe.com`, and sends nothing.
 - An address with no extraction is `NOT_FOUND` naming `taste extract <url>`; `linear.app`, recorded only with `--sections`, is `FULL_EXTRACTION_REQUIRED` naming it too; neither makes a paid request. A selective extraction's id gets the recorded 422 as `FULL_EXTRACTION_REQUIRED`.
 - `--top 0`, `31` and `two` exit 2 with no request; a private address fails before any request.
+- A network failure in flight ends with the exact search hint above, not retryable (`src/api/client.test.ts` too).
 
 ### `taste check <candidate-url> --against <reference-url>`
 
@@ -256,14 +258,16 @@ Human output: the enhanced prompt alone on stdout, exactly as Taste wrote it apa
 
 `--json`: `{"ok":true,"data":<the answer exactly as POST /design/prompts/enhance returned it>}` (`enhanced_prompt`, `brand_name`, `source_url`, `model_used`), and nothing on stderr.
 
-Errors: as `taste similar`, plus `USAGE_INVALID_PROMPT` and `USAGE_MISSING_ARGUMENT`. Known limit: a request that fails in flight gets the paid hint, which says to check `taste history`, and `taste history` does not list enhancements.
+While the request is in flight, Ctrl-C, a network failure and a timeout end with the hint "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.", never retryable.
+
+Errors: as `taste similar`, plus `USAGE_INVALID_PROMPT` and `USAGE_MISSING_ARGUMENT`.
 
 Acceptance (proven by `src/commands/enhance.test.ts` and `scripts/mock-taste.test.ts`):
 
 - stdout is the recorded `enhanced_prompt` plus one newline, exactly; a prompt ending with a newline gets no second one; control characters are stripped and newlines and tabs kept.
 - `--json` data equals the recorded answer, with nothing on stderr.
 - `--brand https://www.tastelabs.com/` finds the recorded extraction with one list read before the one `POST`; a selective id or address is `FULL_EXTRACTION_REQUIRED`; a missing `--brand` or a blank prompt exits 2 with no request.
-- The hard stop is told a paid request is in flight, then that nothing is; `--help` says it spends credits.
+- The hard stop is told a paid request is in flight, then that nothing is; a network failure in flight ends with the exact enhance hint; `--help` says it spends credits.
 
 ### `taste history [extractions|checks|searches]`
 

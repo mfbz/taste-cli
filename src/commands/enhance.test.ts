@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ENHANCE_RESPONSE } from "../api/schemas.ts";
-import { runCli } from "../fake-io.ts";
+import { offline, runCli } from "../fake-io.ts";
 import { fixtures, jobSeams } from "../job-seams.ts";
 
 const TASTELABS = "00000000-0000-4000-8000-000000000100";
@@ -120,7 +120,20 @@ describe("taste enhance", () => {
       { inFlight: (params) => seen.push({ ...params }) }
     );
     await runCli(["enhance", "a page", "--brand", TASTELABS, "--json"], io);
-    expect(seen).toEqual([{ paid: "yes" }, {}]);
+    expect(seen).toEqual([{ paid: "enhance" }, {}]);
+  });
+
+  it("never offers a blind retry after a network failure in flight", async () => {
+    const { code, doc } = await runCli(
+      ["enhance", "a page", "--brand", TASTELABS, "--json"],
+      offline()
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("NETWORK");
+    expect(doc().error.hint).toBe(
+      "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again."
+    );
+    expect(doc().error.retryable).toBe(false);
   });
 
   it("says in its help that it spends credits", async () => {

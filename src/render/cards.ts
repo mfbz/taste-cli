@@ -1,7 +1,7 @@
 // Brand cards from search and similar, numbered, one short block each: the brand (or its address's
 // host) with its match, the address, why it matched (or its identity, when the search gave no reason),
-// the primary palette and the tags. Every server string goes through plain(); a line is cut to the
-// width, so a long identity or tag list never wraps.
+// the primary palette and the tags. Every server string goes through plain(); in a terminal a line is
+// cut to the width, so a long identity or tag list never wraps, and a pipe gets every line whole.
 import { z } from "zod";
 
 import type { BrandSearchCard } from "../api/schemas.ts";
@@ -11,7 +11,8 @@ import type { ColorLevel } from "../output/terminal.ts";
 import { fit } from "./fit.ts";
 import { normalizeHex, renderSwatch } from "./swatches.ts";
 
-type CardsOptions = { theme: Theme; colorLevel: ColorLevel; width: number };
+// No width (a pipe): nothing is cut.
+type CardsOptions = { theme: Theme; colorLevel: ColorLevel; width?: number };
 
 const PRIMARY = z.looseObject({
   primary: z.array(z.unknown()).optional().catch(undefined),
@@ -31,22 +32,33 @@ function hexes(card: BrandSearchCard): string[] {
   return [...new Set(listed.flatMap((value) => normalizeHex(value) ?? []))];
 }
 
+// The name in bold and the tier dimmed, cut as one line; a cut's "…" stays out of the bold.
+function renderHead(
+  name: string,
+  tier: string[],
+  room: number,
+  theme: Theme
+): string {
+  const whole = [...[name, ...tier].join("  ")];
+  const cut = whole.length > room;
+  const kept = cut ? whole.slice(0, Math.max(room - 1, 0)) : whole;
+  const length = [...name].length;
+  const bold = kept.slice(0, length).join("");
+  const rest = `${kept.slice(length).join("")}${cut ? "…" : ""}`;
+  return `${theme.bold(bold)}${rest ? theme.dim(rest) : ""}`;
+}
+
 function renderCard(
   card: BrandSearchCard,
   number: string,
   indent: string,
   { theme, colorLevel, width }: CardsOptions
 ): string[] {
-  const room = width - indent.length;
+  const room = width === undefined ? Infinity : width - indent.length;
   const line = (text: string) => `${indent}${fit(text, room)}`;
   const tier = [clean(card.match), clean(card.badge)].filter(Boolean);
-  const head = fit(
-    [title(card), ...tier].join("  "),
-    width - number.length - 2
-  );
-  const name = title(card);
   const lines = [
-    `${number}  ${theme.bold(head.slice(0, name.length))}${theme.dim(head.slice(name.length))}`,
+    `${number}  ${renderHead(title(card), tier, room, theme)}`,
     line(clean(card.url)),
   ];
   const why = clean(card.reason) || clean(card.identity_paragraph);
@@ -77,9 +89,10 @@ function renderCards(
   const blocks = cards.map((card, i) =>
     renderCard(card, String(i + 1).padStart(digits), indent, options).join("\n")
   );
-  return [...blocks, options.theme.dim(fit(FOOTER, options.width))].join(
-    "\n\n"
-  );
+  return [
+    ...blocks,
+    options.theme.dim(fit(FOOTER, options.width ?? Infinity)),
+  ].join("\n\n");
 }
 
 export { renderCards };

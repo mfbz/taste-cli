@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { runCli } from "../fake-io.ts";
+import { offline, runCli } from "../fake-io.ts";
 import { fixtures, jobSeams } from "../job-seams.ts";
 
 const TASTELABS = "00000000-0000-4000-8000-000000000100";
@@ -84,8 +84,19 @@ describe("taste similar", () => {
 
   it("is NOT_FOUND for an unknown id", async () => {
     const { io } = seams();
-    const { doc } = await runCli(["similar", "sub-unknown", "--json"], io);
+    const { doc } = await runCli(
+      ["similar", "00000000-0000-4000-8000-00000000dead", "--json"],
+      io
+    );
     expect(doc().error.code).toBe("NOT_FOUND");
+  });
+
+  it("refuses a bare word with exit 2, suggesting the address, and sends nothing", async () => {
+    const { api, io } = seams();
+    const { code, err } = await runCli(["similar", "stripe"], io);
+    expect(code).toBe(2);
+    expect(err).toContain("stripe.com");
+    expect(api.calls).toEqual([]);
   });
 
   it.each(["0", "31", "two"])(
@@ -105,7 +116,20 @@ describe("taste similar", () => {
       { inFlight: (params) => seen.push({ ...params }) }
     );
     await runCli(["similar", "tastelabs.com", "--json"], io);
-    expect(seen).toEqual([{ paid: "yes" }, {}]);
+    expect(seen).toEqual([{ paid: "search" }, {}]);
+  });
+
+  it("never offers a blind retry after a network failure in flight", async () => {
+    const { code, doc } = await runCli(
+      ["similar", TASTELABS, "--json"],
+      offline()
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("NETWORK");
+    expect(doc().error.hint).toBe(
+      "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice."
+    );
+    expect(doc().error.retryable).toBe(false);
   });
 
   it("says in its help that it spends credits", async () => {

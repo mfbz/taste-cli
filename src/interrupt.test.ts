@@ -116,7 +116,7 @@ describe("Ctrl-C", () => {
 
   it("never invites a rerun while a paid request is in flight", () => {
     const h = harness(true);
-    h.interrupt.track({ paid: "yes" });
+    h.interrupt.track({ paid: "job" });
     h.interrupt.onSigint();
     h.exitCode(() => h.timers.forEach((fn) => fn()));
     const { error } = JSON.parse(h.out()) as {
