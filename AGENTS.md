@@ -14,8 +14,11 @@ Read in this order, only as far as the task needs:
 | ------------------- | ------------------------------------------------------------------------------------- |
 | `src/`              | the CLI: `main.ts` (bin entry), `cli.ts` (`run(argv, io)`), then one folder per layer |
 | `src/output/`       | the error catalogue and the one way results and failures are written                  |
+| `src/ui/`           | the opening animation of the interactive session                                      |
+| `skills/taste/`     | the skill people install for their own agents to use taste (shipped in the package)   |
 | `tools/checks/`     | guards (keys, tokens, personal paths, AI attribution, size) and repo-invariant tests  |
-| `scripts/`          | the fixture recorder and checker, the sample PDF generator, the local mock            |
+| `scripts/`          | the fixture recorder and checker, the sample PDF generator, the mock, the live smoke  |
+| `scripts/demo/`     | records `assets/demo.gif`, the README's demo, against the mock                        |
 | `fixtures-input/`   | the made-up Acme brand guidelines PDF the kit recipe uploads (generated, committed)   |
 | `.githooks/`        | `pre-commit` and `commit-msg`, running the guards with plain Node                     |
 | `.agents/skills/`   | skills for agents working on this repo                                                |
@@ -32,6 +35,8 @@ npm test               # Vitest: src/, scripts/ and tools/checks/, including the
 npm run build          # bundle to dist/main.mjs (tsdown)
 npm run cli -- --help  # build, then run the CLI
 npm run mock           # local mock Taste Engine on 127.0.0.1:4010 (free; CONTRIBUTING "Fixtures and credits")
+npm run smoke:live     # free, read-only commands against the real Taste Engine; prints no response content
+npm run demo:record    # re-record assets/demo.gif against the mock (asciinema, agg, expect)
 ```
 
 ## Decisions that bind

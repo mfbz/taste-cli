@@ -3,9 +3,11 @@ import { existsSync, readdirSync, readlinkSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import pkg from "../../package.json" with { type: "json" };
+import { CATALOGUE } from "../../src/output/errors.ts";
 import { readRepoFile, repoPath } from "./repo.ts";
 import {
   cliSurface,
+  unknownCodes,
   unknownCommands,
   unknownFlags,
   validateSkill,
@@ -72,5 +74,27 @@ describe("the README", () => {
     const readme = readRepoFile("README.md");
     expect(unknownFlags(readme, surface)).toEqual([]);
     expect(unknownCommands(readme, surface)).toEqual([]);
+  });
+});
+
+// The skill people install for their own agents: an agent runs what it names, and branches on its codes.
+describe("the taste skill", () => {
+  const skill = readRepoFile("skills", "taste", "SKILL.md");
+  // The error codes, and the variables the skill sends a person to.
+  const known = new Set([
+    ...Object.keys(CATALOGUE),
+    "TASTE_API_KEY",
+    "TASTE_API_URL",
+  ]);
+
+  it("is a valid Agent Skill", () => {
+    expect(validateSkill("taste", skill)).toEqual([]);
+  });
+
+  it("names only flags, commands and error codes taste has", () => {
+    const surface = cliSurface(readRepoFile("src", "cli.ts"));
+    expect(unknownFlags(skill, surface)).toEqual([]);
+    expect(unknownCommands(skill, surface)).toEqual([]);
+    expect(unknownCodes(skill, known)).toEqual([]);
   });
 });

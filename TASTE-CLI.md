@@ -6,7 +6,7 @@ taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engi
 
 ## Status
 
-Built: `taste --version`, `taste --help`, the interactive session (bare `taste` in a terminal), the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files and `--format design-md` to export one as a DESIGN.md, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`. Every other command below is planned: its section is filled in by the pull request that builds it.
+Built: `taste --version`, `taste --help`, the interactive session (bare `taste` in a terminal), the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files and `--format design-md` to export one as a DESIGN.md, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`: every command below.
 
 ## What it is
 
@@ -21,7 +21,7 @@ Global flags:
 - `--json`: machine output.
 - `--debug`: on failure, add the error's class and stack frames on stderr.
 
-Planned global flags: `--no-motion`, `-y, --yes`.
+Motion is turned off with `TASTE_NO_MOTION=1`, not a flag. There is no `--yes`: a typed command never prompts, and a paid one spends when it runs.
 
 ### Output contract
 
