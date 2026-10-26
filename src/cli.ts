@@ -1,8 +1,16 @@
-import { Command, Option } from "@commander-js/extra-typings";
+import {
+  Command,
+  InvalidArgumentError,
+  Option,
+} from "@commander-js/extra-typings";
 
 import pkg from "../package.json" with { type: "json" };
+import { extract } from "./commands/extract.ts";
+import { DEFAULT_TIMEOUT_S, FORMATS } from "./commands/job.ts";
+import { kit } from "./commands/kit.ts";
 import { login } from "./commands/login.ts";
 import { logout } from "./commands/logout.ts";
+import { wait } from "./commands/wait.ts";
 import { whoami } from "./commands/whoami.ts";
 import { createContext } from "./context.ts";
 import type { Context } from "./context.ts";
@@ -17,6 +25,9 @@ type Captured = { text: string };
 
 const FOOTER =
   "\ntaste is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.";
+const TIMEOUT_HELP = "stop waiting after this many seconds; the job carries on";
+const CREDITS_NOTE =
+  "\nSpends credits from your Taste account; a failed job is refunded. Ctrl-C stops waiting, not the job: taste wait <id> picks it up for free.";
 // Commander's own outcomes that aren't failures.
 const CLEAN_EXITS = new Set([
   "commander.helpDisplayed",
@@ -42,6 +53,25 @@ const OPTION_NAME = /'(-[^'=\s]*)/;
 // Words joined by underscores (taste_engine_reviews) are neither.
 const KEY_ARG =
   /(?:^|=)(?:taste_(?:[A-Za-z0-9_-]*[A-Za-z0-9-]{16}[A-Za-z0-9_-]*|[A-Za-z0-9_-]{32,})|eyJ[\w-]{8,}\.eyJ[\w-]{8,}(?:\.[\w-]*)?)$/;
+
+// Commander turns this into commander.invalidArgument, which names the option and never the value.
+function integer(min: number, max: number) {
+  return (text: string): number => {
+    const value = Number(text);
+    if (!/^\d+$/.test(text.trim()) || value < min || value > max)
+      throw new InvalidArgumentError("out of range");
+    return value;
+  };
+}
+
+const seconds = integer(1, 86_400);
+
+// How a job command shows its result.
+function formatOption() {
+  return new Option("--format <format>", "summary or json")
+    .choices(FORMATS)
+    .default("summary" as const);
+}
 
 function isCommanderError(error: unknown): error is { code: string } {
   const code: unknown =
@@ -132,6 +162,52 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
     .command("whoami")
     .description("show which account taste is signed in to")
     .action(withContext(io, output, (ctx) => whoami(ctx)));
+  program
+    .command("extract")
+    .description("extract a brand from a website (spends credits)")
+    .argument("<url>", "the site, such as stripe.com")
+    .option("--sections <names>", "only these sections, separated by commas")
+    .addOption(
+      new Option("--deep", "run Taste's slower, deeper analysis").conflicts(
+        "sections"
+      )
+    )
+    .option("--force", "extract again even if Taste has a recent result")
+    .option("--map", "find the site's pages and extract them too")
+    .option(
+      "--max-urls <n>",
+      "with --map, the most pages to find (1 to 200)",
+      integer(1, 200)
+    )
+    .addOption(formatOption())
+    .option("--no-wait", "print the job's id and return at once")
+    .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
+    .addHelpText("after", CREDITS_NOTE)
+    .action(
+      withContext(io, output, (ctx, url, options) => extract(ctx, url, options))
+    );
+  program
+    .command("kit")
+    .description(
+      "extract a brand kit from a brand guidelines PDF (spends credits)"
+    )
+    .argument("<file>", "the PDF, at most 50 MB")
+    .addOption(formatOption())
+    .option("--no-wait", "print the job's id and return at once")
+    .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
+    .addHelpText("after", CREDITS_NOTE)
+    .action(
+      withContext(io, output, (ctx, file, options) => kit(ctx, file, options))
+    );
+  program
+    .command("wait")
+    .description("pick up a job started earlier and show its result (free)")
+    .argument("<id>", "the id extract or kit printed")
+    .addOption(formatOption())
+    .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
+    .action(
+      withContext(io, output, (ctx, id, options) => wait(ctx, id, options))
+    );
   for (const command of program.commands) command.addHelpText("after", FOOTER);
   return program;
 }

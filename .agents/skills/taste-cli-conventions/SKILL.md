@@ -9,10 +9,10 @@ description: Use when writing or reviewing code in the taste-cli repo. Covers th
 
 - One package at the root. `src/main.ts` is the bin entry and only wires `process` to `run(argv, io)` in `src/cli.ts`, which returns the exit code. Every side effect (writing, fetch, the clock, sleeping, the browser, the keychain, prompts, the loopback server) reaches a command through `Io`, so all behaviour is tested in-process without spawning anything.
 - `src/` is split by layer. A folder appears with the first code that needs it:
-  - `output/`: the `--json` contract, the error catalogue, terminal detection, the theme.
+  - `output/`: the `--json` contract, the error catalogue, terminal detection, the theme, and the live progress line (the one place a timer writes to stderr).
   - `api/`: the typed REST client, zod schemas, polling and the fake API.
   - `auth/`: OAuth discovery, browser sign-in, the credential store, refresh.
-  - `commands/`: one file per command, its logic plus its `render*` functions.
+  - `commands/`: one file per command, its logic plus its `render*` functions; `job.ts` holds what the job commands share (start, wait with progress, show).
   - `render/`: terminal pieces shared by several commands (score bars, swatches, progress).
   - `design-md/`, `download/`, `ui/` (the opening, the menu, the cursor), `config/` (environment, paths).
 - Boundaries: `api/` never prints, `commands/` never call `fetch` (they get a `TasteApi`), `render/` is pure (data in, string out).
@@ -50,7 +50,8 @@ description: Use when writing or reviewing code in the taste-cli repo. Covers th
 
 - Vitest, `foo.ts` next to `foo.test.ts`; `describe` per unit, `it` as a behaviour sentence.
 - Write the test first and watch it fail for the right reason.
-- Drive commands through `run(argv, io)` with a captured `stdout`/`stderr` and the seams the command needs (a fake API, a fake clock, an instant `sleep`). Never call the live Taste Engine from a test: use the fake API and recorded fixtures.
+- Drive commands through `run(argv, io)` with a captured `stdout`/`stderr` and the seams the command needs (the fake API as `io.api`, a fake clock, an instant `sleep`; `src/job-seams.ts` sets these up for the job commands from the recorded fixtures). Never call the live Taste Engine from a test: use the fake API and recorded fixtures, or the local mock with `io.fetch`.
+- A paid request is sent once. A failure in flight carries `{ paid: "yes" }` so its hint says to check `taste history`, and a failure while waiting on a started job carries the job's id (`whileWaiting`) so its hint says `taste wait <id>`; never a bare "try again". Start a paid job through `startJob` and wait through `awaitJob` (`src/commands/job.ts`): they tell the hard stop (`ctx.inFlight`) what a Ctrl-C would leave behind.
 - Cover what users will hit, not only the happy path: piped output, `--json`, bad input, a missing sign-in, a 402, a network failure, Ctrl-C.
 
 ## Green checkpoint

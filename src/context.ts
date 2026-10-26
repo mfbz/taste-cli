@@ -13,11 +13,23 @@ import type { Env } from "./config/env.ts";
 import type { Io } from "./io.ts";
 import { CliError } from "./output/errors.ts";
 import type { Output } from "./output/output.ts";
+import type { TerminalInfo } from "./output/terminal.ts";
 
 type Context = {
   output: Output;
   env: Env;
   interactive: boolean;
+  // Absent: plain text, no motion, 80 columns.
+  terminal: TerminalInfo | undefined;
+  // Progress may redraw itself: a terminal that allows motion, and TASTE_NO_MOTION unset.
+  motion: boolean;
+  now: () => number;
+  sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
+  // Aborted by Ctrl-C; a fresh, never aborted one when the wiring has none.
+  signal: AbortSignal;
+  readFile: (path: string, maxBytes: number) => Promise<Uint8Array>;
+  // Tells the hard stop what a Ctrl-C would leave behind: a paid request in flight, or a job's id.
+  inFlight: (params: Readonly<Record<string, string>>) => void;
   store(): Promise<SecretStore>;
   auth: Provider;
   // The signed in client by default; login passes a key it is about to check.
@@ -67,13 +79,21 @@ function createContext(io: Io, output: Output): Context {
     output,
     env,
     interactive: io.interactive ?? false,
+    terminal: io.terminal,
+    motion: (io.terminal?.motion ?? false) && !env.noMotion,
+    now,
+    sleep,
+    signal: signal ?? new AbortController().signal,
+    readFile: (path, maxBytes) => need(io.readFile)(path, maxBytes),
+    inFlight: (params) => io.inFlight?.(params),
     store,
     auth,
-    api: (provider = auth) =>
+    api: (provider) =>
+      (provider === undefined ? io.api : undefined) ??
       createTasteApi({
         fetch: need(io.fetch),
         baseUrl: apiUrl,
-        auth: provider,
+        auth: provider ?? auth,
         sleep,
         signal,
       }),

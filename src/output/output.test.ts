@@ -83,6 +83,22 @@ describe("--json output", () => {
     expect(h.err()).toBe("warning: The saved sign in can't be read.\n");
   });
 
+  it("never writes a second document, even when a failure follows a result", () => {
+    const h = harness(true);
+    h.output.result({ id: "sub-1" }, () => "");
+    expect(h.output.fail(new CliError("INTERRUPTED", { id: "sub-1" }))).toBe(
+      130
+    );
+    expect(h.out().trim().split("\n")).toHaveLength(1);
+    expect(JSON.parse(h.out())).toMatchObject({ ok: true });
+  });
+
+  it("keeps a live line out of both streams", () => {
+    const h = harness(true);
+    h.output.live("⠋ Crawling");
+    expect(h.out() + h.err()).toBe("");
+  });
+
   it("keeps notes out of the document", () => {
     const h = harness(true);
     h.output.note("waiting…");
@@ -115,6 +131,28 @@ describe("human output", () => {
     h.output.fail(new CliError("NOT_SIGNED_IN"));
     expect(h.err()).toContain("\u001b[");
     expect(plain(h.err(), { newlines: true })).toContain("error:");
+  });
+
+  it("draws a live line in place on stderr, and clears it", () => {
+    const h = harness(false);
+    h.output.live("⠋ Crawling");
+    h.output.live(null);
+    expect(h.err()).toBe("\r\u001b[2K⠋ Crawling\r\u001b[2K");
+    expect(h.out()).toBe("");
+  });
+
+  it("clears the live line for a warning or a note, then draws it again", () => {
+    const h = harness(false);
+    h.output.live("⠋ Crawling");
+    h.output.warn("The keychain is locked.");
+    h.output.note("Started.");
+    expect(h.err()).toBe(
+      [
+        "\r\u001b[2K⠋ Crawling",
+        "\r\u001b[2Kwarning: The keychain is locked.\n\r\u001b[2K⠋ Crawling",
+        "\r\u001b[2KStarted.\n\r\u001b[2K⠋ Crawling",
+      ].join("")
+    );
   });
 
   it("writes notes to stderr", () => {
