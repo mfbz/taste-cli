@@ -1,0 +1,2827 @@
+{
+  "recipe": "extract-full-2",
+  "paid": true,
+  "calls": [
+    "POST /design/submissions 202",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000200 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000200/result 200"
+  ],
+  "steps": [{ "status": "completed", "current_step": "completed" }],
+  "data": {
+    "accepted": {
+      "submission_id": "00000000-0000-4000-8000-000000000200",
+      "status": "completed",
+      "source_url": "https://stripe.com/",
+      "accepted_at": "2026-10-26T15:04:05.268809Z"
+    },
+    "submission": {
+      "submission_id": "00000000-0000-4000-8000-000000000200",
+      "status": "completed",
+      "source_url": "https://stripe.com/",
+      "is_public": false,
+      "kind": "website",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:04:05.268809Z",
+      "accepted_at": "2026-10-26T15:04:05.268809Z",
+      "completed_at": "2026-10-20T00:39:37.048785Z",
+      "cache_hit": true,
+      "extraction_id": "00000000-0000-4000-8000-000000000201",
+      "error": null,
+      "credits_consumed": 2,
+      "batch_id": null,
+      "batch_label": null,
+      "api_key_name": "example",
+      "sections": null,
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "team_id": null,
+      "credit_ref_id": null
+    },
+    "result": {
+      "submission_id": "00000000-0000-4000-8000-000000000200",
+      "status": "completed",
+      "source_url": "https://stripe.com/",
+      "extraction_id": "00000000-0000-4000-8000-000000000201",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:04:05.268809Z",
+      "result_updated_at": "2026-10-20T00:39:50.556358Z",
+      "accepted_at": "2026-10-26T15:04:05.268809Z",
+      "completed_at": "2026-10-20T00:39:37.048785Z",
+      "cache_hit": true,
+      "sections": null,
+      "result": {
+        "design_system": {
+          "kind": "website",
+          "profile": {
+            "brand_name": "Stripe",
+            "tagline": null,
+            "source_url": "https://stripe.com",
+            "page_type_category": "Core Marketing",
+            "page_type": "Homepage",
+            "industry": "FinTech / Payments Infrastructure",
+            "primary_purpose": "Drive new user registration and enterprise sales inquiries by demonstrating Stripe's comprehensive financial infrastructure capabilities across payment processing, billing, banking, and global commerce",
+            "main_cta": "Get started",
+            "copy_tone": ["Confident", "Technical", "Precise"],
+            "brand_signature": "Clean, light-mode interface dominated by white backgrounds with subtle gradient accents in purple and warm tones. Premium typography using the proprietary Söhne font creates a sophisticated, modern aesthetic. Interactive product visualizations and animated UI mockups demonstrate technical sophistication while maintaining visual clarity.",
+            "visual_language": {
+              "keywords": [
+                "sophisticated",
+                "technical",
+                "modular",
+                "premium",
+                "precise",
+                "gradient-rich"
+              ],
+              "accent_strategy": "Purple primary accent (#533afd) used for CTAs and interactive elements, with warm gradient transitions (orange, magenta) appearing in product illustrations and animated graphics to add visual warmth and distinguish feature categories",
+              "highlights": "Animated wave graphics, interactive bento card layouts with hover states, globe visualization for global stats, and subtle glow effects on product mockups to draw attention to key functionality"
+            },
+            "strategy": {
+              "target_audience": [
+                "Enterprise technology leaders and CFOs evaluating payment infrastructure consolidation across global operations",
+                "Startup founders and developers seeking developer-friendly payment APIs with rapid integration capabilities",
+                "Platform businesses and marketplaces looking to embed payments and financial services for their users",
+                "SaaS companies requiring flexible billing models including usage-based and subscription pricing"
+              ],
+              "executive_synthesis": "Stripe's homepage strategically balances technical credibility with business outcome messaging to serve both developer and executive audiences. The visual system—anchored by the animated gradient wave and interactive product bento cards—demonstrates technical sophistication while the modular layout allows visitors to self-select pathways (enterprise, startup, platform). Social proof from globally recognized brands combined with quantified scale metrics ($1.9T processed, 200M+ subscriptions) establishes trust for enterprise buyers, while the clean API-aesthetic and Google sign-up option appeals to developers seeking quick implementation. The warm gradient accents within the predominantly cool purple brand palette create visual interest and guide attention through the dense feature set without overwhelming the user."
+            },
+            "style_classification": {
+              "primary_style": "Flat Design",
+              "confidence": "High",
+              "category_style": "Digital/UI Design",
+              "reasoning": "The screenshot reveals a quintessential modern SaaS/fintech marketing site with a highly polished, digital-native aesthetic. The visual impression is one of **clean professionalism with strategic pops of energy**: pristine white backgrounds dominate, punctuated by vibrant purple-to-orange gradient waves in the hero and bold \"Blurple\" (#533AFD) accent CTAs.\n\n**FORENSIC EVIDENCE FOR FLAT DESIGN:**\n\n1. **Dimensionality = FLAT (2D):** The surfaces profile confirms \"gradient_linear\" and \"shadows_soft\" as the texture classification—these are subtle, functional shadows (var(--hds-shadow-xs) to var(--hds-shadow-xl)) used for card elevation, NOT skeuomorphic depth. There are no leather textures, embossed buttons, or realistic material simulations. The dashboard mockups and UI cards are clean vector renderings.\n\n2. **Shape = Geometric:** The card-based layout with strict 12-column grid, rounded-corner cards, and geometric icons all align with Flat Design's emphasis on clean geometric forms. No organic whiplash curves (Art Nouveau), no angular chaos (Brutalism), no inflated 3D clay forms (Claymorphism).\n\n3. **Color = Bold, Saturated, Clean:** The \"Blurple\" primary accent (#533AFD), combined with warm gradients (orange/pink/purple), and a high-contrast palette of deep navy (#0A2540) on white creates that signature Flat Design vibrancy. The color profile explicitly notes \"clean contrast\" and \"restraint\"—not muddy (Grunge) or neon-on-black (Cyberpunk).\n\n4. **Typography = Sans-Serif Modern (Sohne):** The Sohne variable font at light weights (300) with negative letter-spacing on large headings is the definition of modern sans-serif digital typography. No decorative serifs (Art Deco), no distressed letterforms (Grunge), no monospace rawness (Brutalism).\n\n5. **Layout = Grid-Based Strict:** The layout profile confirms \"grid_based_strict\" and \"card_based\" with a responsive 4/8/12-column system and generous whitespace (56-96px between sections). This is the mathematical clarity of Flat Design, not the dense chaos of Maximalism or the broken anti-grid of Postmodernism.\n\n**WHY NOT OTHER STYLES:**\n- **NOT Minimalism:** Too much visual content—gradient waves, product mockups, stats visualizations, multiple card sections. Minimalism requires EXTREME reduction.\n- **NOT Glassmorphism:** No frosted glass transparency or backdrop-blur effects on primary components. The \"blur gradient overlays\" mentioned are minor dialog drag handles, not the defining aesthetic.\n- **NOT Swiss Style:** While grid-based and clean, the vibrant gradient colorwork and decorative hero waves move beyond Swiss Style's rigid typography-first neutrality.\n- **NOT Brutalism:** No raw aesthetic, no monospace dominance, no stark anti-design elements. This is polished and refined.",
+              "secondary_style": "Corporate",
+              "reasoning_secondary": "The **Corporate** modifier is applied because the design clearly targets enterprise/B2B audiences with trust-building elements: partner logos (OpenAI, Figma), statistical proof points (500M+, US$1trn), professional photography of cityscapes, and copy focused on \"infrastructure,\" \"platform,\" and \"financial operations.\" The restrained color palette, professional typography hierarchy, and emphasis on credibility metrics are hallmarks of Corporate tonal styling layered onto the Flat Design foundation. This is Stripe's signature aesthetic: friendly enough for startups, trustworthy enough for enterprises."
+            }
+          },
+          "layout": {
+            "classification": ["grid_based_strict", "card_based"],
+            "grid": { "columns": 12, "gutter": "16px", "max_width": "1264px" },
+            "breakpoints": {
+              "mobile": "0px - 639px (4 Columns, 16px gutter)",
+              "tablet": "640px - 939px (8 Columns, 16px gutter)",
+              "desktop": "940px - 1297px (12 Columns, 16px gutter)",
+              "large": "1298px+ (12 Columns, 16px gutter, 1264px max content width)"
+            },
+            "section_separation": "Alternating white backgrounds with gradient overlays; dark sections (stats) use deep blue-to-purple gradients for contrast; subtle dashed borders between major content blocks; generous whitespace (56px mobile, 64px tablet, 96px desktop) creates clear visual breathing room between sections; promotional banners use full-bleed imagery with overlay content.",
+            "ascii_template": "┌──────────────────────────────────────────────────────────┐\n│  [stripe LOGO]              [PRODUCTS ▾] [DEVELOPERS ▾]  │\n│                              [COMPANY ▾]     [SIGN IN]    │\n├──────────────────────────────────────────────────────────┤\n│                     [HERO - Centered]                    │\n│        Financial infrastructure to grow your revenue     │\n│         Accept payments, offer new financial             │\n│              investment custom revenue models,           │\n│                and streamline your platform's            │\n│                    financial operations                  │\n│                                                          │\n│         [Contact sales]  [Start now →]                   │\n│                                                          │\n│     [Colorful gradient wave - orange/purple/pink]        │\n├──────────────────────────────────────────────────────────┤\n│              Flexible platforms for every business       │\n│           [Row of 4 feature cards with icons]            │\n│                                                          │\n│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │\n│  │[Mobile   │  │[Email    │  │[Dashboard│  │[Analytics│ │\n│  │ Pay UI]  │  │ Receipt] │  │ Preview] │  │ Chart]   │ │\n│  │          │  │          │  │          │  │          │ │\n│  │[Caption] │  │[Caption] │  │[Caption] │  │[Caption] │ │\n│  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │\n├──────────────────────────────────────────────────────────┤\n│                 [PRODUCT SHOWCASE SECTION]               │\n│                                                          │\n│  ┌─────────────────────────────────────────────────────┐ │\n│  │     [Dashboard interface with gradient card]        │ │\n│  │     [Purple/pink gradient overlay effect]           │ │\n│  └─────────────────────────────────────────────────────┘ │\n│                                                          │\n│  ┌─────────────────────────────────────────────────────┐ │\n│  │     [Dashboard table view - light background]       │ │\n│  │     [Transaction list with purple accents]          │ │\n│  └─────────────────────────────────────────────────────┘ │\n├──────────────────────────────────────────────────────────┤\n│              [DARK BANNER WITH IMAGE]                    │\n│  ┌─────────────────────────────────────────────────────┐ │\n│  │  Powering the web with                              │ │\n│  │  payments that grow                                 │ │\n│  │  with your business                                 │ │\n│  │                                                     │ │\n│  │  [Contact sales]  [Learn more →]                    │ │\n│  │  [Gradient overlay on cityscape image]              │ │\n│  └─────────────────────────────────────────────────────┘ │\n├──────────────────────────────────────────────────────────┤\n│           [DEEP BLUE GRADIENT SECTION]                   │\n│                The backbone                              │\n│              of global commerce                          │\n│                                                          │\n│  [CGPJ]    [USER STATS]   [REVIEWS]    [SAAS]           │\n│  [stat]      [stat]        [stat]      [stat]           │\n│                                                          │\n│  [Radiating lines pattern from bottom center]            │\n│  [Purple gradient to dark blue]                          │\n│  [Dashboard mockup floating on right]                    │\n├──────────────────────────────────────────────────────────┤\n│      Powering modernization of all sizes. Move your     │\n│      business to a modern platform that helps you       │\n│      meet the needs of your business                    │\n│                                                          │\n│  ┌─────────────────────────────────────────────────────┐ │\n│  │       [Aerial photo of parking lot/building]        │ │\n│  └─────────────────────────────────────────────────────┘ │\n│                                                          │\n│  ┌──────────┐  [Text: Easy monetization of your         │\n│  │  [Icon]  │         platform or marketplace]          │\n│  └──────────┘                                            │\n│                                                          │\n│  ┌──────────┐  [Text: Ready-made products that add      │\n│  │  [Icon]  │         new revenue]                       │\n│  └──────────┘                                            │\n│                                                          │\n│  ┌──────────┐  [Text: Flexible payments and payout      │\n│  │  [Icon]  │         options with APIs]                 │\n│  └──────────┘                                            │\n├──────────────────────────────────────────────────────────┤\n│         Make investments in your choice that             │\n│              generate payment revenue                    │\n│                                                          │\n│              [Get started →]                             │\n│                                                          │\n│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐    │\n│  │[Product │  │[Product │  │[Product │  │[Product │    │\n│  │ Card 1] │  │ Card 2] │  │ Card 3] │  │ Card 4] │    │\n│  │Gradient │  │Image    │  │Gradient │  │Gradient │    │\n│  │Pink/Pur]│  │Green    │  │Flower   │  │Teal/Grn]│    │\n│  │         │  │Pattern  │  │Pattern  │  │         │    │\n│  │[Caption]│  │[Caption]│  │[Caption]│  │[Caption]│    │\n│  └─────────┘  └─────────┘  └─────────┘  └─────────┘    │\n├──────────────────────────────────────────────────────────┤\n│  [Large gradient cards - purple and orange]              │\n│                                                          │\n│  ┌─────────────────────┐  ┌─────────────────────┐       │\n│  │ [Purple gradient]   │  │ [Orange gradient]   │       │\n│  │                     │  │                     │       │\n│  │ [Text content]      │  │ [Text content]      │       │\n│  └─────────────────────┘  └─────────────────────┘       │\n├──────────────────────────────────────────────────────────┤\n│         [PRICING/DASHBOARD SHOWCASE SECTION]             │\n│  ┌─────────────────────────────────────────────────────┐ │\n│  │  [Purple gradient sidebar]  [White dashboard]       │ │\n│  │  [Orange gradient accent]   [Table/list view]       │ │\n│  └─────────────────────────────────────────────────────┘ │\n│                                                          │\n│  [Three text blocks with descriptions]                   │\n├──────────────────────────────────────────────────────────┤\n│  Move quickly and grow faster. Jump-start payments on    │\n│  your platform with customizable templates or build      │\n│  your own embedded payments UI                           │\n│                                                          │\n│              [Read the docs →]                           │\n├──────────────────────────────────────────────────────────┤\n│              [DARK BLUE GRADIENT SECTION]                │\n│                                                          │\n│   Flexible, actionable infrastructure for smart packs    │\n│            [Get started →]  [Read documentation]         │\n│                                                          │\n│  [Network visualization with cards and connections]      │\n│  [Blue gradient nodes and connecting lines]              │\n│  [Dashboard mockup on right side]                        │\n│                                                          │\n│  [Stats section with numbers]                            │\n├──────────────────────────────────────────────────────────┤\n│              [METRICS SHOWCASE - Dark Blue]              │\n│                                                          │\n│   [500M+]     [XXM]      [80M+]                         │\n│   [Stat 1]   [Stat 2]   [Stat 3]                        │\n│                                                          │\n│  [Additional text and dashboard preview]                 │\n├──────────────────────────────────────────────────────────┤\n│                    [FOOTER SECTION]                      │\n│                                                          │\n│  Choose an integrated suite of Stripe payments          │\n│  products or use its open API to create...               │\n│                                                          │\n│  [Footer links columns]                                  │\n│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │\n│  │Products  │ │Developers│ │Company   │ │Resources │   │\n│  │[links]   │ │[links]   │ │[links]   │ │[links]   │   │\n│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │\n│                                                          │\n│  [stripe LOGO]              [Social icons] [Language ▾]  │\n│  © Stripe  [Legal links]                                 │\n└──────────────────────────────────────────────────────────┘\n\n---VISUAL ANNOTATIONS---\n\nNAV:\n- Background: White, clean, minimal\n- Typography: Simple sans-serif, medium weight\n- Buttons/CTAs: \"SIGN IN\" (text link, dark text)\n- Layout: Logo left, nav center, sign in right\n- Colors: Black text on white\n\nHERO:\n- Background: White transitioning to vibrant gradient wave (orange → pink → purple)\n- Typography: Large, bold headline, multi-line\n- Buttons/CTAs: \"Contact sales\" (white/outline style) | \"Start now →\" (solid purple/blue, arrow included)\n- Imagery: Abstract flowing gradient wave illustration at bottom\n- Colors: Orange, pink, purple gradient; black text\n- Mood: Modern, energetic, flowing\n\nFEATURE CARDS ROW:\n- Background: Light gray/white\n- Components: 4 equal-width cards with mockup images\n- Card 1: Mobile phone UI mockup with payment interface\n- Card 2: Email receipt preview\n- Card 3: Dashboard analytics preview\n- Card 4: Chart/analytics graph\n- Treatment: Clean product screenshots with subtle shadows\n- Typography: Small captions below each\n- Colors: Multi-color screenshots on white/light gray background\n\nPRODUCT SHOWCASE 1:\n- Background: White to light gradient\n- Imagery: Dashboard interface with vibrant purple/pink gradient card overlay\n- Treatment: Floating UI mockup with depth\n- Colors: Purple, pink, magenta gradients\n- Style: Modern SaaS dashboard aesthetic\n\nPRODUCT SHOWCASE 2:\n- Background: White\n- Imagery: Transaction table/list view\n- Treatment: Clean, detailed dashboard UI\n- Colors: Purple accents, white background, subtle borders\n- Typography: Tabular data, clean sans-serif\n\nDARK BANNER:\n- Background: Dark overlay on cityscape photograph (evening/night city scene)\n- Imagery: Urban photography with purple/orange gradient overlay\n- Typography: Large white bold headline\n- Buttons/CTAs: \"Contact sales\" (white outline) | \"Learn more →\" (white outline with arrow)\n- Colors: Deep purple, orange gradient over dark photo\n- Mood: Premium, enterprise-focused\n\nBACKBONE SECTION (Deep Blue):\n- Background: Deep blue to purple gradient with radiating light pattern from bottom\n- Imagery: Geometric radiating lines creating sunburst effect\n- Components: 4 stat cards with icons and numbers\n- Dashboard mockup: Floating on right side with white/light interface\n- Typography: Large white headline, stats in white\n- Colors: Deep navy, purple, bright blue, white accents\n- Mood: Powerful, global, foundational\n- Pattern: Radiating lines suggesting scale/reach\n\nAERIAL PHOTO SECTION:\n- Background: White\n- Imagery: Aerial photograph of parking lot/building (real photography)\n- Treatment: Large hero image, realistic photography\n- Icons: Simple line icons next to text blocks\n- Colors: Natural photo colors, purple accent for icons\n- Typography: Clean body text with icon accompaniment\n\nINVESTMENT CARDS:\n- Background: White\n- Buttons/CTAs: \"Get started →\" (purple solid button with arrow)\n- Components: 4 product cards in row\n- Card 1: Purple/pink gradient (abstract)\n- Card 2: Green texture/pattern photo\n- Card 3: Flower/geometric gradient pattern (pink/purple)\n- Card 4: Teal/turquoise gradient with number \"4\"\n- Treatment: Equal-sized cards with rounded corners, subtle shadows\n- Colors: Purple, pink, green, teal gradients\n- Typography: Small captions below each card\n\nLARGE GRADIENT CARDS:\n- Background: White\n- Components: 2 large side-by-side cards\n- Left card: Deep purple to magenta gradient\n- Right card: Bright orange to yellow gradient\n- Treatment: Large, bold gradient fills with text overlay\n- Typography: White text on gradients\n- Colors: Purple, magenta, orange, yellow\n- Style: Bold, modern, high-contrast\n\nPRICING DASHBOARD:\n- Background: White to light gray\n- Imagery: Split layout - purple/orange gradient sidebar + white dashboard\n- Treatment: Product UI mockup showing pricing table interface\n- Colors: Purple, orange gradients with white dashboard area\n- Typography: Clean, tabular data presentation\n- Style: Modern SaaS interface design\n\nDOCUMENTATION CTA:\n- Background: White\n- Buttons/CTAs: \"Read the docs →\" (purple text link with arrow)\n- Typography: Large headline, body text\n- Colors: Black text, purple accent\n- Layout: Centered text block\n\nNETWORK VISUALIZATION (Dark Blue):\n- Background: Deep navy blue gradient\n- Imagery: Abstract network diagram with nodes and connections\n- Components: Card elements with connecting lines, dashboard mockup on right\n- Buttons/CTAs: \"Get started →\" (white/purple gradient solid) | \"Read documentation\" (white outline)\n- Colors: Blue gradients, purple accents, white UI elements\n- Pattern: Network topology visualization\n- Mood: Technical, interconnected, scalable\n- Typography: White text, bold headlines\n\nMETRICS (Dark Blue):\n- Background: Deep blue gradient\n- Typography: Large white numbers (500M+, XXM, 80M+)\n- Components: Stat cards with large numbers and descriptions\n- Dashboard mockup: Light interface on right\n- Colors: Deep navy, white text, subtle purple accents\n- Layout: 3-column stat display\n\nFOOTER:\n- Background: White\n- Typography: Small body text, organized link columns\n- Layout: 4 columns of links (Products, Developers, Company, Resources)\n- Components: Stripe logo, social icons, language selector\n- Colors: Gray text on white\n- Bottom: Copyright and legal links\n- Style: Clean, organized, minimal",
+            "insights": [
+              "Uses a responsive 4/8/12-column grid system with consistent 16px gutters and a 1264px max content width, allowing flexible card-based layouts that adapt seamlessly across breakpoints.",
+              "Visual rhythm is established through generous vertical spacing (increasing from 56px mobile → 96px desktop between sections) and alternating light/dark sections—white content areas contrast with deep blue-to-purple gradient hero moments for emphasis.",
+              "Compositional strategy favors centered, symmetric layouts for hero/titles, then breaks into card grids (4-column, 3-column, 2-column) that dynamically reflow; prominent use of gradient overlays (orange/pink/purple) on imagery and UI elements reinforces brand identity and adds energy."
+            ]
+          },
+          "colors": {
+            "baseline": [
+              {
+                "name": "Black",
+                "type": "Dark",
+                "rules": {
+                  "description": "Used for base document text, drop shadows, and external brand logos.",
+                  "when_to_use": [
+                    "Base document text color",
+                    "Drop shadows for dropdowns and floating cards",
+                    "Partner logo fills in carousels (e.g., OpenAI, Figma)",
+                    "Third-party payment buttons (Apple Pay)"
+                  ]
+                },
+                "hex": "#000000",
+                "alpha": null,
+                "shades": [
+                  { "name": "", "hex": "#010202", "alpha": null, "aliases": [] }
+                ],
+                "score": 1.0001
+              },
+              {
+                "name": "Blurple",
+                "type": "Cool Color",
+                "rules": {
+                  "description": "The brand's signature accent color, used exclusively for primary actions, links, and vibrant graphical highlights.",
+                  "when_to_use": [
+                    "Primary CTA button backgrounds ('Start now', 'Get started')",
+                    "Text links and callouts ('Read the story')",
+                    "Navigation icons and active states",
+                    "Gradients and focal points in feature bento cards"
+                  ]
+                },
+                "hex": "#533AFD",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#7389FF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#7F7DFC",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#4834DB",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#6763E4",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#453BB3",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#29227D",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#1E2064",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#4A68D6",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#715CFF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#5463D6",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#4A4AF4",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#486FFD",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#7F81F3",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#4032C8",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#4B73FF", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.2389
+              }
+            ],
+            "secondary": [
+              {
+                "name": "Deep Navy",
+                "type": "Dark",
+                "rules": {
+                  "description": "The primary high-contrast text color for headings, navigation, and critical data points.",
+                  "when_to_use": [
+                    "Main page headings and section titles",
+                    "Global navigation links",
+                    "Important component labels in product graphics",
+                    "Monetary values in checkout and dashboard graphics"
+                  ]
+                },
+                "hex": "#061B31",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#839BC8",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#6480B2",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#1A2C44",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#A3B5D6",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#0A2540",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#11273E",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#003478",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#0061A0",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#60A8E2",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#B4D8FF", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.20239999999999997
+              },
+              {
+                "name": "Slate Gray",
+                "type": "Cool Color",
+                "rules": {
+                  "description": "A secondary text color for supporting copy, metadata, and subtle UI elements.",
+                  "when_to_use": [
+                    "Section subtitles and paragraph descriptions",
+                    "Table headers and secondary values in graphics",
+                    "Footnotes and legal disclaimers",
+                    "Browser URLs and timestamps in illustrations"
+                  ]
+                },
+                "hex": "#50617A",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#64748D",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#3C4F69",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#5A6677",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#667691", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.2509
+              },
+              {
+                "name": "White / Off-White",
+                "type": "Light",
+                "rules": {
+                  "description": "The foundational surface color providing clean contrast for text, cards, and section layouts.",
+                  "when_to_use": [
+                    "Main page and section backgrounds",
+                    "Text inside primary Blurple buttons",
+                    "Feature card and component backgrounds",
+                    "Subtle borders and dividers using tinted shades"
+                  ]
+                },
+                "hex": "#FFFFFF",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#E5EDF5",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#F8FAFD",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#F2F7FE",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#FCFDFE",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#F5F5FF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#E3ECF7",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#F6F9FC",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#E7ECF1",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#F9F6FF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#FAFDFF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#FDFEFF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#FAFBFD",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#FAF1E5",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#E6EBF1", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.17620000000000002
+              }
+            ],
+            "insights": [
+              "The palette is highly restrained, relying on a stark high-contrast duo of deep navy text on white surfaces, which makes the signature 'Blurple' pop as an interactive accent.",
+              "Depth is achieved not through heavy shadows, but through a wide array of extremely subtle off-white and cool gray-blue tints used for card backgrounds and borders.",
+              "Information density in product illustrations is managed gracefully using a monochromatic scale of slate grays, ensuring complex data tables remain legible without feeling cluttered."
+            ]
+          },
+          "typography": {
+            "titles": {
+              "variants": [
+                {
+                  "name": "sohne-var",
+                  "role": "Heading XXL",
+                  "specs": {
+                    "size": "3.5rem",
+                    "line_height": "1.03",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading XL",
+                  "specs": {
+                    "size": "3rem",
+                    "line_height": "1.03",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading LG",
+                  "specs": {
+                    "size": "2rem",
+                    "line_height": "1.1",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading MD",
+                  "specs": {
+                    "size": "1.625rem",
+                    "line_height": "1.12",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading SM",
+                  "specs": {
+                    "size": "1.375rem",
+                    "line_height": "1.1",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading XS",
+                  "specs": {
+                    "size": "1rem",
+                    "line_height": "1.2",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading XXS",
+                  "specs": {
+                    "size": "0.875rem",
+                    "line_height": "1.2",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading Hero LG",
+                  "specs": {
+                    "size": "2.5rem",
+                    "line_height": "1.2",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading Hero MD",
+                  "specs": {
+                    "size": "2.25rem",
+                    "line_height": "1.05",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Heading Hero SM",
+                  "specs": {
+                    "size": "2rem",
+                    "line_height": "1.1",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                }
+              ]
+            },
+            "paragraphs": {
+              "description": "Body text and long passages",
+              "variants": [
+                {
+                  "name": "sohne-var",
+                  "role": "Text XXL",
+                  "specs": {
+                    "size": "3rem",
+                    "line_height": "1",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text XL",
+                  "specs": {
+                    "size": "1.25rem",
+                    "line_height": "1.4",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text LG",
+                  "specs": {
+                    "size": "1.125rem",
+                    "line_height": "1.4",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text MD",
+                  "specs": {
+                    "size": "1rem",
+                    "line_height": "1.4",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text SM",
+                  "specs": {
+                    "size": "0.875rem",
+                    "line_height": "1.4",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text XS",
+                  "specs": {
+                    "size": "0.875rem",
+                    "line_height": "1.4",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text XXS",
+                  "specs": {
+                    "size": "0.75rem",
+                    "line_height": "1.45",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                }
+              ]
+            },
+            "labels": {
+              "description": "Component labels, UI elements, and small captions",
+              "variants": [
+                {
+                  "name": "sohne-var",
+                  "role": "Button",
+                  "specs": {
+                    "size": "1rem",
+                    "line_height": "1",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Label",
+                  "specs": {
+                    "size": "0.875rem",
+                    "line_height": "1.3",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Field Description / Error",
+                  "specs": {
+                    "size": "0.875rem",
+                    "line_height": "1.3",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Text Input",
+                  "specs": {
+                    "size": "1rem",
+                    "line_height": "1",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Textarea",
+                  "specs": {
+                    "size": "16px",
+                    "line_height": "22.4px",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Tooltip",
+                  "specs": {
+                    "size": "15px",
+                    "line_height": "1.333333333",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Listbox Item",
+                  "specs": {
+                    "size": "1rem",
+                    "line_height": "1.25",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Globalization Picker Listbox Item",
+                  "specs": {
+                    "size": ".75rem",
+                    "line_height": "1.4em",
+                    "font_weight": "",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Navigation Trigger",
+                  "specs": {
+                    "size": ".875rem",
+                    "line_height": "",
+                    "font_weight": "",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Checkbox Label",
+                  "specs": {
+                    "size": "1rem",
+                    "line_height": "1.2",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                },
+                {
+                  "name": "sohne-var",
+                  "role": "Checkbox Input",
+                  "specs": {
+                    "size": "14px",
+                    "line_height": "20px",
+                    "font_weight": "",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "sohne-var, \"SF Pro Display\", sans-serif",
+                    "file_url": "/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2"
+                  }
+                }
+              ]
+            },
+            "others": {
+              "description": "Typography variants that don't fit other categories",
+              "variants": [
+                {
+                  "name": "SourceCodePro",
+                  "role": "Monospace",
+                  "specs": {
+                    "size": "",
+                    "line_height": "",
+                    "font_weight": "",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"SourceCodePro\", \"SFMono-Regular\", monospace",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "highlights": null,
+            "insights": [
+              "Strong emphasis on light typography: Almost all headings and large text variants use a light font-weight (300), creating a very sleek, confident, and modern aesthetic.",
+              "Fluid modular scale: The typography system uses a robust set of CSS custom properties and viewport-based media queries to perfectly scale headings and text for desktop, tablet, and mobile.",
+              "Negative letter spacing on large type: Heading XL and XXL use tighter negative letter spacing (-0.02em, -0.025em), ensuring large headings remain optically balanced."
+            ]
+          },
+          "surfaces": {
+            "texture_classification": ["gradient_linear", "shadows_soft"],
+            "solid_colors": [
+              {
+                "name": "Page Background",
+                "description": "Primary white background for main content areas",
+                "when_to_use": [
+                  "Page backgrounds",
+                  "Section backgrounds",
+                  "Card containers"
+                ],
+                "hex": "#FFFFFF"
+              },
+              {
+                "name": "Surface Subdued",
+                "description": "Subtle off-white background for differentiation",
+                "when_to_use": [
+                  "Alternate section backgrounds",
+                  "Input backgrounds",
+                  "Subdued panels"
+                ],
+                "hex": "#F8FAFD"
+              },
+              {
+                "name": "Dark Section Background",
+                "description": "Dark blue background for dark mode sections (stats section)",
+                "when_to_use": [
+                  "Dark sections",
+                  "Night mode variants",
+                  "High-contrast areas"
+                ],
+                "hex": "#122054"
+              },
+              {
+                "name": "Navigation Background",
+                "description": "Transparent-to-white background for navigation",
+                "when_to_use": [
+                  "Navigation menus",
+                  "Dropdowns",
+                  "Popup overlays"
+                ],
+                "hex": "#FFFFFF"
+              },
+              {
+                "name": "Card Background",
+                "description": "White background for elevated card components",
+                "when_to_use": [
+                  "Resource cards",
+                  "Bento cards",
+                  "Customer story cards",
+                  "Modals"
+                ],
+                "hex": "#FFFFFF"
+              },
+              {
+                "name": "Input Background Default",
+                "description": "Semi-transparent white input background (40% opacity)",
+                "when_to_use": ["Text inputs", "Form fields", "Search boxes"],
+                "hex": "#FFFFFF"
+              },
+              {
+                "name": "Input Background Focus",
+                "description": "Semi-transparent white input on focus (80% opacity)",
+                "when_to_use": ["Focused form fields", "Active inputs"],
+                "hex": "#FFFFFF"
+              },
+              {
+                "name": "Input Background Disabled",
+                "description": "Disabled state background with 30% opacity",
+                "when_to_use": ["Disabled inputs", "Inactive form fields"],
+                "hex": "#A8C3DE"
+              },
+              {
+                "name": "Action Background Quiet",
+                "description": "Light purple background for quiet actions",
+                "when_to_use": [
+                  "UI buttons",
+                  "Secondary actions",
+                  "Toggle tabs"
+                ],
+                "hex": "#E8E9FF"
+              },
+              {
+                "name": "Action Background Subdued",
+                "description": "Subdued purple background",
+                "when_to_use": ["Subdued button states", "Accent backgrounds"],
+                "hex": "#E2E4FF"
+              },
+              {
+                "name": "Accent Surface Subdued",
+                "description": "Subdued accent surface",
+                "when_to_use": ["Accent containers", "Highlighted sections"],
+                "hex": "#E2E4FF"
+              },
+              {
+                "name": "Overlay Background",
+                "description": "Overlay background with 70% opacity for dialog overlays",
+                "when_to_use": [
+                  "Modal overlays",
+                  "Dialog backgrounds",
+                  "Scrim layers"
+                ],
+                "hex": "#E5EDF5"
+              },
+              {
+                "name": "Border Quiet",
+                "description": "Subtle border color",
+                "when_to_use": ["Dividers", "Section borders", "Card outlines"],
+                "hex": "#E5EDF5"
+              },
+              {
+                "name": "Border Default",
+                "description": "Default border color with 75% opacity",
+                "when_to_use": ["Input borders", "Component outlines"],
+                "hex": "#D4DEE9"
+              }
+            ],
+            "gradients": [
+              {
+                "name": "Stats Animation Pre-Dawn",
+                "description": "Pre-dawn gradient for stats animation",
+                "when_to_use": [
+                  "Stats section background animation",
+                  "Time-based gradient transitions"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -380%, #EE30FB -60%, #635BFF 110%)"
+              },
+              {
+                "name": "Stats Animation Sunrise",
+                "description": "Sunrise gradient for stats animation",
+                "when_to_use": [
+                  "Stats section background animation",
+                  "Morning theme"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -265%, #EE30FB 60%, #635BFF 240%)"
+              },
+              {
+                "name": "Stats Animation Daytime",
+                "description": "Daytime gradient for stats animation",
+                "when_to_use": [
+                  "Stats section background animation",
+                  "Day theme"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -20%, #EE30FB 190%, #635BFF 365%)"
+              },
+              {
+                "name": "Stats Animation Sunset",
+                "description": "Sunset gradient for stats animation",
+                "when_to_use": [
+                  "Stats section background animation",
+                  "Evening theme"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -15%, #EE30FB 315%, #635BFF 490%)"
+              },
+              {
+                "name": "Stat Value Gradient 1",
+                "description": "Gradient for first stat value with background-clip text",
+                "when_to_use": [
+                  "Stats block value text",
+                  "Gradient text effects"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -380%, #EE30FB -60%, #635BFF 110%)"
+              },
+              {
+                "name": "Stat Value Gradient 2",
+                "description": "Gradient for second stat value",
+                "when_to_use": [
+                  "Stats block value text",
+                  "Sequential gradient elements"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -265%, #EE30FB 60%, #635BFF 240%)"
+              },
+              {
+                "name": "Stat Value Gradient 3",
+                "description": "Gradient for third stat value",
+                "when_to_use": [
+                  "Stats block value text",
+                  "Sequential gradient elements"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -20%, #EE30FB 190%, #635BFF 365%)"
+              },
+              {
+                "name": "Stat Value Gradient 4",
+                "description": "Gradient for fourth stat value",
+                "when_to_use": [
+                  "Stats block value text",
+                  "Sequential gradient elements"
+                ],
+                "css_code": "linear-gradient(270deg, #FFD601 -15%, #EE30FB 315%, #635BFF 490%)"
+              },
+              {
+                "name": "Drag Icon Container Blur Top",
+                "description": "Top-to-bottom fade gradient for dialog drag area",
+                "when_to_use": [
+                  "Dialog drag handles",
+                  "Mobile drawer headers",
+                  "Blur overlays"
+                ],
+                "css_code": "linear-gradient(180deg, #FFFFFF 25.78%, rgba(255, 255, 255, 0.7) 60.75%, rgba(255, 255, 255, 0) 98.22%)"
+              },
+              {
+                "name": "Accent Charm Gradient Default",
+                "description": "Default accent gradient from light to dark purple",
+                "when_to_use": [
+                  "Accent charm backgrounds",
+                  "Brand gradient effects"
+                ],
+                "css_code": "linear-gradient(from start, #7F7DFC, #533AFD, #4032C8)"
+              },
+              {
+                "name": "Accent Lemon Gradient",
+                "description": "Lemon accent gradient from yellow to orange",
+                "when_to_use": ["Lemon accent mode", "Warm color accents"],
+                "css_code": "linear-gradient(from start, #FFD552, #FFAF2D, #FF9014)"
+              },
+              {
+                "name": "Accent Magenta Gradient",
+                "description": "Magenta accent gradient",
+                "when_to_use": ["Magenta accent mode", "Pink-purple accents"],
+                "css_code": "linear-gradient(from start, #F98BF9, #F96BEE, #B262F9)"
+              },
+              {
+                "name": "Accent Orange Gradient",
+                "description": "Orange to red accent gradient",
+                "when_to_use": ["Orange accent mode", "Warm accent elements"],
+                "css_code": "linear-gradient(from start, #FE8C2D, #FD6252, #FD5D7C)"
+              },
+              {
+                "name": "Accent Ruby Gradient",
+                "description": "Ruby accent gradient from pink to deep red",
+                "when_to_use": ["Ruby accent mode", "Red accent elements"],
+                "css_code": "linear-gradient(from start, #FD7184, #EA2261, #B51145)"
+              }
+            ],
+            "highlights": [
+              "Soft shadows on cards: var(--hds-shadow-xs) to var(--hds-shadow-xl) with layered top and bottom shadow colors",
+              "Gradient border effects on bento cards with color-shifting animation",
+              "Gradient text effects using background-clip on stat values in stats section",
+              "Blur gradient overlays on dialog drag containers for glassmorphism hints",
+              "Time-of-day gradient animation system in stats section with 6 states (pre-dawn, sunrise, daytime, dusk, sunset, night)",
+              "Subtle dot pattern and wave graphics as background decorations",
+              "Animated gradient borders on modular solutions bento cards"
+            ]
+          },
+          "elevation": {
+            "description": "Elevation allows elements to be lifted from the background. It can be defined by applying drop shadows or other visual cues, such as color and borders",
+            "shadows": {
+              "description": "Elevation using shadows reflects a spatial relationship by indicating separation from the background or allowing content to be scrolled under another element.",
+              "levels": [
+                {
+                  "name": "Hds Shadow Xs",
+                  "type": "drop",
+                  "description": "Extra small shadow with 2px vertical offset on top layer (10px blur) and 1px on bottom layer (4px blur). Used for subtle elevation.",
+                  "css_value": "0px 2px 10px 0px #0037700f,0px 1px 4px 0px #003b890a",
+                  "when_to_use": [
+                    "Subtle card elevation",
+                    "Minor surface separation"
+                  ]
+                },
+                {
+                  "name": "Hds Shadow Sm",
+                  "type": "drop",
+                  "description": "Small shadow with 5px vertical offset on top layer (14px blur) and 2px on bottom layer (8px blur). Light elevation for interactive elements.",
+                  "css_value": "0px 5px 14px 0px #00377014,0px 2px 8px 0px #003b890d",
+                  "when_to_use": [
+                    "Cards",
+                    "Interactive elements",
+                    "Light elevation"
+                  ]
+                },
+                {
+                  "name": "Hds Shadow Md",
+                  "type": "drop",
+                  "description": "Medium shadow with 6px vertical offset on top layer (22px blur) and 4px on bottom layer (8px blur). Standard elevation for cards and containers.",
+                  "css_value": "0px 6px 22px 0px #0037701a,0px 4px 8px 0px #003b8905",
+                  "when_to_use": [
+                    "Cards on hover",
+                    "Medium elevation surfaces",
+                    "Containers"
+                  ]
+                },
+                {
+                  "name": "Hds Shadow Lg",
+                  "type": "drop",
+                  "description": "Large shadow with 15px vertical offset on top layer (40px blur, -2px spread) and 5px on bottom layer (20px blur, -2px spread). Prominent elevation.",
+                  "css_value": "0px 15px 40px -2px #0037701a,0px 5px 20px -2px #003b890a",
+                  "when_to_use": [
+                    "Floating panels",
+                    "Modal containers",
+                    "Prominent cards"
+                  ]
+                },
+                {
+                  "name": "Hds Shadow Xl",
+                  "type": "drop",
+                  "description": "Extra large shadow with 20px vertical offset on top layer (80px blur, -16px spread) and 10px on bottom layer (60px blur, -16px spread). Maximum elevation.",
+                  "css_value": "0px 20px 80px -16px #00377024,0px 10px 60px -16px #003b890f",
+                  "when_to_use": [
+                    "Floating elements",
+                    "Dropdowns",
+                    "Maximum elevation surfaces"
+                  ]
+                },
+                {
+                  "name": "Hds Canary Ui Shadow",
+                  "type": "drop",
+                  "description": "UI shadow with 16px vertical offset and 32px blur at 12% opacity. Used for UI components.",
+                  "css_value": "0px 16px 32px rgba(50,50,93,.12)",
+                  "when_to_use": [
+                    "UI components",
+                    "Experimental/canary features"
+                  ]
+                },
+                {
+                  "name": "Select Popover Shadow",
+                  "type": "drop",
+                  "description": "Shadow for select popovers with 5px and 15px vertical offsets at different blur levels.",
+                  "css_value": "0 5px 15px 0 #003b890d,0 15px 35px 0 #00377014",
+                  "when_to_use": ["Select dropdowns", "Popover menus"]
+                },
+                {
+                  "name": "Tooltip Shadow Bottom",
+                  "type": "drop",
+                  "description": "Shadow for bottom-positioned tooltips with negative vertical offset creating upward shadow effect.",
+                  "css_value": "0 -30px 60px -12px rgba(50,50,93,.25),0 -18px 36px -18px rgba(0,0,0,.3)",
+                  "when_to_use": ["Tooltips positioned below trigger"]
+                },
+                {
+                  "name": "Tooltip Shadow Top",
+                  "type": "drop",
+                  "description": "Shadow for top-positioned tooltips with positive vertical offset creating downward shadow effect.",
+                  "css_value": "0 30px 60px -12px rgba(50,50,93,.25),0 18px 36px -18px rgba(0,0,0,.3)",
+                  "when_to_use": ["Tooltips positioned above trigger"]
+                },
+                {
+                  "name": "Tooltip Shadow Right",
+                  "type": "drop",
+                  "description": "Shadow for right-positioned tooltips with negative horizontal offset.",
+                  "css_value": "-30px 0 60px -12px rgba(50,50,93,.25),-18px 0 36px -18px rgba(0,0,0,.3)",
+                  "when_to_use": ["Tooltips positioned to the right of trigger"]
+                },
+                {
+                  "name": "Tooltip Shadow Left",
+                  "type": "drop",
+                  "description": "Shadow for left-positioned tooltips with positive horizontal offset.",
+                  "css_value": "30px 0 60px -12px rgba(50,50,93,.25),18px 0 36px -18px rgba(0,0,0,.3)",
+                  "when_to_use": ["Tooltips positioned to the left of trigger"]
+                },
+                {
+                  "name": "Navigation Popup Shadow",
+                  "type": "drop",
+                  "description": "Shadow for navigation popup menus with 18px and 30px vertical offsets.",
+                  "css_value": "0 18px 36px -18px rgba(0,0,0,.1),0 30px 45px -30px rgba(50,50,93,.25)",
+                  "when_to_use": ["Navigation dropdown menus", "Header menus"]
+                },
+                {
+                  "name": "Globalization Picker Shadow",
+                  "type": "drop",
+                  "description": "Bidirectional shadow for globalization picker listbox.",
+                  "css_value": "0 -20px 30.64px 0 hsla(0,0%,9%,.08),0 20px 30.64px 0 hsla(0,0%,9%,.08)",
+                  "when_to_use": [
+                    "Globalization/language picker",
+                    "Locale selector"
+                  ]
+                }
+              ]
+            },
+            "borders": [
+              { "hex": "#E5EDF5", "width": "1px", "style": "solid" },
+              { "hex": "#D4DEE9", "width": "1px", "style": "solid" },
+              { "hex": "#D6D9FC", "width": "1px", "style": "solid" },
+              { "hex": "#B9B9F9", "width": "1px", "style": "solid" },
+              { "hex": "#E5EDF5", "width": "1px", "style": "dashed" }
+            ]
+          },
+          "interactions": {
+            "global_patterns": [
+              "marquee",
+              "sticky_header",
+              "scroll_reveal",
+              "accordion",
+              "hover_transform",
+              "tab_switching",
+              "carousel"
+            ],
+            "animations": [
+              {
+                "name": "button-transition",
+                "css": "transition: background-color 0.3s cubic-bezier(0.25, 1, 0.5, 1), color 0.3s cubic-bezier(0.25, 1, 0.5, 1), outline-color 0.3s cubic-bezier(0.25, 1, 0.5, 1), border 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+                "description": "Smooth transition for button state changes including background, text color, and border."
+              },
+              {
+                "name": "link-transition",
+                "css": "transition: color 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+                "description": "Color transition for link hover states."
+              },
+              {
+                "name": "input-transition",
+                "css": "transition: outline-width 0.3s cubic-bezier(0.25, 1, 0.5, 1), outline-color 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+                "description": "Transition for form input focus and hover states."
+              },
+              {
+                "name": "accordion-expand",
+                "css": "transition-property: content-visibility, height; transition-behavior: allow-discrete; transition-duration: 0.36s; transition-timing-function: cubic-bezier(0.65, 0.05, 0.36, 1)",
+                "description": "Accordion content expand/collapse animation using CSS details-content."
+              },
+              {
+                "name": "chevron-rotation",
+                "css": "",
+                "description": "Navigation chevron icons rotate 90 degrees when parent aria-expanded is true. JS-driven via class toggle affecting transform-origin."
+              },
+              {
+                "name": "logo-carousel-marquee",
+                "css": "",
+                "description": "Continuous horizontal scrolling marquee for partner/customer logos. JS-driven with translateX transform updates."
+              },
+              {
+                "name": "hero-wave-animation",
+                "css": "",
+                "description": "Canvas-based animated gradient wave in the hero section. JS-driven WebGL or Canvas 2D animation."
+              },
+              {
+                "name": "bento-card-hover",
+                "css": "",
+                "description": "Bento cards expand slightly on hover using CSS custom properties --card-shift and --card-grow for interactive reveal effect."
+              },
+              {
+                "name": "hover-arrow-transition",
+                "css": "transition: stroke 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+                "description": "Arrow icon appears and translates 6px right on button/link hover."
+              },
+              {
+                "name": "hover-arrow-group",
+                "css": "transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+                "description": "Arrow group translation animation on hover using --hds-hover-active custom property."
+              },
+              {
+                "name": "stats-gradient-transition",
+                "css": "",
+                "description": "Time-of-day gradient backgrounds in stats section transition between pre-dawn, sunrise, daytime, dusk, sunset, and night states. JS-driven with active class toggles."
+              },
+              {
+                "name": "cross-toggle-animation",
+                "css": "",
+                "description": "Accordion cross/plus icon toggle animation using --cross-toggle-collapse custom property."
+              },
+              {
+                "name": "payment-checkout-animation",
+                "css": "",
+                "description": "Animated checkout form with cycling payment methods, currencies, and merchant branding. JS-driven translateY transforms on content blocks."
+              }
+            ],
+            "insights": [
+              "The design system uses a consistent cubic-bezier(0.25, 1, 0.5, 1) easing curve across all micro-interactions, creating a unified feel of swift entry with soft deceleration.",
+              "Button radius is kept minimal at 4px (rounded) maintaining a professional, fintech-appropriate aesthetic while still feeling modern and approachable.",
+              "Heavy use of CSS custom properties (--hds-*) enables theming between light/dark modes and accent color variations without component duplication, seen in the stats section time-of-day gradients.",
+              "Interactive elements follow a consistent disabled state pattern: 0.5 opacity background tint, muted gray text (#95A4BA), and cursor: default/not-allowed."
+            ]
+          },
+          "actions": {
+            "button_list": [
+              {
+                "name": "Get started (Primary)",
+                "usage": "Main call-to-action for user registration and onboarding flows. Appears in hero sections and key conversion points.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "15.5px 24px 16.5px 24px"
+                    },
+                    {
+                      "name": "Compact",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "11.5px 24px 12.5px 24px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "#533AFD",
+                    "text_color": "#FFFFFF",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "#4032C8",
+                    "text_color": "#FFFFFF",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "rgba(168, 195, 222, 0.3)",
+                    "text_color": "#95A4BA",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": "default"
+                  }
+                }
+              },
+              {
+                "name": "Contact sales (Secondary on Quiet)",
+                "usage": "Secondary action buttons used alongside primary CTAs. Appears in navigation and hero sections for sales inquiries.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "14.5px 24px 15.5px 24px"
+                    },
+                    {
+                      "name": "Compact",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "10.5px 24px 11.5px 24px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#533AFD",
+                    "border_color": "#D6D9FC",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#2E2B8C",
+                    "border_color": "#4032C8",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "transparent",
+                    "text_color": "#95A4BA",
+                    "border_color": "#D4DEE9",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": "default"
+                  }
+                }
+              },
+              {
+                "name": "Read the story (Secondary)",
+                "usage": "Secondary action for customer story cards and case study links. Used in accordion-style customer story sections.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "14.5px 24px 15.5px 24px"
+                    },
+                    {
+                      "name": "Compact",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "10.5px 24px 11.5px 24px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#533AFD",
+                    "border_color": "#B9B9F9",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#2E2B8C",
+                    "border_color": "#4032C8",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "transparent",
+                    "text_color": "#95A4BA",
+                    "border_color": "#D4DEE9",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": "default"
+                  }
+                }
+              },
+              {
+                "name": "Sign up with Google (Secondary with Icon)",
+                "usage": "OAuth authentication button for Google sign-up flow in hero section.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "14.5px 24px 15.5px 24px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#533AFD",
+                    "border_color": "#B9B9F9",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#2E2B8C",
+                    "border_color": "#4032C8",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "transparent",
+                    "text_color": "#95A4BA",
+                    "border_color": "#D4DEE9",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": "default"
+                  }
+                }
+              },
+              {
+                "name": "Products/Solutions/Developers (Navigation Trigger - Transparent)",
+                "usage": "Navigation menu triggers that expand dropdown menus. Used in the main header navigation.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "0.875rem",
+                      "padding": "12px 0px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#061B31",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#061B31",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "transparent",
+                    "text_color": "#95A4BA",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": "default"
+                  }
+                }
+              },
+              {
+                "name": "Watch now (Primary on Dark)",
+                "usage": "Primary CTA button on dark backgrounds, such as the Sessions on-demand banner section.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "1rem",
+                      "padding": "15.5px 24px 16.5px 24px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "#533AFD",
+                    "text_color": "#FFFFFF",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "#4032C8",
+                    "text_color": "#FFFFFF",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "rgba(168, 195, 222, 0.3)",
+                    "text_color": "#95A4BA",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": "default"
+                  }
+                }
+              },
+              {
+                "name": "Chat now with sales (Dark Mode)",
+                "usage": "Chat initiation button on dark backgrounds, appears in dark themed sections for sales contact.",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "15px",
+                      "padding": "0px 24px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "#0A2540",
+                    "text_color": "#FFFFFF",
+                    "border_color": "rgba(255, 255, 255, 0.12)",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "#0A2540",
+                    "text_color": "#FFFFFF",
+                    "border_color": "rgba(255, 255, 255, 0.2)",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "rgba(168, 195, 222, 0.3)",
+                    "text_color": "#95A4BA",
+                    "border_color": "transparent",
+                    "border_width": "1px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              },
+              {
+                "name": "Query Submit (Icon Button - Disabled State)",
+                "usage": "Icon-only submit button for the query input form. Circular design with arrow icon.",
+                "specs": {
+                  "radius": "rounded-sm",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "sohne-var",
+                      "size": "16px",
+                      "padding": "8px"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "#E5EDF5",
+                    "text_color": "#95A4BA",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "#D4DEE9",
+                    "text_color": "#533AFD",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "#E5EDF5",
+                    "text_color": "#95A4BA",
+                    "border_color": "transparent",
+                    "border_width": "0px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              }
+            ],
+            "button_group": {
+              "description": "Horizontal button groups with primary and secondary actions side by side. Primary button appears first, followed by secondary outline button.",
+              "spacing": "8px"
+            },
+            "links": { "text_decoration": "none" }
+          },
+          "navigation": {
+            "top_nav": {
+              "height": "64px",
+              "position": "relative",
+              "background": {
+                "hex": "#FFFFFF",
+                "color_reference": "Baseline/White",
+                "opacity": null,
+                "blur": null
+              },
+              "border_bottom": null
+            },
+            "announcement_bar": null,
+            "tabs": {
+              "style_name": "Navigation Menu Trigger",
+              "description": "Transparent button triggers in the top navigation that expand dropdown menus for product categories and resources.",
+              "when_to_use": [
+                "Primary site navigation",
+                "Expandable category menus",
+                "Dropdown triggers for mega-menus"
+              ],
+              "states": [
+                {
+                  "name": "default",
+                  "visual_change": "Standard dark text on transparent background",
+                  "background": "transparent",
+                  "text": "#061B31",
+                  "icon": null
+                },
+                {
+                  "name": "hover",
+                  "visual_change": "Text remains dark, no visible background change",
+                  "background": "transparent",
+                  "text": "#061B31",
+                  "icon": null
+                },
+                {
+                  "name": "expanded",
+                  "visual_change": "Chevron icon rotates when aria-expanded is true",
+                  "background": "transparent",
+                  "text": "#061B31",
+                  "icon": null
+                },
+                {
+                  "name": "inactive_when_other_open",
+                  "visual_change": "Text becomes subdued gray when another menu is open",
+                  "background": null,
+                  "text": "#64748D",
+                  "icon": null
+                }
+              ]
+            }
+          },
+          "data_display": {
+            "charts": [
+              {
+                "name": "Usage Bar Chart",
+                "description": "Vertical bar chart showing daily usage metrics over a 30-day period. Used in billing/subscription cards to visualize token consumption.",
+                "when_to_use": [
+                  "Displaying usage-based billing metrics",
+                  "Showing daily activity patterns",
+                  "Visualizing subscription consumption data"
+                ]
+              }
+            ],
+            "tables": [],
+            "tiles": [
+              {
+                "name": "Stats Tile",
+                "description": "Large numerical statistic with supporting description text. Features animated transitions and interactive selection on desktop.",
+                "when_to_use": [
+                  "Highlighting key business metrics",
+                  "Showcasing platform scale and reliability",
+                  "Hero-style data presentation in dark sections"
+                ]
+              },
+              {
+                "name": "Customer Story Tile",
+                "description": "Expandable accordion-style tiles showing customer logos, summaries, and detailed case study content with statistics.",
+                "when_to_use": [
+                  "Enterprise customer showcases",
+                  "Case study presentations",
+                  "Social proof sections"
+                ]
+              },
+              {
+                "name": "Bento Card",
+                "description": "Interactive feature cards with hover expand effect, containing product graphics and descriptions. Arranged in a flexible grid layout.",
+                "when_to_use": [
+                  "Product feature showcases",
+                  "Solution category displays",
+                  "Interactive product exploration"
+                ]
+              }
+            ]
+          },
+          "structure": {
+            "accordion": {
+              "interaction": "Single open by default. Clicking a closed item opens it and collapses previously open items. Uses CSS details/summary pattern with smooth height transitions."
+            },
+            "dividers": [
+              {
+                "name": "Section Divider",
+                "description": "Dashed horizontal divider separating major content sections",
+                "when_to_use": [
+                  "Between major page sections",
+                  "Separating content groups within a section"
+                ],
+                "color": "#E5EDF5",
+                "height": "1px",
+                "style": "dashed"
+              },
+              {
+                "name": "Accordion Border",
+                "description": "Dashed borders on accordion items, top and bottom",
+                "when_to_use": [
+                  "Accordion item boundaries",
+                  "Collapsible section borders"
+                ],
+                "color": "#E5EDF5",
+                "height": "1px",
+                "style": "dashed"
+              }
+            ]
+          },
+          "icons": [
+            {
+              "name": "Navigation Icons",
+              "description": "Directional arrows and chevrons for navigation, links, and buttons.",
+              "when_to_use": ["Navigation menus", "Buttons", "Text links"],
+              "format": "SVG",
+              "style": "Line Art / Monoline",
+              "sizes": { "small": "5x8", "medium": "16x16" },
+              "examples": [
+                {
+                  "name": "Chevron Down",
+                  "svg_code": "<svg class=\"hds-icon navigation__chevron-down-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path class=\"navigation__chevron-down-icon__left\" d=\"M4.67065 6L9.3 10.6\" stroke=\"currentColor\" stroke-width=\"1.75\"></path><path class=\"navigation__chevron-down-icon__right\" d=\"M12.6707 6L8.67065 10\" stroke=\"currentColor\" stroke-width=\"1.75\"></path></svg>"
+                },
+                {
+                  "name": "Hover Arrow",
+                  "svg_code": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"hds-icon hds-icon-hover-arrow\" width=\"5\" height=\"8\" fill=\"none\" viewBox=\"0 0.5 5 8\"><defs><clipPath id=\":R1pbdir6l6:\"><rect x=\"0\" y=\"0\" width=\"12\" height=\"9\"></rect></clipPath></defs><g clip-path=\"url(#:R1pbdir6l6:)\"><g class=\"arrow-group\"><rect class=\"shaft\" x=\"-10\" y=\"3.375\" width=\"13\" height=\"1.75\" fill=\"currentColor\"></rect><path d=\"M4.84766 3.63379L5.45898 4.25L4.84766 4.86621L1.24219 8.49902L0 7.2666L2.99316 4.24902L0 1.23242L1.24219 0L4.84766 3.63379Z\" fill=\"currentColor\"></path></g></g></svg>"
+                },
+                {
+                  "name": "Chevron Left",
+                  "svg_code": "<svg class=\"navigation__chevron-left-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"6\" height=\"10\" fill=\"none\" viewBox=\"0 0 6 10\"><path fill=\"currentColor\" d=\"M.618 5.238 0 4.62.618 4l4-4 1.238 1.238-3.38 3.381L5.856 8 4.618 9.238z\"></path></svg>"
+                }
+              ]
+            },
+            {
+              "name": "UI Feedback Icons",
+              "description": "Small functional icons for UI status, indicators, and controls.",
+              "when_to_use": [
+                "Progress indicators",
+                "Checklists",
+                "UI status indicators"
+              ],
+              "format": "SVG",
+              "style": "Solid and Line Art",
+              "sizes": { "small": "8x8", "medium": "20x20" },
+              "examples": [
+                {
+                  "name": "Plus Icon",
+                  "svg_code": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path d=\"M13.75 6.75L10.25 6.75L10.25 5L15.5 5L15.5 10.25L13.75 10.25L13.75 6.75Z\"></path><path d=\"M6.75 10.25L5 10.25L5 15.5L10.25 15.5L10.25 13.75L6.75 13.75L6.75 10.25Z\"></path></svg>"
+                },
+                {
+                  "name": "Progress Ring",
+                  "svg_code": "<svg class=\"progress-ring__graphic\" xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"></circle><circle cx=\"10\" cy=\"10\" r=\"8\" fill=\"none\" stroke=\"#533afd\" stroke-width=\"2\" stroke-linecap=\"butt\" pathLength=\"1\" stroke-dashoffset=\"0\" stroke-dasharray=\"0 1\" style=\"transform-box:fill-box;transform-origin:50% 50%;transform:rotate(-90deg)\"></circle></svg>"
+                },
+                {
+                  "name": "Checkmark",
+                  "svg_code": "<svg class=\"progress-ring__check\" width=\"8\" height=\"8\" viewBox=\"0 0 8 8\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\" style=\"opacity:0;transform:translateX(-50%) translateY(-50%) scale(0)\"><path d=\"M7.76855 1.775L3.51855 6.775L2.99414 7.39121L2.48145 6.76523L0.231445 4.01523L1.27637 3.15977L3.0127 5.28281L6.73926 0.9L7.76855 1.775Z\" fill=\"currentColor\"></path></svg>"
+                },
+                {
+                  "name": "Strength Icon",
+                  "svg_code": "<svg class=\"query-box__strength-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M11.1348 1.73633L11.7061 2.22266L5.05566 10.0225L4.51855 10.6533L3.94434 10.0557L0.293945 6.25586L1.37598 5.2168L4.45117 8.41895L10.5645 1.25L11.1348 1.73633Z\"></path></svg>"
+                }
+              ]
+            },
+            {
+              "name": "Mockup & Brand Icons",
+              "description": "Illustrative and multi-colored icons used within product mockups.",
+              "when_to_use": [
+                "Payment mockups",
+                "Product illustrations",
+                "Bento graphics"
+              ],
+              "format": "SVG",
+              "style": "Filled / Multi-color",
+              "sizes": { "small": "11x11", "medium": "40x40" },
+              "examples": [
+                {
+                  "name": "Klarna Mockup Logo",
+                  "svg_code": "<svg width=\"11\" height=\"12\" viewBox=\"0 0 11 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"11\" height=\"11\" fill=\"#FF0033\"></rect><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M0 3.49381C1.47279 3.34386 2.84571 3.34782 4.05018 3.46424L2.16023 11.1777L2.82612 11.1776L3.3314 9.06233C6.70393 8.80187 8.77995 8.01256 9.2304 5.95446C9.72981 3.66748 6.54334 1.37781 0 1.56329V3.49381ZM4.64949 3.53526C7.38551 3.90821 9.09526 4.8968 8.83478 5.96433C8.55471 7.11277 5.94993 7.80932 3.65653 7.69881L4.64949 3.53526Z\" fill=\"white\"></path></svg>"
+                },
+                {
+                  "name": "Affirm Mockup Logo",
+                  "svg_code": "<svg width=\"11\" height=\"11\" viewBox=\"0 0 11 11\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"11\" height=\"11\" fill=\"white\"></rect><path d=\"M0 0H11V4.8125H0V0Z\" fill=\"#009F41\"></path><path d=\"M0 6.1875H11V11H0V6.1875Z\" fill=\"#008CD5\"></path></svg>"
+                },
+                {
+                  "name": "Decorative Brand Icon",
+                  "svg_code": "<svg viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" fill=\"none\" aria-hidden=\"true\"><path fill=\"#FFD100\" d=\"M0 4a4 4 0 0 1 4-4h32a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4Z\"></path><path fill=\"#FAFBFD\" d=\"M29.552 32H9.75l.24-3.533h19.785L29.552 32Z\"></path><path fill=\"#000\" d=\"m19.443 8-1.875 8.823h6.915L26.364 8h3.937l-4.026 18.94h-3.941l1.393-6.562h-6.92l-1.387 6.561h-3.975L15.467 8h3.976Z\"></path></svg>"
+                },
+                {
+                  "name": "Payment Mockup Logo",
+                  "svg_code": "<svg viewBox=\"0 0 43 43\" xmlns=\"http://www.w3.org/2000/svg\" width=\"43\" height=\"43\" fill=\"none\" aria-hidden=\"true\"><path fill=\"#061B31\" fill-rule=\"evenodd\" d=\"m0 43 43-9.119V0L0 9.226V43Z\" clip-rule=\"evenodd\"></path></svg>"
+                }
+              ]
+            }
+          ],
+          "assets": {
+            "logos": [
+              {
+                "role": "Favicon",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/favicon.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/favicon.svg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1hgcBNd12BfT9VLgbId7By/01d91920114b124fb4cf6d448f9f06eb/favicon.svg",
+                "description": "Stripe Favicon (SVG)"
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://images.stripeassets.com/fzn2n1nzq965/4vVgZi0ZMoEzOhkcv7EVwK/8cce6fdcf2733b2ec8e99548908847ed/favicon.png",
+                "path": null,
+                "origin_url": null,
+                "description": "Stripe Favicon 96x96"
+              },
+              {
+                "role": "Favicon",
+                "format": "ICO",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/favicon.ico",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/favicon.ico",
+                "origin_url": "https://assets.stripeassets.com/fzn2n1nzq965/nu0iR4KqmkdJ52fgRts09/c3a10df318e7ffb1f516073daadea625/favicon.ico",
+                "description": "Stripe Favicon ICO"
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://images.stripeassets.com/fzn2n1nzq965/4vVgZi0ZMoEzOhkcv7EVwK/8cce6fdcf2733b2ec8e99548908847ed/favicon.png",
+                "path": null,
+                "origin_url": null,
+                "description": "Stripe Apple Touch Icon 180x180"
+              },
+              {
+                "role": "Primary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/primary-inline.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/primary-inline.svg",
+                "origin_url": null,
+                "description": "Stripe Primary Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline.svg",
+                "origin_url": null,
+                "description": "Stripe Secondary Logo (Inline)"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-2.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-2.svg",
+                "origin_url": null,
+                "description": "Stripe Sessions Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-3.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-3.svg",
+                "origin_url": null,
+                "description": "Lovable Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-4.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-4.svg",
+                "origin_url": null,
+                "description": "Gamma Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-5.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-5.svg",
+                "origin_url": null,
+                "description": "Runway Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-6.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-6.svg",
+                "origin_url": null,
+                "description": "Supabase Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-7.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-7.svg",
+                "origin_url": null,
+                "description": "Linear Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-8.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-8.svg",
+                "origin_url": null,
+                "description": "ElevenLabs Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-9.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-9.svg",
+                "origin_url": null,
+                "description": "Browserbase Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-10.svg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-inline-10.svg",
+                "origin_url": null,
+                "description": "Decagon Partner Logo"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-3.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-3.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1CBkJePR5Cwf2QNIVCia1I/c0a702cec7a3814c69f21f86b89ed718/lovable.png",
+                "description": "Lovable Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-2.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-2.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/2QjRFO1cRvocACDtyA7g9e/44245671788d6e086ab7d82b37937450/Gamma.png",
+                "description": "Gamma Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-5.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-5.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/6fpvaTP1TZWXKWVMewABjV/4412b9ca2940d89d3834ac65c1fc329d/Runway.png",
+                "description": "Runway Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/7fM8bvEbivprOMM1zyow9N/3cad3cc826f96e4038b4ea88d81ebe3b/Supabase.png",
+                "description": "Supabase Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-4.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-4.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/4b8Ubw7N2kYwb7QZl3Ogri/422cc19f725aa68e647d90ce2833c8d0/linear.png",
+                "description": "Linear Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-6.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-6.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/JK7aZoMzWA3uUbLb35kxx/dea1444a0aee29751c0c7098ffb33534/Eleven_Labs.png",
+                "description": "ElevenLabs Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-7.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-7.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1NiQJZA0rKbwXZ7mD4BCrM/0abdaba77e564f858a33241a9aab0939/browserbase.png",
+                "description": "Browserbase Partner Logo (PNG)"
+              },
+              {
+                "role": "Secondary",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-8.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/logos/secondary-8.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1hreJwxuVJ5ucPtuA7pRKH/3c5630387bca898d01ae17fc7ae2890a/decagon.png",
+                "description": "Decagon Partner Logo (PNG)"
+              }
+            ],
+            "media": [
+              {
+                "name": "Stripe Open Graph Image",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/stripe-open-graph-image.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/stripe-open-graph-image.jpg",
+                "origin_url": "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/stripe.37119086.jpg",
+                "usage_context": "Meta og:image — social share preview."
+              },
+              {
+                "name": "Hero Wave Fallback Desktop 1x",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-desktop-1x.webp",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-desktop-1x.webp",
+                "origin_url": "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/wave-fallback-desktop-1x.fba6fa88.webp",
+                "usage_context": "Fallback background graphic for the hero section."
+              },
+              {
+                "name": "Bento Terminal Payment Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/bento-terminal-payment-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/bento-terminal-payment-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1Vf8oT9Fm6dEwpnEx5PgK1/055956f38d7fd8b0cc7419692ef29778/bento-terminal.png",
+                "usage_context": "Product mockup showing a payment terminal in the Payments bento card."
+              },
+              {
+                "name": "Electric Kettle Product Image",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/electric-kettle-product-image.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/electric-kettle-product-image.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/6BTjJGdjfGVA8brPwj7p3M/fcf084ff85142366e118fe85ee78b632/payments-electric-kettle.jpg",
+                "usage_context": "Checkout mockup showing an electric kettle."
+              },
+              {
+                "name": "Hoodie Product Image",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/hoodie-product-image.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/hoodie-product-image.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/5Dr3Oc550drIrxyzzXgFbq/f6e4fb0b8b4b40d73e94fdf7c9bc7028/payments-hoodie.jpg",
+                "usage_context": "Checkout mockup showing a hoodie."
+              },
+              {
+                "name": "Showflix Streaming Subscription",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/showflix-streaming-subscription.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/showflix-streaming-subscription.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1UE1lPgwbfQRH586XfTWKM/f90bfc79f87b3e60a4189cc0f5a03228/showflix-streaming.jpg",
+                "usage_context": "Checkout mockup showing a streaming subscription."
+              },
+              {
+                "name": "Payment Bento Background",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/payment-bento-background.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/payment-bento-background.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/vYmk6v8n7oDAwbDpwhjV6/846f9b3e214549b8f14e2b8c8cfe9343/payment-bento-background.jpg",
+                "usage_context": "Background visual for the Payments bento card."
+              },
+              {
+                "name": "Wave Crop Mobile Background",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/wave-crop-mobile-background.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/wave-crop-mobile-background.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/m9HBEK464p46FeNIhs2PV/f5054a93c8a0a6aabdd1c47675d610ae/wave_crop.jpg",
+                "usage_context": "Mobile background visual for the Payments bento card."
+              },
+              {
+                "name": "Connect Bento Card Background",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/connect-bento-card-background.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/connect-bento-card-background.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/3NcSrMqMgaKe75QNr8wZI8/46d520dfc48c5b9f1c59dcde9460b58c/connect-bento-card-background-image.jpg",
+                "usage_context": "Background visual for the Connect bento card."
+              },
+              {
+                "name": "Connect Mobile Background",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/connect-mobile-background.jpg",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/connect-mobile-background.jpg",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/43eqkFV1GG5GqcbNNeEzVp/8f4705b1b80a4c835c2960ed8055d649/ConnectMobileBackground.jpg",
+                "usage_context": "Mobile background visual for the Connect bento card."
+              },
+              {
+                "name": "Sessions 2026 Background Desktop",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/sessions-2026-background-desktop.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/sessions-2026-background-desktop.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/2YFdgdFPeIiDpmQbhHPAx8/186752498bf713fea245f31bcec84f8a/sessions-2026-on-demand-bg.png",
+                "usage_context": "Background for the Stripe Sessions 2026 section."
+              },
+              {
+                "name": "Sessions 2026 Background Mobile",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/sessions-2026-background-mobile.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/sessions-2026-background-mobile.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/52qeQQDMQNJ3CmnFPjHbTi/1a3a3acd4f027175a863fafcc29a4d9a/sessions-2026-on-demand-bg-mobile.png",
+                "usage_context": "Mobile background for the Stripe Sessions 2026 section."
+              },
+              {
+                "name": "Data Visualization Globe",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/data-visualization-globe.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/data-visualization-globe.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/63zO5Z4CABvFl3pLLhnu3l/a9c12c883f820dc29d29fa0b9dcb0814/DatavizStatic3x.png",
+                "usage_context": "Static data visualization of global transactions."
+              },
+              {
+                "name": "Hertz Crosswalk Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/hertz-crosswalk-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/hertz-crosswalk-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/24BNV3GGtvCprFLrYovyaa/b2eac20a1d5ec75e4bff3888b998d163/enterprise-accordion-hertz.png",
+                "usage_context": "Customer story graphic for Hertz, imitating the Stripe logo."
+              },
+              {
+                "name": "URBN Boutique Window Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/urbn-boutique-window-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/urbn-boutique-window-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/37wKFanVluouT2iEZUbD0H/f75e77141e1330ad81ea18c6aea65f0c/enterprise-accordion-urbn.png",
+                "usage_context": "Customer story graphic for URBN, imitating the Stripe logo."
+              },
+              {
+                "name": "Instacart Grocery Delivery Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/instacart-grocery-delivery-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/instacart-grocery-delivery-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1v5hJ2NWvKpQfVbMqOzCpE/c900b9ed4c288f7cf0a0dced5f4983f2/enterprise-accordion-instacart.png",
+                "usage_context": "Customer story graphic for Instacart, imitating the Stripe logo."
+              },
+              {
+                "name": "Le Monde Parisian Kiosk Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/le-monde-parisian-kiosk-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/le-monde-parisian-kiosk-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/5AQ9A87KzwpPy4CD3uPz5C/4afd1a1e9d6e1d698c4c7c74a4868822/enterprise-accordion-lemonde.png",
+                "usage_context": "Customer story graphic for Le Monde, imitating the Stripe logo."
+              },
+              {
+                "name": "Startups Card Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/startups-card-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/startups-card-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1DZkp4Ce0kiwj2F2Z0kJ16/fcb4904fd728f49521385059618245b9/card_startups.png",
+                "usage_context": "Visual for the Stripe Startups program."
+              },
+              {
+                "name": "Platform Graphic Background",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/platform-graphic-background.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/platform-graphic-background.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/5dQAw5oJf3TOO1Jt6IKDRH/f391594c11f38d821259acdd3412a7a6/platform-graphic-background_2x.png",
+                "usage_context": "Background visual for the SaaS platform section."
+              },
+              {
+                "name": "Kurtis Moyer Headshot",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/kurtis-moyer-headshot.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/kurtis-moyer-headshot.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/4oTkzvOAoM5Ruub2qYNVRC/cfb038e66b1d8bc034b6a178484862a8/KurtisMoyer.png",
+                "usage_context": "Testimonial headshot for Mindbody's Lead Product Manager."
+              },
+              {
+                "name": "Jobber Testimonial Headshot",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/jobber-testimonial-headshot.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/jobber-testimonial-headshot.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/jl91B2l5iqFZjgqFezN1R/95f1a9bb5592d29b245ac9fb2795f760/testimonial-headshot-jobber.png",
+                "usage_context": "Testimonial headshot."
+              },
+              {
+                "name": "Substack Testimonial Headshot",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/substack-testimonial-headshot.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/substack-testimonial-headshot.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/2aodX2UAzh9UTJJu5tmCNV/abe525bcc762939fb5c03436b6489af2/testimonial-headshot-substack.png",
+                "usage_context": "Testimonial headshot."
+              },
+              {
+                "name": "Lightspeed Testimonial Headshot",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/lightspeed-testimonial-headshot.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/lightspeed-testimonial-headshot.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/6BDiRNAVvZNmAxlPtJKSD9/f821071a93166296d7b71794825b9eca/testimonial-headshot-lightspeed.png",
+                "usage_context": "Testimonial headshot."
+              },
+              {
+                "name": "Annual Letter Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/annual-letter-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/annual-letter-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/yqIFyZRGU5zDwdUsWtUyM/25b9f23c748c4d54079a09016fde59d8/annual-letter-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "BFCM Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/bfcm-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/bfcm-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/6yE6G454SGCJnJgEYsS2MB/70b405a1dce904bc0c6f2698223fb966/the-happenings-bfcm-mobile.png",
+                "usage_context": "Happenings graphic for Black Friday Cyber Monday."
+              },
+              {
+                "name": "Tidemark Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/tidemark-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/tidemark-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/33xcv8eCmXzMzWXicVQ4cF/83d91fa419ff8d1b9466739b4ecdcb1d/the-happenings-tidemark-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "Cheeky Pint Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/cheeky-pint-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/cheeky-pint-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/t03tXrgvnHUPGwxYUgSxN/bd8da003434c9e9fb72c719b9edb429b/the-happenings-cheeky-pint-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "Payment Processing Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/payment-processing-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/payment-processing-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/Pd2JQ7FZ1pYMIMGDwvMdV/13e7e021ca23d042da8ac07be829f7ef/the-happenings-payment-processing-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "Crypto Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/crypto-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/crypto-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/4LaZVLqDqGf9091wqUAmFp/fbe9fc307e1336b69bcd9be4ec5c4752/the-happenings-crypto-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "Agentic Commerce Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/agentic-commerce-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/agentic-commerce-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1k7ckFceNFlxqF47hWJUlM/eaa4d8b3f8e4b76ba3dd7df7da88e099/the-happenings-agentic-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "Payment Retailers Happenings Graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/payment-retailers-happenings-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/payment-retailers-happenings-graphic.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/7EVLwfXmG3pl1vhBssMrFB/b6d8612b1f567922c1355d864c279678/the-happenings-payment-retailers-mobile.png",
+                "usage_context": "Happenings graphic on mobile."
+              },
+              {
+                "name": "Work In Progress Icon",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/work-in-progress-icon.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/work-in-progress-icon.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1hmjWQj2Xwglop2rAW62zf/2899db472c5095e1a6b69bee0ead60c9/WorkInProgressIcon.png",
+                "usage_context": "Detailed graphic icon for WIP feature."
+              },
+              {
+                "name": "Customer Avatar 14",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/customer-avatar-14.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/customer-avatar-14.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/1xyVDHqG0Wg2WmFjLQZPVO/1758f7987f49317e67862f36ae2af571/head-14.png",
+                "usage_context": "Customer avatar graphic."
+              },
+              {
+                "name": "Customer Avatar 8",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/customer-avatar-8.png",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/customer-avatar-8.png",
+                "origin_url": "https://images.stripeassets.com/fzn2n1nzq965/4rIX1gCugor2cufbZloOTE/06d8bf41ace184754a4e9925e44c5ed6/head-8.png",
+                "usage_context": "Customer avatar graphic."
+              },
+              {
+                "name": "Hero Wave Fallback Desktop 2x",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-desktop-2x.webp",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-desktop-2x.webp",
+                "origin_url": "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/wave-fallback-desktop-2x.f0521908.webp",
+                "usage_context": "Retina background graphic for the hero section."
+              },
+              {
+                "name": "Hero Wave Fallback Tablet 2x",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-tablet-2x.webp",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-tablet-2x.webp",
+                "origin_url": "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/wave-fallback-tablet-2x.96d6cae7.webp",
+                "usage_context": "Retina background graphic for tablet hero section."
+              },
+              {
+                "name": "Hero Wave Fallback Mobile 2x",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-mobile-2x.webp",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/hero-wave-fallback-mobile-2x.webp",
+                "origin_url": "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/wave-fallback-mobile-2x.3638535c.webp",
+                "usage_context": "Retina background graphic for mobile hero section."
+              },
+              {
+                "name": "Light Palette Background",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/site-assets/media/image/light-palette-background.webp",
+                "path": "00000000-0000-4000-8000-000000000201/site-assets/media/image/light-palette-background.webp",
+                "origin_url": "https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/palette-light.3c0e6604.webp",
+                "usage_context": "Background texture or palette element."
+              }
+            ]
+          },
+          "brand_assets": {
+            "assets": [
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/x/00000000-0000-4000-8000-000000000203.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A white, skewed quadrilateral sits centered on a solid vivid purple background."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/x/00000000-0000-4000-8000-000000000204.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Abstract cropped composition of flowing orange, pink, and purple gradients, with fine curved lines across the upper-right area."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/x/00000000-0000-4000-8000-000000000205.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A database integration setup screen lists Neon, Snowflake, Databricks, S3, and Azure beside Postgres pricing details and a purple Continue button."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/x/00000000-0000-4000-8000-000000000206.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "A black smartphone displays a dark chat app permission prompt for reading Stripe data against a vivid purple, blue, and orange curved background."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/linkedin/00000000-0000-4000-8000-000000000207.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_photography_identity",
+                "asset_description": "Stripe promotional image shows a woman in a headwrap working at a laptop, with bold white “Founders” text and “Stutern — Lagos, Nigeria” below."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/x/00000000-0000-4000-8000-000000000208.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "A black smartphone displays a dark-mode chat about pricing handmade chairs, centered against vivid curved purple, blue, and orange gradients."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/linkedin/00000000-0000-4000-8000-000000000209.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A white currency-conversion interface on a purple gradient background, showing a large underlined $100.00 amount and a violet Review button."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/x/00000000-0000-4000-8000-000000000210.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "Ramp budgeting interface shows a black card with curved line patterns, a shared budget progress bar, and wine-store gift approval notices."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/linkedin/00000000-0000-4000-8000-000000000211.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_photography_identity",
+                "asset_description": "A smiling beige plush character holds a white card with bold purple “stripe” lettering and a smartphone displaying a rising chart."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/linkedin/00000000-0000-4000-8000-000000000212.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "Square Stripe announcement graphic with a pink-purple gradient, white Stripe logo, and large text reading “Stripe named a Leader by Gartner.”"
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/email/00000000-0000-4000-8000-000000000213.png",
+                "source": "email",
+                "content_type": "image/png",
+                "category": "brand_identity",
+                "asset_description": "A Stripe fraud-alert email with the purple wordmark, dark blue text, thin section dividers, and a prominent violet dashboard button."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/email/00000000-0000-4000-8000-000000000214.png",
+                "source": "email",
+                "content_type": "image/png",
+                "category": "brand_identity",
+                "asset_description": "A Stripe email verification message on a white card, featuring a purple wordmark, blue-violet button, and clean sans-serif typography."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/email/00000000-0000-4000-8000-000000000215.png",
+                "source": "email",
+                "content_type": "image/png",
+                "category": "brand_identity",
+                "asset_description": "A Stripe event email promotes Tap to Pay on iPhone, with purple registration buttons and grayscale speaker portraits on lavender cards."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/email/00000000-0000-4000-8000-000000000216.png",
+                "source": "email",
+                "content_type": "image/png",
+                "category": "brand_identity",
+                "asset_description": "Stripe email newsletter promoting an on-demand video, with bold navy headline, purple call-to-action, and vivid pink-orange Stripe Sessions graphic."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/linkedin/00000000-0000-4000-8000-000000000217.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A Stripe Link payment approval prompt on a white rounded card, with black Allow and gray Deny buttons against a mint-green background."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/billboard/00000000-0000-4000-8000-000000000218.jpg",
+                "source": "billboard",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "Blue Rivian and Stripe billboard reads “Rivian electrifies more adventures with Stripe,” beside a snowy forest diorama and vehicle."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/billboard/00000000-0000-4000-8000-000000000219.jpg",
+                "source": "billboard",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A roadside billboard against a blue sky displays Stripe’s white logo and “Make progress” text on a vivid pink gradient."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/billboard/00000000-0000-4000-8000-000000000220.jpg",
+                "source": "billboard",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Two adjacent billboards show Stripe in white lowercase on flowing purple and orange waves, and Yahoo! in white serif lettering on purple."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/linkedin/00000000-0000-4000-8000-000000000221.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "Green gradient graphic titled “Personal Agent Protocol,” with white text and a two-row lineup of technology and retail brand logos."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/billboard/00000000-0000-4000-8000-000000000222.jpg",
+                "source": "billboard",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A large two-sided Stripe billboard on a city corner displays vivid orange, purple, and blue graphics above street-level storefronts."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/email/00000000-0000-4000-8000-000000000223.png",
+                "source": "email",
+                "content_type": "image/png",
+                "category": "brand_identity",
+                "asset_description": "Stripe 2024 annual letter email with a vibrant orange-to-pink gradient banner, white title and logo, and a message from John Collison."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/meta_ads/00000000-0000-4000-8000-000000000224.jpg",
+                "source": "meta_ads",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Stripe poster with bold black Italian headline on white, above a flowing orange-to-magenta and purple gradient wave."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/meta_ads/00000000-0000-4000-8000-000000000225.jpg",
+                "source": "meta_ads",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "Stripe promotional graphic with a white rounded card, bold ElevenLabs revenue headline, and black call-to-action over a vivid pink-orange gradient."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/brand-media/meta_ads/00000000-0000-4000-8000-000000000226.jpg",
+                "source": "meta_ads",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A Stripe payment page in French features a purple logo, large blue “Partagez le lien” heading, and a product card for wooden vases."
+              }
+            ]
+          },
+          "sections": [
+            {
+              "type": "Navigation",
+              "layout_pattern": "Horizontal top bar with logo left, menu center, CTA right",
+              "headline": null,
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "logo",
+                  "description": "Stripe logo, black on white background"
+                },
+                {
+                  "type": "navigation",
+                  "description": "Dropdown menu items: Products, Solutions, Developers, Resources, Pricing, with chevron icons indicating expandable menus"
+                },
+                {
+                  "type": "button",
+                  "description": "Secondary 'Sign in' button with outline style; Primary 'Contact sales' button with solid fill"
+                }
+              ]
+            },
+            {
+              "type": "Hero",
+              "layout_pattern": "Centered",
+              "headline": "Financial infrastructure to grow your revenue.",
+              "subheadline": "Accept payments, handle business banking, ...",
+              "components": [
+                {
+                  "type": "button",
+                  "description": "Primary purple CTA 'Get started' with arrow; secondary white outlined 'Sign up with Google' with Google icon"
+                },
+                {
+                  "type": "illustration",
+                  "description": "Animated colorful gradient wave flowing across bottom: orange, pink, purple, magenta transitions creating modern, energetic mood"
+                }
+              ]
+            },
+            {
+              "type": "Logo Strip",
+              "layout_pattern": "Horizontal carousel, auto-scrolling",
+              "headline": null,
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "logo_strip",
+                  "description": "Marquee carousel of company logos: OpenAI, Amazon, Nvidia, Ford, Coinbase, Google, Shopify, Mindbody, MetLife, Ramp, Marriott, Figma, WooCommerce, Vercel, Uber, Anthropic, Brightwheel, Cursor – grayscale logos with hover effects"
+                }
+              ]
+            },
+            {
+              "type": "Feature Cards Row",
+              "layout_pattern": "Grid 4-column (mobile 1-column, tablet 2-column)",
+              "headline": "Flexible solutions for every business model.",
+              "subheadline": "...",
+              "components": [
+                {
+                  "type": "card",
+                  "description": "Payment card: mockup of Terminal device with payment screen showing transaction details, purple/orange accents, white background"
+                },
+                {
+                  "type": "card",
+                  "description": "Billing card: usage meter graphic with purple/pink gradients, chart showing token usage over 30 days"
+                },
+                {
+                  "type": "card",
+                  "description": "Agentic commerce card: AI-themed visual with gradient background"
+                },
+                {
+                  "type": "card",
+                  "description": "Issuing card: card program graphic with gradient overlay"
+                },
+                {
+                  "type": "card",
+                  "description": "Crypto card: cryptocurrency-themed visual"
+                },
+                {
+                  "type": "card",
+                  "description": "Connect card: embedded payments platform mockup with aerial photograph of parking lot forming Stripe logo shape, teal/purple tones"
+                }
+              ]
+            },
+            {
+              "type": "Product Showcase - Payments",
+              "layout_pattern": "Split: terminal device left, checkout browser mockup right",
+              "headline": null,
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "image",
+                  "description": "Terminal device mockup showing payment interface with purple gradient card overlay, dynamic multi-currency display (USD, EUR, JPY)"
+                },
+                {
+                  "type": "image",
+                  "description": "Browser checkout flow mockup showing payment methods (Card, Klarna, Affirm, Cash App, Crypto, US bank), white interface with purple accents"
+                }
+              ]
+            },
+            {
+              "type": "Personalization Query Box",
+              "layout_pattern": "Centered single-column form",
+              "headline": "Get Stripe product recommendations",
+              "subheadline": "...",
+              "components": [
+                {
+                  "type": "form",
+                  "description": "Large textarea with gradient border (purple/pink), character counter (0/500), submit button with upward arrow icon, input strength indicator with progress ring and criteria checklist"
+                }
+              ]
+            },
+            {
+              "type": "Promotional Banner - Sessions",
+              "layout_pattern": "Full-width image banner with overlay content",
+              "headline": "Building the economic infrastructure for AI",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "image",
+                  "description": "Large gradient background (orange/purple waves) with 'Stripe Sessions' logo overlay, desktop and mobile versions"
+                },
+                {
+                  "type": "button",
+                  "description": "Primary 'Watch now' CTA button, white text on purple"
+                }
+              ]
+            },
+            {
+              "type": "Stats Section - Backbone",
+              "layout_pattern": "Grid 4-column stats (mobile stacked, desktop horizontal)",
+              "headline": "The backbone of global commerce",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "card",
+                  "description": "Stat card: '135+' currencies and payment methods supported"
+                },
+                {
+                  "type": "card",
+                  "description": "Stat card: '$1.9T' in payments volume processed in 2025"
+                },
+                {
+                  "type": "card",
+                  "description": "Stat card: '99.999%' historical uptime"
+                },
+                {
+                  "type": "card",
+                  "description": "Stat card: '200M+' active subscriptions"
+                },
+                {
+                  "type": "image",
+                  "description": "Globe visualization (data network overlay) showing global reach, static fallback image with radiating lines from bottom center, deep blue to purple gradient background"
+                }
+              ]
+            },
+            {
+              "type": "Business Sizes - Enterprises",
+              "layout_pattern": "Vertical accordion with image reveals",
+              "headline": "Powering businesses of all sizes.",
+              "subheadline": "...",
+              "components": [
+                {
+                  "type": "accordion",
+                  "description": "Four customer story accordions (Hertz, URBN, Instacart, Le Monde) with logo, summary headline, expand/collapse button, and 'Read the story' CTA"
+                },
+                {
+                  "type": "image",
+                  "description": "Aerial photography: Hertz - street intersection forming Stripe logo; URBN - boutique window display; Instacart - delivery bag on doorstep; Le Monde - imagery forming parallelogram shape"
+                },
+                {
+                  "type": "button",
+                  "description": "Primary CTA 'Stripe for enterprises' with arrow icon"
+                }
+              ]
+            },
+            {
+              "type": "Footer",
+              "layout_pattern": "Multi-column link grid with copyright bar",
+              "headline": null,
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "navigation",
+                  "description": "Four columns of footer links: Products, Developers, Company, Resources – gray text on white background"
+                },
+                { "type": "logo", "description": "Stripe logo bottom left" },
+                {
+                  "type": "icon",
+                  "description": "Social media icons and language selector dropdown"
+                }
+              ]
+            }
+          ]
+        },
+        "artifacts": {
+          "html": {
+            "path": "00000000-0000-4000-8000-000000000201/crawl/source.html",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/crawl/source.html",
+            "content_type": "text/html"
+          },
+          "css": {
+            "path": "00000000-0000-4000-8000-000000000201/crawl/styles.css",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/crawl/styles.css",
+            "content_type": "text/css"
+          },
+          "screenshot": {
+            "path": "00000000-0000-4000-8000-000000000201/crawl/viewport.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/crawl/viewport.jpg",
+            "content_type": "image/jpeg"
+          },
+          "full_page_screenshot": {
+            "path": "00000000-0000-4000-8000-000000000201/crawl/full.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/crawl/full.jpg",
+            "content_type": "image/jpeg"
+          },
+          "element_layout": {
+            "path": "00000000-0000-4000-8000-000000000201/crawl/element-layout.json",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000201/crawl/element-layout.json",
+            "content_type": "application/json"
+          }
+        }
+      }
+    }
+  }
+}
