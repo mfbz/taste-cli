@@ -1,0 +1,19 @@
+{
+  "recipe": "similar-selective",
+  "paid": true,
+  "calls": [
+    "GET /search/similar?submission_id=00000000-0000-4000-8000-000000000300 422"
+  ],
+  "steps": [],
+  "data": {
+    "error": {
+      "status": 422,
+      "body": {
+        "detail": {
+          "error": "FULL_EXTRACTION_REQUIRED",
+          "message": "This operation requires a full extraction. Submit the URL without sections."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "recipe": "error-422",
+  "paid": true,
+  "calls": ["POST /design/submissions 422"],
+  "steps": [],
+  "data": {
+    "error": {
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": ["body", "url"],
+            "msg": "Value error, URL must be a valid http:// or https:// URL with a host",
+            "input": "not a url",
+            "ctx": { "error": {} }
+          }
+        ]
+      }
+    }
+  }
+}
