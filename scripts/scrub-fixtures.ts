@@ -73,8 +73,15 @@ const PERSONAL_ID =
 const KEY_FIELD = /^(?:api_key_.+|key_prefix)$/i;
 // One or two characters say nothing and match everywhere: those are replaced by key only.
 const MIN_LITERAL = 3;
-// A known value is replaced only as a whole token, so "default" never rewrites "defaultColor".
-const TOKEN_CHAR = "[A-Za-z0-9_-]";
+// An id is replaced wherever it appears, glued to other text or not (user_<uuid>, <uuid>_thumb):
+// anything with a digit and at least this long, or shaped like a UUID, an email or a JWT.
+const MIN_ID = 6;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_SHAPE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const JWT_SHAPE = /^eyJ[\w-]+\.eyJ[\w-]+/;
+// A word is replaced only as a whole token, so "default" never rewrites "defaultColor" and "app"
+// never rewrites "linear.app".
+const WORD_EDGE = "[A-Za-z0-9_.-]";
 // Query parameters that carry a credential or a signature, on any host.
 const CREDENTIAL_PARAM =
   /^(?:sig|signature|token|access_token|key|expires|policy|key-pair-id|x-amz-.*|x-goog-.*)$/i;
@@ -110,6 +117,21 @@ function escape(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function isId(value: string): boolean {
+  return (
+    (/\d/.test(value) && value.length >= MIN_ID) ||
+    UUID.test(value) ||
+    EMAIL_SHAPE.test(value) ||
+    JWT_SHAPE.test(value)
+  );
+}
+
+function pattern(value: string, id: boolean): RegExp {
+  return id
+    ? new RegExp(escape(value), "gi")
+    : new RegExp(`(?<!${WORD_EDGE})${escape(value)}(?!${WORD_EDGE})`, "g");
+}
+
 function knownFrom(docs: readonly Raw[]): Known {
   const literals = new Map<string, string>();
   const ids = new Set<string>();
@@ -119,7 +141,14 @@ function knownFrom(docs: readonly Raw[]): Known {
       if (typeof value !== "string" && typeof value !== "number") return;
       const text = String(value);
       const placeholder = placeholderFor(key);
-      if (placeholder && text.length >= MIN_LITERAL && text !== placeholder)
+      // A short number (or any short value with a digit) is too common to replace in other text.
+      const tooCommon = /\d/.test(text) && !isId(text);
+      if (
+        placeholder &&
+        text.length >= MIN_LITERAL &&
+        text !== placeholder &&
+        !tooCommon
+      )
         literals.set(text, placeholder);
       if (typeof value !== "string") return;
       if (doc.recipe !== "history" && ID_KEYS.has(key)) ids.add(value);
@@ -131,26 +160,41 @@ function knownFrom(docs: readonly Raw[]): Known {
   return {
     literals: [...literals]
       .sort(([a], [b]) => b.length - a.length)
-      .map(([value, placeholder]) => [
-        new RegExp(`(?<!${TOKEN_CHAR})${escape(value)}(?!${TOKEN_CHAR})`, "g"),
-        placeholder,
-      ]),
+      .flatMap(([value, placeholder]) =>
+        // Also as it appears percent-encoded inside a URL.
+        [...new Set([value, encodeURIComponent(value)])].map(
+          (form): [RegExp, string] => [pattern(form, isId(value)), placeholder]
+        )
+      ),
     ids,
     queries,
   };
 }
 
 // A pre-signed asset URL carries its signature in the query: anything off the Taste API loses its
-// query and fragment, and a Taste API URL loses any parameter that looks like a credential.
+// query and fragment, and a Taste API URL its fragment and any parameter that looks like a
+// credential.
+function paramName(part: string): string {
+  const name = part.split("=", 1)[0] ?? "";
+  try {
+    return decodeURIComponent(name);
+  } catch {
+    return name;
+  }
+}
+
+// Edits the raw query, so the parameters that stay keep their exact encoding.
 function unsign(url: string): string {
   const parsed = URL.parse(url);
   if (!parsed) return url;
-  if (parsed.hostname !== TASTE_API_HOST) return url.replace(/[?#].*$/, "");
-  const names = [...parsed.searchParams.keys()];
-  if (!names.some((name) => CREDENTIAL_PARAM.test(name))) return url;
-  for (const name of names)
-    if (CREDENTIAL_PARAM.test(name)) parsed.searchParams.delete(name);
-  return parsed.href;
+  const bare = url.replace(/#.*$/, "");
+  if (parsed.hostname !== TASTE_API_HOST) return bare.replace(/\?.*$/, "");
+  const [path, query] = bare.split(/\?(.*)/s, 2);
+  if (query === undefined) return bare;
+  const kept = query
+    .split("&")
+    .filter((part) => part && !CREDENTIAL_PARAM.test(paramName(part)));
+  return kept.length ? `${path}?${kept.join("&")}` : (path ?? bare);
 }
 
 function scrubText(text: string, known: Known, limits: Limits | null): string {
@@ -177,7 +221,8 @@ function scrub(
   const placeholder = placeholderFor(key);
   if (typeof value === "string")
     return placeholder ?? scrubText(value, known, limits);
-  if (typeof value === "number" && placeholder) return placeholder;
+  // A number stays a number, so the fixture still matches the schema.
+  if (typeof value === "number" && placeholder) return 0;
   if (Array.isArray(value)) {
     const keep = !limits
       ? value.length

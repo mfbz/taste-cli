@@ -164,21 +164,93 @@ describe("scrubFixture, past the obvious fields", () => {
           partial: {
             body: {
               meta: {
-                owner: { org_id: org, team_id: 4821, workspace_id: "ws-5521" },
+                owner: {
+                  org_id: org,
+                  team_id: 482193,
+                  workspace_id: "ws-5521",
+                },
               },
               api_key_prefix: "tk_live_ab",
               key_prefix: "tk_ab12",
             },
           },
           artifact: `https://cdn.example.com/orgs/${org}/shot.png`,
-          report: "workspace ws-5521, team 4821",
+          report: "workspace ws-5521, team 482193",
         })
       )
     );
-    for (const gone of [org, "4821", "ws-5521", "tk_live_ab", "tk_ab12"])
+    for (const gone of [org, "482193", "ws-5521", "tk_live_ab", "tk_ab12"])
       expect(out).not.toContain(gone);
     expect(out).toContain("/orgs/example_org_id/shot.png");
     expect(out).toContain('"key_prefix":"key_example"');
+  });
+
+  it("replaces an id wherever it appears, glued to other text or not", () => {
+    const org = "AbC123";
+    const out = JSON.stringify(
+      scrubFixture(
+        raw({
+          me: { user_id: USER_ID, org_id: org, batch_label: "launch week" },
+          h: "https://api.tastelabs.com/design/submissions?label=launch%20week",
+          a: `user_${USER_ID}`,
+          b: `https://cdn.example.com/user-${USER_ID}.png`,
+          c: `${USER_ID}_thumb`,
+          d: `prefix${USER_ID}`,
+          e: USER_ID.toUpperCase(),
+          f: `x_org_${org}`,
+          g: `https://cdn.example.com/?u=${encodeURIComponent(`${USER_ID} ${org}`)}`,
+        })
+      )
+    );
+    expect(out.toLowerCase()).not.toContain(USER_ID);
+    expect(out).not.toContain(org);
+    expect(out).not.toContain("launch%20week");
+    expect(out).toContain("user_00000000-0000-4000-8000-000000000001");
+    expect(out).toContain("00000000-0000-4000-8000-000000000001_thumb");
+    expect(out).toContain("x_org_example_org_id");
+  });
+
+  it("leaves a word that is part of a host name alone", () => {
+    const out = scrubFixture(
+      raw({
+        job: { api_key_name: "app" },
+        url: "https://linear.app/",
+        note: "the app key",
+      })
+    ) as { data: Record<string, string> };
+    expect(out.data.url).toBe("https://linear.app/");
+    expect(out.data.note).toBe("the example key");
+  });
+
+  it("replaces a short numeric id only in its own field, and keeps it a number", () => {
+    const out = scrubFixture(
+      raw({
+        owner: { account_id: 123 },
+        layout_box: { width: 123 },
+        text: "123 px",
+      })
+    ) as {
+      data: {
+        owner: { account_id: unknown };
+        layout_box: { width: number };
+        text: string;
+      };
+    };
+    expect(out.data.owner.account_id).toBe(0);
+    expect(out.data.layout_box.width).toBe(123);
+    expect(out.data.text).toBe("123 px");
+  });
+
+  it("drops a Taste API URL's fragment and keeps the other parameters' encoding", () => {
+    const url = "https://api.tastelabs.com/f?q=a%20b&token=t&tags=x%2Cy#frag";
+    const out = scrubFixture(raw({ url })) as { data: { url: string } };
+    expect(out.data.url).toBe("https://api.tastelabs.com/f?q=a%20b&tags=x%2Cy");
+    const only = scrubFixture(
+      raw({ url: "https://api.tastelabs.com/f?sig=1#x" })
+    ) as {
+      data: { url: string };
+    };
+    expect(only.data.url).toBe("https://api.tastelabs.com/f");
   });
 
   it("replaces a known value only as a whole token, short values included", () => {
