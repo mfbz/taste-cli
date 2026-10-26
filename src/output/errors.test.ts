@@ -122,6 +122,63 @@ describe("CliError", () => {
   });
 });
 
+const UUID = "0f5b2c9a-6a1e-4b0e-9f0e-1c2d3e4f5a6b";
+
+describe("a job id", () => {
+  it("shows a UUID in the hint and in details for INTERRUPTED and WAIT_TIMEOUT", () => {
+    for (const code of ["INTERRUPTED", "WAIT_TIMEOUT"] as const) {
+      const report = toErrorReport(new CliError(code, { id: UUID }));
+      expect(report.hint).toContain(`taste wait ${UUID}`);
+      expect(report.details).toEqual({ id: UUID });
+    }
+  });
+
+  it("leaves details out when there is no usable id or the code has none", () => {
+    expect(toErrorReport(new CliError("INTERRUPTED")).details).toBeUndefined();
+    expect(
+      toErrorReport(new CliError("NOT_FOUND", { id: UUID })).details
+    ).toBeUndefined();
+  });
+
+  it("never shows a key-shaped id", () => {
+    const id = ["tas", "te_", "Ab3_d-".repeat(5)].join("");
+    const report = toErrorReport(new CliError("INTERRUPTED", { id }));
+    expect(report.details).toBeUndefined();
+    expect(JSON.stringify(report)).not.toContain(id);
+  });
+});
+
+describe("a failed job's reason", () => {
+  const reason = (text: string) =>
+    toErrorReport(new CliError("JOB_FAILED", { reason: text })).message;
+
+  it("keeps hyphenated words and UUIDs", () => {
+    expect(reason("disk-full")).toContain("disk-full");
+    expect(reason(`job ${UUID} lost`)).toContain(UUID);
+  });
+
+  it("redacts only the key-shaped token", () => {
+    const keys = [
+      ["tas", "te_", "Ab3_d-".repeat(5)].join(""),
+      ["sk", "-ant-api03-abcdef"].join(""),
+      [
+        "ey",
+        "J",
+        "a".repeat(20),
+        ".",
+        "b".repeat(20),
+        ".",
+        "c".repeat(20),
+      ].join(""),
+    ];
+    for (const key of keys) {
+      const shown = reason(`bad ${key} here`);
+      expect(shown).not.toContain(key);
+      expect(shown).toContain("bad … here");
+    }
+  });
+});
+
 describe("an error from the Taste Engine", () => {
   it("is recognised by its shape", () => {
     expect(isUpstreamError(upstream({ status: 402 }))).toBe(true);
@@ -165,13 +222,20 @@ describe("an error from the Taste Engine", () => {
       ],
       [{ status: 422, code: "INVALID_FILE_TYPE" }, "INVALID_FILE"],
       [{ status: 422, code: "EMPTY_FILE" }, "INVALID_FILE"],
-      [{ status: 422, code: "SOMETHING_NEW" }, "INTERNAL"],
+      [{ status: 422, code: "SOMETHING_NEW" }, "REQUEST_REJECTED"],
       [{ status: 424 }, "ADHERENCE_FAILED"],
-      [{ status: 429 }, "UPSTREAM"],
+      [{ status: 409 }, "UPSTREAM"],
+      [{ status: 429 }, "RATE_LIMITED"],
+      [
+        { status: 422, code: "SELECTIVE_MAP_UNSUPPORTED" },
+        "SELECTIVE_MAP_UNSUPPORTED",
+      ],
+      [{ status: 400 }, "REQUEST_REJECTED"],
       [{ status: 502 }, "UPSTREAM"],
       [{ status: 500 }, "UPSTREAM"],
       [{ status: 503 }, "SEARCH_BUSY"],
-      [{ status: 418 }, "INTERNAL"],
+      [{ status: 418 }, "REQUEST_REJECTED"],
+      [{ status: 302 }, "INTERNAL"],
     ];
     for (const [fields, code] of cases)
       expect(toErrorReport(upstream(fields)).code, JSON.stringify(fields)).toBe(

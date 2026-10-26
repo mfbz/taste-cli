@@ -1,6 +1,8 @@
 // Every message taste-cli shows comes from this catalogue. Nothing else is ever printed as an error:
-// not a library's message, not the Taste Engine's text, not what was typed. Agents branch on `code`;
-// `message` and `hint` are ours, so they are safe to show to a person and to put in an agent's context.
+// not a library's message, not what was typed, not the Taste Engine's error text. The one exception is
+// a failed job's own reason ({reason}), which is shortened and has key-shaped tokens redacted. Agents
+// branch on `code`; `message` and `hint` are ours, so they are safe to show to a person and to put in
+// an agent's context.
 
 type ExitCode = 1 | 2 | 130;
 type Entry = {
@@ -15,6 +17,8 @@ type ErrorReport = {
   message: string;
   hint: string;
   retryable: boolean;
+  // Structured data for agents, only where a code carries some: the id of a job to wait for.
+  details?: { id: string };
 };
 type DebugInfo = { className: string; frames: string[] };
 type FullReport = ErrorReport & { exitCode: ExitCode; debug?: DebugInfo };
@@ -118,7 +122,11 @@ const CATALOGUE = {
     "This needs a full extraction of the brand first.",
     "Run taste extract on the brand, then try again."
   ),
-  FILE_TOO_LARGE: entry(1, "That file is too large.", "Use a smaller file."),
+  FILE_TOO_LARGE: entry(
+    1,
+    "That file is too large. The limit is 50 MB.",
+    "Use a smaller file."
+  ),
   INVALID_FILE: entry(
     1,
     "That file can't be used.",
@@ -127,7 +135,7 @@ const CATALOGUE = {
   JOB_FAILED: entry(
     1,
     "The job failed: {reason}",
-    "Check the address or file and try again. Failed jobs are not charged again until you run them again."
+    "Check the address or file and try again. Failed jobs are refunded. Fix the input and run it again."
   ),
   ADHERENCE_FAILED: entry(
     1,
@@ -143,6 +151,22 @@ const CATALOGUE = {
     1,
     "Taste search is busy right now.",
     "Try again in a minute.",
+    true
+  ),
+  SELECTIVE_MAP_UNSUPPORTED: entry(
+    2,
+    "That combination of options isn't supported.",
+    "Drop --sections or --map and run it again."
+  ),
+  REQUEST_REJECTED: entry(
+    1,
+    "The Taste Engine rejected the request ({status}).",
+    "Check the inputs, or run again with --debug."
+  ),
+  RATE_LIMITED: entry(
+    1,
+    "Too many requests. Wait a moment and try again.",
+    "Run the command again in a minute.",
     true
   ),
   UPSTREAM: entry(
@@ -197,12 +221,28 @@ const SAFE_PARAM = /^[A-Za-z0-9 _.,:/~@+=-]{1,80}$/;
 const NAME_PARAMS = new Set(["command", "option"]);
 const NAME = /^(?:--?)?[a-z][a-z0-9]{0,15}(?:-[a-z0-9]{1,16}){0,3}$/;
 const KEY_PREFIX = /^(?:--?)?(?:sk-|gh[pousr]-|npm-|xox|akia|asia|aiza)/;
-// A job's own error is free text, so it is only shortened and held to the same key filter; the output
-// layer strips control characters before a person sees it.
+// A job's own error is free text: shortened, with key-shaped tokens redacted one by one so the rest
+// stays readable. The output layer strips control characters before a person sees it.
 const TEXT_PARAMS = new Set(["reason"]);
 const TEXT_LIMIT = 120;
-// Key- and token-shaped text anywhere in any parameter: Taste keys, provider keys, JWTs, long runs.
+const KEY_TOKEN =
+  /\btaste_\S+|\bsk-[A-Za-z0-9_-]{8,}|\beyJ[\w-]+\.[\w-]+(?:\.[\w-]+)?/g;
+// A job id: a UUID or a short simple id, never something shaped like a key.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SIMPLE_ID = /^[A-Za-z0-9_-]{1,40}$/;
+// Key- and token-shaped text anywhere in any other parameter: Taste keys, provider keys, JWTs, long runs.
 const KEY_SHAPED = /taste_|sk-|eyJ|[A-Za-z0-9_-]{24,}/;
+
+function isJobId(value: string): boolean {
+  return (
+    UUID.test(value) ||
+    (SIMPLE_ID.test(value) &&
+      !KEY_PREFIX.test(value) &&
+      !/^(?:taste_|eyJ)/.test(value))
+  );
+}
+
+const DETAIL_CODES = new Set<ErrorCode>(["INTERRUPTED", "WAIT_TIMEOUT"]);
 
 class CliError extends Error {
   readonly code: ErrorCode;
@@ -224,11 +264,12 @@ class CliError extends Error {
 function fill(template: string, params: Params): string {
   return template.replace(/\{(\w+)\}/g, (_match, name: string) => {
     const value = String(params[name] ?? "");
-    if (KEY_SHAPED.test(value)) return "…";
+    if (name === "id") return isJobId(value) ? value : "…";
     if (TEXT_PARAMS.has(name)) {
-      const text = value.trim().slice(0, TEXT_LIMIT);
+      const text = value.trim().slice(0, TEXT_LIMIT).replace(KEY_TOKEN, "…");
       return text === "" ? "…" : text;
     }
+    if (KEY_SHAPED.test(value)) return "…";
     const safe = NAME_PARAMS.has(name)
       ? NAME.test(value) && !KEY_PREFIX.test(value)
       : SAFE_PARAM.test(value);
@@ -244,6 +285,9 @@ function report(code: ErrorCode, params: Params = {}): FullReport {
     hint: fill(hint, params),
     retryable,
     exitCode: exit,
+    ...(DETAIL_CODES.has(code) && isJobId(String(params.id ?? ""))
+      ? { details: { id: String(params.id) } }
+      : {}),
   };
 }
 
@@ -274,17 +318,24 @@ function upstreamReport({ status, code, balance, required }: UpstreamError) {
     return report("FULL_EXTRACTION_REQUIRED");
   if (status === 422 && (code === "INVALID_FILE_TYPE" || code === "EMPTY_FILE"))
     return report("INVALID_FILE");
+  if (status === 422 && code === "SELECTIVE_MAP_UNSUPPORTED")
+    return report("SELECTIVE_MAP_UNSUPPORTED");
+  // 503 is documented only on search; elsewhere it is read the same way.
   const byStatus: Readonly<Record<number, ErrorCode>> = {
     401: "INVALID_API_KEY",
     403: "FORBIDDEN",
     404: "NOT_FOUND",
     413: "FILE_TOO_LARGE",
     424: "ADHERENCE_FAILED",
-    429: "UPSTREAM",
+    409: "UPSTREAM",
+    429: "RATE_LIMITED",
     503: "SEARCH_BUSY",
   };
-  const mapped = byStatus[status] ?? (status >= 500 ? "UPSTREAM" : "INTERNAL");
-  return report(mapped);
+  const mapped = byStatus[status];
+  if (mapped) return report(mapped);
+  if (status >= 500) return report("UPSTREAM");
+  if (status >= 400) return report("REQUEST_REJECTED", { status });
+  return report("INTERNAL");
 }
 
 // Class name and stack frames only: frames hold file names and line numbers, never values.

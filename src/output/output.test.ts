@@ -54,6 +54,19 @@ describe("--json output", () => {
     });
   });
 
+  it("puts the job id in error.details as well as the hint", () => {
+    const id = "0f5b2c9a-6a1e-4b0e-9f0e-1c2d3e4f5a6b";
+    for (const code of ["INTERRUPTED", "WAIT_TIMEOUT"] as const) {
+      const h = harness(true);
+      h.output.fail(new CliError(code, { id }));
+      const error = (JSON.parse(h.out()) as { error: Record<string, unknown> })
+        .error;
+      expect(error.details).toEqual({ id });
+      expect(error.hint).toContain(`taste wait ${id}`);
+      expect(error).not.toHaveProperty("debug");
+    }
+  });
+
   it("keeps notes out of the document", () => {
     const h = harness(true);
     h.output.note("waiting…");

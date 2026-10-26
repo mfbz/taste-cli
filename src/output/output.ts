@@ -46,17 +46,17 @@ function createOutput(options: OutputOptions): Output {
       if (!json) stderr(`${text}\n`);
     },
     fail(error) {
-      const { exitCode, debug: details, ...report } = toErrorReport(error);
+      const { exitCode, debug: trace, ...report } = toErrorReport(error);
       if (json) document({ ok: false, error: report });
       else
         stderr(
           `${theme.error("✗ error:")} ${plain(report.message)}\n${theme.dim(`  ${plain(report.hint)}`)}\n`
         );
       // Details for a bug report: class name and stack frames only, on stderr, never in the document.
-      if (debug && details) {
+      if (debug && trace) {
         const lines = [
-          `debug: ${details.className}`,
-          ...details.frames.map((f) => `  ${f}`),
+          `debug: ${trace.className}`,
+          ...trace.frames.map((f) => `  ${f}`),
         ];
         stderr(`${theme.dim(plain(lines.join("\n"), { newlines: true }))}\n`);
       }
