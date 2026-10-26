@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { TasteApiError } from "../api/client.ts";
 import type { SubmissionCreate } from "../api/schemas.ts";
@@ -303,5 +307,106 @@ describe("taste extract", () => {
   it("says in --help that it spends credits", async () => {
     const { out } = await runCli(["extract", "--help"]);
     expect(out).toMatch(/spends credits/i);
+  });
+});
+
+describe("taste extract --out", () => {
+  let base: string;
+
+  beforeEach(async () => {
+    base = await mkdtemp(join(tmpdir(), "taste-extract-"));
+  });
+
+  afterEach(async () => {
+    await rm(base, { recursive: true, force: true });
+  });
+
+  it("saves the finished extraction's files into the folder", async () => {
+    const out = join(base, "stripe");
+    const { api, io } = seams();
+    const { code, err } = await runCli(
+      ["extract", "stripe.com", "--out", out],
+      io
+    );
+    expect(code).toBe(0);
+    expect(await readFile(join(out, "guidelines.json"), "utf8")).toBe("{}");
+    expect(api.calls).toContain("GET /design/submissions/sub-1/download");
+    expect(err).toContain("✓ Saved 1 file to");
+  });
+
+  it("keeps the --json document the result, with the files saved", async () => {
+    const out = join(base, "stripe");
+    const { io } = seams();
+    const { code, doc, err } = await runCli(
+      ["extract", "stripe.com", "--out", out, "--json"],
+      io
+    );
+    expect(code).toBe(0);
+    expect(err).toBe("");
+    expect(doc().data).toEqual(taste);
+    expect(await readdir(out)).toEqual(["guidelines.json"]);
+  });
+
+  it("refuses a folder with files in it before spending anything", async () => {
+    await writeFile(join(base, "old.txt"), "");
+    const { api, io } = seams();
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", base, "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("OUTPUT_EXISTS");
+    expect(doc().error.hint).toContain("--overwrite");
+    expect(api.calls).toEqual([]);
+  });
+
+  it("replaces files of the same name with --overwrite", async () => {
+    await writeFile(join(base, "guidelines.json"), "old");
+    const { io } = seams();
+    const { code } = await runCli(
+      ["extract", "stripe.com", "--out", base, "--overwrite"],
+      io
+    );
+    expect(code).toBe(0);
+    expect(await readFile(join(base, "guidelines.json"), "utf8")).toBe("{}");
+  });
+
+  it("refuses --out with --no-wait, and --overwrite without --out, before any request", async () => {
+    const { api, io } = seams();
+    const noWait = await runCli(
+      ["extract", "stripe.com", "--out", base, "--no-wait", "--json"],
+      io
+    );
+    expect(noWait.code).toBe(2);
+    expect(noWait.doc().error.code).toBe("USAGE_CONFLICTING_OPTIONS");
+    const alone = await runCli(
+      ["extract", "stripe.com", "--overwrite", "--json"],
+      io
+    );
+    expect(alone.code).toBe(2);
+    expect(alone.doc().error.code).toBe("USAGE_NEEDS_OPTION");
+    expect(api.calls).toEqual([]);
+  });
+
+  it("points a failed save at taste wait, never at extracting again", async () => {
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [{ path: "a.css", url: "https://cdn.example.com/a.css" }],
+        },
+      },
+    });
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
   });
 });

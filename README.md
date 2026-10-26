@@ -6,7 +6,7 @@ An unofficial command line for the [Taste Engine](https://docs.tastelabs.com), T
 
 ## Status
 
-Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, and picks up a job started earlier. The commands being built, and how each one will behave, are specified in [TASTE-CLI.md](TASTE-CLI.md).
+Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, picks up a job started earlier, lists your history and shares a result. The commands being built, and how each one will behave, are specified in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Install
 
@@ -43,9 +43,23 @@ taste extract stripe.com --format json > stripe.json
 taste kit guidelines.pdf                         # a brand kit from a guidelines PDF
 taste extract stripe.com --no-wait               # print the job's id and return
 taste wait <id>                                  # pick a job up again, for free
+taste extract stripe.com --out stripe            # also save its files into ./stripe
+taste wait <id> --out stripe --overwrite         # save them again, for free
 ```
 
-Every flag and the address are checked before anything is spent, and a paid request is never retried by itself. Ctrl-C stops waiting, not the job: the error names the id, and `taste wait <id>` picks it up. Details: [TASTE-CLI.md](TASTE-CLI.md), "Credits".
+Every flag and the address are checked before anything is spent, and a paid request is never retried by itself. Ctrl-C stops waiting, not the job: the error names the id, and `taste wait <id>` picks it up. `--out` writes only inside the folder you name and refuses one that already has files unless you add `--overwrite`. Details: [TASTE-CLI.md](TASTE-CLI.md), "Credits" and "Saving the files".
+
+## History and sharing
+
+Both are free.
+
+```sh
+taste history                          # your extractions and brand kits, newest first
+taste history checks --status failed   # or checks, or searches, filtered
+taste history --limit 50 --offset 50   # the next page
+taste share <id>                       # make a result public and print its address
+taste share <id> --private             # private again
+```
 
 ## Usage
 

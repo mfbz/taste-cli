@@ -8,14 +8,16 @@ import type { Context } from "../context.ts";
 import { CliError } from "../output/errors.ts";
 import {
   awaitJob,
+  checkOut,
+  saveFiles,
   showAccepted,
   showSubmission,
   startJob,
   submissionJob,
 } from "./job.ts";
-import type { Format } from "./job.ts";
+import type { Format, OutOptions } from "./job.ts";
 
-type ExtractOptions = {
+type ExtractOptions = OutOptions & {
   sections?: string;
   force?: true;
   deep?: true;
@@ -55,6 +57,7 @@ async function extract(
       ? undefined
       : parseSections(options.sections);
   const url = normalizeUrl(input);
+  await checkOut(options);
 
   const body: SubmissionCreate = { url: url.href };
   if (options.force) body.force = true;
@@ -77,6 +80,7 @@ async function extract(
     options.timeout * 1000,
     submissionJob(api, id)
   );
+  await saveFiles(ctx, api, id, options);
   showSubmission(ctx, result, options.format);
 }
 

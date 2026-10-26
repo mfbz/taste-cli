@@ -382,7 +382,10 @@ function createMockHandler(options: MockOptions) {
     }
     if (action === "submissions" && request.method === "GET") {
       const kind = request.url.searchParams.get("kind");
-      const matching = searches.filter((s) => !kind || s.kind === kind);
+      const status = request.url.searchParams.get("status");
+      const matching = searches.filter(
+        (s) => (!kind || s.kind === kind) && (!status || s.status === status)
+      );
       const { items, ...rest } = page(matching, request.url, 20);
       return { status: 200, body: { submissions: items, ...rest } };
     }

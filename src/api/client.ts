@@ -33,6 +33,7 @@ import type {
   BrandSearchResults,
   EnhanceResponse,
   Me,
+  SearchStatus,
   SearchSubmissionList,
   SectionName,
   SimilarBrandsResults,
@@ -80,7 +81,7 @@ type TasteApi = {
   search(body: BrandSearchRequest): Promise<BrandSearchResults>;
   similar(id: string, topK?: number): Promise<SimilarBrandsResults>;
   listSearches(
-    q: ListQuery & { kind?: "search" | "similar" }
+    q: ListQuery & { kind?: "search" | "similar"; status?: SearchStatus }
   ): Promise<SearchSubmissionList>;
   createAdherence(body: {
     reference_url: string;
@@ -466,10 +467,10 @@ function createTasteApi(deps: Deps): TasteApi {
         )
       ),
 
-    listSearches: ({ limit, offset, q, kind }) =>
+    listSearches: ({ limit, offset, q, kind, status }) =>
       call(
         SEARCH_SUBMISSION_LIST,
-        get(endpoint("/search/submissions", { limit, offset, q, kind }))
+        get(endpoint("/search/submissions", { limit, offset, q, kind, status }))
       ),
 
     createAdherence: (body) =>

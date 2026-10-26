@@ -245,7 +245,7 @@ const CATALOGUE = {
   BUNDLE_PATH_UNSAFE: entry(
     1,
     "The download names a file outside the output folder.",
-    "Nothing was written. Try again, and report it if it keeps happening."
+    "Nothing was written. Report it at github.com/mfbz/taste-cli/issues if it keeps happening."
   ),
   // An asset from a manifest: its host is a CDN, not the Taste Engine, so API codes would mislead.
   DOWNLOAD_FAILED: entry(
@@ -254,10 +254,33 @@ const CATALOGUE = {
     "Run the command again. Each run gets fresh download links.",
     true
   ),
+  // The manifest itself can't be saved as it stands: two entries on one file, an entry with nothing
+  // in it, or an asset address that isn't public https.
+  BUNDLE_INVALID: entry(
+    1,
+    "The download lists files taste won't save.",
+    "Nothing was written. Report it at github.com/mfbz/taste-cli/issues if it keeps happening."
+  ),
+  // The job is finished and paid for, so the way to the files again is wait, which is free.
+  BUNDLE_INCOMPLETE: entry(
+    1,
+    "Saved {written} of {total} files, then {file} couldn't be saved.",
+    "The result is safe on Taste. Run taste wait {id} --out with the same folder and --overwrite to save it all, for free."
+  ),
   OUTPUT_EXISTS: entry(
     1,
     "That output folder already has files in it.",
-    "Choose another folder with --out, or empty this one."
+    "Choose another folder with --out, or add --overwrite to replace files of the same name."
+  ),
+  OUTPUT_UNUSABLE: entry(
+    1,
+    "taste can't save files in that output folder.",
+    "Give --out a folder you can write to, or a new one."
+  ),
+  USAGE_OUT_UNSUPPORTED: entry(
+    2,
+    "--out saves the files of an extraction or a brand kit, and that id is a brand adherence check.",
+    "Leave out --out. With --format json the verdict is printed whole."
   ),
   // Ctrl-C while a paid job runs: the job carries on server side, so say how to pick it up.
   INTERRUPTED: entry(
@@ -322,6 +345,7 @@ const PAID_HINT =
 const PAID_CODES = new Set<ErrorCode>(["NETWORK", "TIMEOUT", "INTERRUPTED"]);
 
 const DETAIL_CODES = new Set<ErrorCode>([
+  "BUNDLE_INCOMPLETE",
   "INTERRUPTED",
   "WAIT_TIMEOUT",
   "JOB_FAILED",
