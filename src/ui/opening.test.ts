@@ -35,23 +35,23 @@ function opening(seams: Partial<Io> = {}, terminal = { motion: true }) {
 }
 
 describe("the opening", () => {
-  it("is the name, the tagline and the version over a rule", () => {
+  it("is the name, the tagline and the version over a rule, with room to breathe", () => {
     expect(settled).toBe(
-      `◇ taste  unofficial CLI for the Taste Engine  ${pkg.version}\n${"─".repeat(58)}\n`
+      `◇ taste  the Taste Engine, in your terminal  ${pkg.version}\n${"─".repeat(58)}\n\n`
     );
   });
 
   it("writes only the final frame without motion", async () => {
     const run = opening({}, { motion: false });
     await run.play();
-    expect(run.err()).toBe(settled);
+    expect(run.err()).toBe(`\n${settled}`);
   });
 
   it("types the name, hiding the cursor and showing it again", async () => {
     const run = opening();
     await run.play();
     const err = run.err();
-    expect(err.startsWith(HIDE)).toBe(true);
+    expect(err.startsWith(`\n${HIDE}`)).toBe(true);
     expect(err.endsWith(`${settled}${SHOW}`)).toBe(true);
     for (const typed of ["◇ t_", "◇ tast_", "◇ taste_"])
       expect(err).toContain(typed);
@@ -85,6 +85,6 @@ describe("the opening", () => {
       terminal: { tty: true, width: 40, colorLevel: 0, motion: false },
     });
     await run.play();
-    expect(run.err().endsWith(`\n${"─".repeat(36)}\n`)).toBe(true);
+    expect(run.err().endsWith(`\n${"─".repeat(36)}\n\n`)).toBe(true);
   });
 });

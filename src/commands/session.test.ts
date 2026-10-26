@@ -70,7 +70,7 @@ describe("taste with no arguments in a terminal", () => {
     ]);
     const { code, out, err } = await runCli([], io);
     expect(code).toBe(0);
-    expect(err).toContain("unofficial CLI for the Taste Engine");
+    expect(err).toContain("the Taste Engine, in your terminal");
     expect(err).toContain("Using an API key from TASTE_API_KEY.");
     expect(asked[0]?.choices).toContain("Extract a brand (uses credits)");
     expect(asked[0]?.choices).toContain("Sign out");

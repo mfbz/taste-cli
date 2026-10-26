@@ -29,11 +29,11 @@ Labels (`palette`, `type`, `score`, `recommendations`, a table's header) are sho
 Bare `taste` in an interactive terminal opens with one line and a rule under it:
 
 ```text
-◇ taste  unofficial CLI for the Taste Engine  0.0.0
+◇ taste  the Taste Engine, in your terminal  0.0.0
 ──────────────────────────────────────────────────────────
 ```
 
-`◇ taste` in bold `paper`, the tagline in `grey`, the version in `faint`, then a `grey` rule 58 columns wide, or 4 columns less than the terminal when that is narrower. `taste` types itself, one letter every 50 ms behind a `grey` `_` cursor, then the tagline and the rule appear: about a quarter of a second. The cursor is hidden while it plays and always shown again. Any key, or Ctrl-C, jumps to the last frame. Without motion only the last frame is drawn; without colour it is plain. It is drawn on stderr, and never outside an interactive terminal.
+`◇ taste` in bold `paper`, the tagline in `grey`, the version in `faint`, then a `grey` rule 58 columns wide, or 4 columns less than the terminal when that is narrower, with a blank line above and below. `taste` types itself, one letter every 50 ms behind a `grey` `_` cursor, then the tagline and the rule appear: about a quarter of a second. The cursor is hidden while it plays and always shown again. Any key, or Ctrl-C, jumps to the last frame. Without motion only the last frame is drawn; without colour it is plain. It is drawn on stderr, and never outside an interactive terminal.
 
 Then one `grey` line says who taste is signed in as (`Signed in as <email>.`, `Signed in with an API key.`, `Using an API key from TASTE_API_KEY.` or `Not signed in.`), and a menu (`@clack/prompts`) lists the actions, each one that spends credits marked `(uses credits)`. The menu keeps clack's own colours (a cyan rail, a green `●` on the active item): clack 1.x draws them with fixed `node:util` styles and offers no setting to change them.
 
