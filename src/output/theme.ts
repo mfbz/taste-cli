@@ -11,8 +11,8 @@ type Theme = {
 };
 
 // tastelabs.com is monochrome: paper type, grey for anything secondary, colour only in content. So is
-// taste: bold paper for emphasis, paper for ✓ and warnings, grey for labels and asides, faint for the
-// score bar's track and the version. signal, the one colour in chrome, marks errors, because a failure
+// taste, with the terminal's own foreground as the paper, so a light theme stays readable: bold for
+// emphasis, plain for ✓ and warnings, grey for labels and asides, faint for the score bar's track and the version. signal, the one colour in chrome, marks errors, because a failure
 // must stand out. A brand's own colours are content and keep their hex. field is the sign in page's.
 const PALETTE = {
   paper: "#F3F3EF",
@@ -24,7 +24,6 @@ const PALETTE = {
 const RESET = "\u001b[0m";
 // 256-colour and 16-colour codes picked by hand: the colour cube has no greys this close.
 const FALLBACK: Readonly<Record<string, readonly [number, number]>> = {
-  [PALETTE.paper]: [15, 97],
   [PALETTE.grey]: [245, 90],
   [PALETTE.faint]: [240, 90],
   [PALETTE.signal]: [202, 31],
@@ -63,11 +62,11 @@ function createTheme(level: ColorLevel): Theme {
       faint: plain,
     };
   }
-  const paper = foreground(PALETTE.paper, level);
+  const own: Style = (text) => text;
   return {
-    bold: sgr(`1;${paper}`),
-    success: sgr(paper),
-    warning: sgr(paper),
+    bold: sgr("1"),
+    success: own,
+    warning: own,
     // Errors always carry a glyph or a word too, so they read without colour.
     error: sgr(foreground(PALETTE.signal, level)),
     dim: sgr(foreground(PALETTE.grey, level)),

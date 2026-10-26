@@ -10,7 +10,7 @@ This file is binding for anything a person sees. Each layout lands here with the
 
 ## Palette
 
-The look of tastelabs.com: monochrome, quiet and high contrast. Type is `paper`, anything secondary is `grey`, and colour lives only in content (a brand's own swatches), never in chrome. The one exception is `signal`, on errors, because a failure must stand out. `src/output/theme.ts` holds them and a test keeps this table in step.
+The look of tastelabs.com: monochrome, quiet and high contrast. Type is `paper`, which in a terminal is the terminal's own foreground so a light theme stays readable, anything secondary is `grey`, and colour lives only in content (a brand's own swatches), never in chrome. The one exception is `signal`, on errors, because a failure must stand out. `src/output/theme.ts` holds them and a test keeps this table in step.
 
 | Name     | Hex       | Used for                                                                             |
 | -------- | --------- | ------------------------------------------------------------------------------------ |
@@ -20,7 +20,7 @@ The look of tastelabs.com: monochrome, quiet and high contrast. Type is `paper`,
 | `signal` | `#FF3D00` | errors with `✗`, and a score below `--min`: the only colour in chrome                |
 | `field`  | `#1E1E1E` | the sign in page's ground, never painted in a terminal                               |
 
-With 256 colours `paper` is 15, `grey` 245, `faint` 240 and `signal` 202; with 16, `paper` is bright white (97), `grey` and `faint` bright black (90) and `signal` red (31). taste is drawn for a dark terminal, as Taste is; `NO_COLOR` gives plain text in the terminal's own colours, which suits a light theme. Motion is off in CI, with `NO_COLOR`, `TERM=dumb` and `TASTE_NO_MOTION`.
+`paper` is never painted in a terminal: emphasis is bold in the terminal's own foreground. With 256 colours `grey` is 245, `faint` 240 and `signal` 202; with 16, `grey` and `faint` bright black (90) and `signal` red (31). It reads the same on a dark or a light theme; `NO_COLOR` gives plain text. Motion is off in CI, with `NO_COLOR`, `TERM=dumb` and `TASTE_NO_MOTION`.
 
 Labels (`palette`, `type`, `score`, `recommendations`, a table's header) are short, lowercase and `grey`, in the spirit of Taste's small mono labels.
 
