@@ -40,7 +40,13 @@ describe("agent instructions", () => {
 });
 
 describe("skills", () => {
-  it.skipIf(skillFolders.length === 0).each(skillFolders)(
+  it("has the skills AGENTS.md points at", () => {
+    expect(skillFolders).toEqual(
+      expect.arrayContaining(["taste-cli-conventions", "taste-cli-workflow"])
+    );
+  });
+
+  it.each(skillFolders)(
     ".agents/skills/%s is a valid Agent Skill",
     (folder) => {
       expect(

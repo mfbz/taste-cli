@@ -1,0 +1,50 @@
+---
+name: taste-cli-workflow
+description: Use when starting, finishing or shipping any change in the taste-cli repo. Covers branches and pull requests, the definition of done, the independent review, the credit rule for paid Taste Engine calls and how to ask for one, recording and scrubbing fixtures, the release workflow, and keeping TASTE-CLI.md, README, DESIGN.md and the skills in step with behaviour.
+---
+
+# taste-cli workflow
+
+## Branches and pull requests
+
+- `main` is the only long-lived branch and is always green. Start every change on a short branch from an up-to-date `main`: `feat/…`, `fix/…`, `perf/…`, `docs/…`, `chore/…`, `ci/…`, `test/…`, `refactor/…`. One topic per branch; conventional commits (`feat(extract): …`).
+- Open the pull request against `main` with the template filled in. Its title is a conventional commit and, with the description, becomes the one squash commit on `main` and the release note. CI checks both with the commit guards.
+- The maintainer squash-merges. Agents never merge, never push to `main`, never force-push, never `--no-verify`. Behind `main`? Merge `main` into the branch.
+- Never bump the version (`package.json` stays `0.0.0`), tag or publish.
+- No AI attribution anywhere: no `Co-Authored-By` trailers for tools, no "Generated with" lines.
+
+## Definition of done
+
+1. The behaviour is in its `TASTE-CLI.md` section (flags, `--json` shape, error codes, acceptance checks), and every acceptance check is proven by a test or a named manual check.
+2. Test first: the test was seen failing for the right reason, then passing.
+3. `npm run check` is green, and its result is quoted in the pull request.
+4. No key, token or personal data reaches any output, log, error or fixture.
+5. Docs change with behaviour, in the same pull request: `TASTE-CLI.md`, `README.md` (only what exists, never what is planned), `DESIGN.md` for anything a person sees, and the skills (this one, `taste-cli-conventions`, and the user skill once it exists). Repo tests check that the README names only real commands, flags and scripts.
+
+## The independent review
+
+Before opening the pull request, get an adversarial review from a fresh context that didn't write the change: Claude Code `/code-review high`, plus `/security-review` for sign-in, stored credentials, downloads, the guards, settings or workflows; or `codex review`. Treat findings as claims: reproduce each one with a failing test or command before fixing it, or reject it with a reason. Record found, fixed and rejected in the pull request's Evidence.
+
+## Credits: the paid-call rule
+
+Credits are the maintainer's money. Every paid call is approved by the maintainer first and logged in the PR.
+
+- Paid: extractions (full, selective, deep, map), brand kits, searches (deep costs more), similar brands, adherence checks, and treat prompt enhancement as paid until proven otherwise. Free: reading the account, history, results of finished jobs, manifests.
+- Ask before each paid call, one call per question, in this shape:
+  - **Call:** the exact command or request (`taste extract https://stripe.com/ --json`).
+  - **Why:** what it proves or records, and why a fixture or the mock can't do it.
+  - **Expected cost:** an estimate in credits, marked as an estimate (prices per operation aren't published).
+- Wait for a yes. No answer is a no. Never batch several paid calls under one yes, never retry a paid call automatically, and never spend more than the budget the maintainer set.
+- Log every call in the pull request's credit log table (call, why, credits before and after when known), refunded failures included.
+
+## Fixtures
+
+Tests never call the Taste Engine: they use the fake API and recorded responses.
+
+- Recording runs one named recipe per invocation, after the maintainer's yes, using the maintainer's own sign-in; raw output goes to a gitignored `tmp-…` folder, never into `src/`.
+- Scrub before committing: emails become `person@example.com`, user IDs a fixed placeholder UUID, keys and tokens are removed, and long arrays are trimmed so every file stays well under the 1 MB guard. The guards run on the result.
+- The recorder and scrubber scripts arrive with the first fixtures; until they exist, no paid call is made at all.
+
+## Releasing
+
+Nothing is published while the repository is private, and the release workflow refuses to run then. Once the maintainer opens the repository, a release is by hand only: Actions → Release → Run workflow on `main` with a version `x.y.z` (CONTRIBUTING.md, "Releasing" and "Repository settings"). It stamps the version, runs `npm run check`, packs, publishes with provenance through trusted publishing, and creates the GitHub release from the merged pull request titles.

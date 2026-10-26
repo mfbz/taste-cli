@@ -37,20 +37,24 @@ describe("public docs", () => {
     expect(help).toContain(NOT_AFFILIATED);
   });
 
-  it.each(["TASTE-CLI.md", "AGENTS.md"])(
-    "%s states the one --json output contract",
+  it.each([
+    "TASTE-CLI.md",
+    "AGENTS.md",
+    ".agents/skills/taste-cli-conventions/SKILL.md",
+  ])("%s states the one --json output contract", (file) => {
+    expect(readRepoFile(file)).toMatch(
+      /exactly one JSON document on stdout, errors included/
+    );
+  });
+
+  it.each(["AGENTS.md", ".agents/skills/taste-cli-workflow/SKILL.md"])(
+    "%s carries the credit rule",
     (file) => {
       expect(readRepoFile(file)).toMatch(
-        /exactly one JSON document on stdout, errors included/
+        /every paid call is approved by the maintainer first and logged in the PR/i
       );
     }
   );
-
-  it("AGENTS.md carries the credit rule", () => {
-    expect(readRepoFile("AGENTS.md")).toContain(
-      "every paid call is approved by the maintainer first and logged in the PR"
-    );
-  });
 
   it("no committable file says why the tool exists", () => {
     const found = committableFiles().filter((path) => {
