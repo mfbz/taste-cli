@@ -15,6 +15,8 @@ Read in this order, only as far as the task needs:
 | `src/`              | the CLI: `main.ts` (bin entry), `cli.ts` (`run(argv, io)`), then one folder per layer |
 | `src/output/`       | the error catalogue and the one way results and failures are written                  |
 | `tools/checks/`     | guards (keys, tokens, personal paths, AI attribution, size) and repo-invariant tests  |
+| `scripts/`          | the fixture recorder and checker, the sample PDF generator, the local mock            |
+| `fixtures-input/`   | the made-up Acme brand guidelines PDF the kit recipe uploads (generated, committed)   |
 | `.githooks/`        | `pre-commit` and `commit-msg`, running the guards with plain Node                     |
 | `.agents/skills/`   | skills for agents working on this repo                                                |
 | `.github/`          | CI, the manual release, PR and issue templates                                        |
@@ -26,9 +28,10 @@ Read in this order, only as far as the task needs:
 npm ci                 # install (Node 24, .nvmrc); also switches on the Git hooks
 npm run check          # green checkpoint: format:check, lint, typecheck, test
 npm run format         # Prettier (a Claude hook also formats each edited file)
-npm test               # Vitest: src/ and tools/checks/, including the repo-wide guards
+npm test               # Vitest: src/, scripts/ and tools/checks/, including the repo-wide guards
 npm run build          # bundle to dist/main.mjs (tsdown)
 npm run cli -- --help  # build, then run the CLI
+npm run mock           # local mock Taste Engine on 127.0.0.1:4010 (free; CONTRIBUTING "Fixtures and credits")
 ```
 
 ## Decisions that bind

@@ -12,6 +12,8 @@ coverage/
 *.key
 *.pem
 credentials.json
+# taste's registered sign-in client lives in its config folder; a copy never enters the repo.
+client.json
 
 # Local agent state and process scratch (plans and designs are never committed)
 .claude/settings.local.json

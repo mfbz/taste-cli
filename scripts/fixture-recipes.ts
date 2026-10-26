@@ -1,0 +1,472 @@
+// The recordings taste-cli's fixtures come from, one recipe each, run by scripts/record-fixtures.ts with
+// the CLI's own client. A recipe is data (its name, whether it spends credits, what it calls, its
+// inputs) plus the few lines that make those calls. Every response is captured raw on the way in, so
+// a 409 or a refusal is kept as the exact envelope the API sent.
+// Recipes read public content only: the account (me) and its history are hand-written fixtures.
+import { TasteApiError } from "../src/api/client.ts";
+import type { TasteApi } from "../src/api/client.ts";
+import type { Envelope, Step } from "../src/api/fixtures.ts";
+import { jobCheck, waitForJob } from "../src/api/poll.ts";
+import type {
+  AdherenceAccepted,
+  SubmissionAccepted,
+} from "../src/api/schemas.ts";
+
+type Exchange = { method: string; path: string; status: number; body: unknown };
+type Capture = { fetch: typeof globalThis.fetch; exchanges: Exchange[] };
+type Kit = { name: string; bytes: Uint8Array };
+type RunContext = {
+  api: TasteApi;
+  exchanges: Exchange[];
+  sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
+  now: () => number;
+  signal: AbortSignal;
+  log: (line: string) => void;
+  // The id of the recording this recipe builds on (Recipe.needs), or, for a job recipe, the job
+  // to pick up instead of posting a new one (--id).
+  id?: string;
+  kit?: Kit;
+};
+// What a job recipe would post, to check a job picked up with --id against.
+type Expected = { url?: string; sections?: string[]; kind?: string };
+type Recorded = { steps: Step[]; data: Record<string, unknown> };
+type Recipe = {
+  name: string;
+  paid: boolean;
+  calls: string;
+  inputs: Readonly<Record<string, string>>;
+  // A recipe whose recording gives this one its id.
+  needs?: string;
+  // A job recipe: --id picks up a job already posted, with free polling only.
+  resumes?: boolean;
+  run(c: RunContext): Promise<Recorded>;
+};
+type Recording = {
+  recipe: string;
+  paid: boolean;
+  calls: string[];
+  steps: Step[];
+  data: Record<string, unknown>;
+};
+
+// Long jobs (a deep analysis, a brand kit) can take many minutes; waitForJob backs off meanwhile.
+const WAIT_MS = 20 * 60_000;
+const QUERY = "dark brutalist developer tools";
+// The status of a call sent but not answered (interrupted, or the network failed).
+const PENDING = 0;
+// Printed before the wait, so a timeout or Ctrl-C never costs a second paid call.
+const RESUME = (id: string) =>
+  `Job ${id}. If this stops, pick it up for free with --id ${id}.`;
+const MISSING_ID = "00000000-0000-4000-8000-00000000f404";
+
+function capture(fetch: typeof globalThis.fetch): Capture {
+  const exchanges: Exchange[] = [];
+  return {
+    exchanges,
+    fetch: async (input, init) => {
+      const url = new URL(
+        input instanceof Request ? input.url : input.toString()
+      );
+      // Logged before the request goes out: a paid call that never answers still shows up.
+      const exchange: Exchange = {
+        method: init?.method ?? "GET",
+        path: `${url.pathname}${url.search}`,
+        status: PENDING,
+        body: null,
+      };
+      exchanges.push(exchange);
+      const response = await fetch(input, init);
+      exchange.status = response.status;
+      const text = await response.clone().text();
+      try {
+        exchange.body = JSON.parse(text) as unknown;
+      } catch {
+        // Not JSON (a plain-text 500): kept as text.
+        exchange.body = text;
+      }
+      return response;
+    },
+  };
+}
+
+function noteStep(
+  steps: Step[],
+  job: { status: string; current_step?: string | null }
+) {
+  const last = steps.at(-1);
+  const step = { status: job.status, current_step: job.current_step ?? null };
+  if (last?.status !== step.status || last.current_step !== step.current_step)
+    steps.push(step);
+}
+
+// The first answer on a result path that matches: the 409 before the first checkpoint, or the first
+// partial 200 while the job still runs.
+function firstAnswer(
+  c: RunContext,
+  id: string,
+  match: (e: Exchange) => boolean
+): Envelope | undefined {
+  const found = c.exchanges.find(
+    (e) => e.path.includes(`/${id}/result`) && match(e)
+  );
+  return found && { status: found.status, body: found.body };
+}
+
+function isPartial(e: Exchange): boolean {
+  const status = (e.body as { status?: unknown } | null)?.status;
+  return e.status === 200 && status !== "completed";
+}
+
+async function wait<
+  T extends {
+    status: string;
+    current_step?: string | null;
+    error?: string | null;
+  },
+>(
+  c: RunContext,
+  id: string,
+  read: () => Promise<T>,
+  peek: () => Promise<unknown>
+): Promise<{ job: T; steps: Step[] }> {
+  const steps: Step[] = [];
+  const job = await waitForJob<T>({
+    id,
+    timeoutMs: WAIT_MS,
+    sleep: c.sleep,
+    now: c.now,
+    signal: c.signal,
+    onStep: (step, ms) => c.log(`  ${Math.round(ms / 1000)}s  ${step}`),
+    check: async () => {
+      const job = await read();
+      noteStep(steps, job);
+      // Free: reading the result while the job runs records the 409 and a partial answer.
+      if (job.status !== "completed" && job.status !== "failed") await peek();
+      return jobCheck(job, job);
+    },
+  });
+  return { job, steps };
+}
+
+// A job recipe given --id picks that job up instead of posting a new one: free polling only.
+function sameUrl(a: string, b: string): boolean {
+  return (URL.parse(a)?.href ?? a) === (URL.parse(b)?.href ?? b);
+}
+
+function mismatch(id: string, posted: string, expected: string): Error {
+  return new Error(
+    `Job ${id} was posted for ${posted}, not ${expected}: give --id the job this recipe posted.`
+  );
+}
+
+// A posted job read back for --id, checked against what this recipe would have posted, and kept in
+// the shape the POST answers with, so a resumed recording reads like a fresh one.
+async function resumeExtraction(
+  c: RunContext,
+  id: string,
+  expected: Expected
+): Promise<SubmissionAccepted> {
+  const found = await c.api.getSubmission(id);
+  if (expected.url && !sameUrl(found.source_url, expected.url))
+    throw mismatch(id, found.source_url, expected.url);
+  if (expected.kind && found.kind && found.kind !== expected.kind)
+    throw mismatch(id, `a ${found.kind} job`, `a ${expected.kind} job`);
+  const sections = [...(found.sections ?? [])].sort().join(",");
+  const want = [...(expected.sections ?? [])].sort().join(",");
+  // Absent means the API left it out; null or a list must match (null is a full extraction).
+  if (found.sections !== undefined && sections !== want)
+    throw mismatch(id, `sections "${sections}"`, `sections "${want}"`);
+  return {
+    submission_id: found.submission_id,
+    status: "accepted",
+    source_url: found.source_url,
+    accepted_at: found.accepted_at ?? "",
+  };
+}
+
+async function extraction(
+  c: RunContext,
+  expected: Expected,
+  post: () => Promise<SubmissionAccepted>
+): Promise<Recorded> {
+  const accepted = c.id
+    ? await resumeExtraction(c, c.id, expected)
+    : await post();
+  const id = accepted.submission_id;
+  c.log(RESUME(id));
+  const { job, steps } = await wait(
+    c,
+    id,
+    () => c.api.getSubmission(id),
+    () => c.api.getResult(id)
+  );
+  return {
+    steps,
+    data: {
+      accepted,
+      submission: job,
+      not_ready: firstAnswer(c, id, (e) => e.status === 409),
+      partial: firstAnswer(c, id, isPartial),
+      result: await c.api.getResult(id),
+    },
+  };
+}
+
+async function resumeCheck(
+  c: RunContext,
+  id: string,
+  reference: string,
+  candidate: string
+): Promise<AdherenceAccepted> {
+  const found = await c.api.getAdherence(id);
+  if (!sameUrl(found.reference_url, reference))
+    throw mismatch(id, found.reference_url, reference);
+  if (!sameUrl(found.candidate_url, candidate))
+    throw mismatch(id, found.candidate_url, candidate);
+  return {
+    job_id: found.job_id,
+    status: "accepted",
+    reference_url: found.reference_url,
+    candidate_url: found.candidate_url,
+    accepted_at: found.accepted_at,
+    ...(found.is_public === undefined ? {} : { is_public: found.is_public }),
+  };
+}
+
+async function check(
+  c: RunContext,
+  reference: string,
+  candidate: string
+): Promise<Recorded> {
+  const accepted: AdherenceAccepted = c.id
+    ? await resumeCheck(c, c.id, reference, candidate)
+    : await c.api.createAdherence({
+        reference_url: reference,
+        candidate_url: candidate,
+      });
+  const id = accepted.job_id;
+  c.log(RESUME(id));
+  const { job, steps } = await wait(
+    c,
+    id,
+    () => c.api.getAdherence(id),
+    () => c.api.getVerdict(id)
+  );
+  return {
+    steps,
+    data: {
+      accepted,
+      job,
+      not_ready: firstAnswer(c, id, (e) => e.status === 409),
+      partial: firstAnswer(c, id, isPartial),
+      verdict: await c.api.getVerdict(id),
+    },
+  };
+}
+
+// A call the API must refuse: its status and the exact envelope it sent.
+async function refusal(
+  c: RunContext,
+  call: () => Promise<unknown>
+): Promise<Recorded> {
+  try {
+    await call();
+  } catch (error) {
+    const last = c.exchanges.at(-1);
+    if (error instanceof TasteApiError && last)
+      return {
+        steps: [],
+        data: { error: { status: last.status, body: last.body } },
+      };
+    throw error;
+  }
+  throw new Error("The API accepted a call this recipe expected it to refuse.");
+}
+
+function need<T>(value: T | undefined, what: string): T {
+  if (value === undefined) throw new Error(`This recipe needs ${what}.`);
+  return value;
+}
+
+// A recipe without a job: its answers, and no steps.
+const answers = (data: Record<string, unknown>): Recorded => ({
+  steps: [],
+  data,
+});
+
+const RECIPES: readonly Recipe[] = [
+  ...(
+    [
+      ["extract-full", "https://www.tastelabs.com/"],
+      ["extract-full-2", "https://stripe.com/"],
+    ] as const
+  ).map(([name, url]): Recipe => ({
+    name,
+    paid: true,
+    calls:
+      "POST /design/submissions (full extraction), then free polling of the submission and its result",
+    inputs: { url },
+    resumes: true,
+    run: (c) =>
+      extraction(c, { url, kind: "website" }, () =>
+        c.api.createSubmission({ url })
+      ),
+  })),
+  {
+    name: "extract-selective",
+    paid: true,
+    calls:
+      "POST /design/submissions with sections, then free polling of the submission and its result",
+    inputs: { url: "https://linear.app/", sections: "colors,typography" },
+    resumes: true,
+    run: (c) =>
+      extraction(
+        c,
+        {
+          url: "https://linear.app/",
+          sections: ["colors", "typography"],
+          kind: "website",
+        },
+        () =>
+          c.api.createSubmission({
+            url: "https://linear.app/",
+            sections: ["colors", "typography"],
+          })
+      ),
+  },
+  {
+    name: "manifest",
+    paid: false,
+    calls:
+      "GET /design/submissions/{id}/download (the manifest only, no files)",
+    inputs: { id: "extract-full" },
+    needs: "extract-full",
+    run: async (c) =>
+      answers({ manifest: await c.api.getManifest(need(c.id, "an id")) }),
+  },
+  {
+    name: "kit",
+    paid: true,
+    calls:
+      "POST /design/submissions/brand-kit (the sample Acme PDF, or --file), then free polling",
+    inputs: { file: "fixtures-input/sample-guidelines.pdf, or --file <path>" },
+    resumes: true,
+    run: (c) =>
+      extraction(c, { kind: "brand_kit" }, () =>
+        c.api.createBrandKit(need(c.kit, "--file <path> to a PDF"))
+      ),
+  },
+  ...(["fast", "deep"] as const).map((depth): Recipe => ({
+    name: `search-${depth}`,
+    paid: true,
+    calls: `POST /search (depth ${depth})`,
+    inputs: { query: QUERY, depth },
+    run: async (c) =>
+      answers({ results: await c.api.search({ query: QUERY, depth }) }),
+  })),
+  {
+    name: "similar",
+    paid: true,
+    calls: "GET /search/similar on the extract-full submission",
+    inputs: { id: "extract-full" },
+    needs: "extract-full",
+    run: async (c) =>
+      answers({ results: await c.api.similar(need(c.id, "an id")) }),
+  },
+  {
+    name: "check-pass",
+    paid: true,
+    calls:
+      "POST /judge/brand-adherence, then free polling of the job and its verdict",
+    inputs: {
+      reference: "https://www.tastelabs.com/",
+      candidate: "https://tastelabs.com/",
+    },
+    resumes: true,
+    run: (c) =>
+      check(c, "https://www.tastelabs.com/", "https://tastelabs.com/"),
+  },
+  {
+    name: "check-fail",
+    paid: true,
+    calls:
+      "POST /judge/brand-adherence, then free polling of the job and its verdict",
+    inputs: {
+      reference: "https://www.tastelabs.com/",
+      candidate: "https://stripe.com/",
+    },
+    resumes: true,
+    run: (c) => check(c, "https://www.tastelabs.com/", "https://stripe.com/"),
+  },
+  {
+    name: "enhance",
+    paid: true,
+    calls: "POST /design/prompts/enhance on the extract-full submission",
+    inputs: { id: "extract-full", prompt: "a pricing page for a design tool" },
+    needs: "extract-full",
+    run: async (c) =>
+      answers({
+        enhanced: await c.api.enhance({
+          submission_id: need(c.id, "an id"),
+          prompt: "a pricing page for a design tool",
+        }),
+      }),
+  },
+  {
+    name: "error-404",
+    paid: false,
+    calls: "GET /design/submissions/{id} on an id that does not exist",
+    inputs: { id: MISSING_ID },
+    run: (c) => refusal(c, () => c.api.getSubmission(MISSING_ID)),
+  },
+  // Expected to be refused before any work, but they reach endpoints that charge, so they ask first.
+  {
+    name: "error-422",
+    paid: true,
+    calls:
+      "POST /design/submissions with a URL that is not one (expected 422, no charge)",
+    inputs: { url: "not a url" },
+    run: (c) => refusal(c, () => c.api.createSubmission({ url: "not a url" })),
+  },
+  {
+    name: "similar-selective",
+    paid: true,
+    calls:
+      "GET /search/similar on the extract-selective submission (expected 422 FULL_EXTRACTION_REQUIRED, no charge)",
+    inputs: { id: "extract-selective" },
+    needs: "extract-selective",
+    run: (c) => refusal(c, () => c.api.similar(need(c.id, "an id"))),
+  },
+];
+
+function findRecipe(name: string): Recipe | undefined {
+  return RECIPES.find((recipe) => recipe.name === name);
+}
+
+function callLine(e: Exchange): string {
+  return `${e.method} ${e.path} ${e.status === PENDING ? "no answer" : e.status}`;
+}
+
+// Consecutive identical calls (a poll) are kept once, so the list reads as what the recipe did.
+function callList(exchanges: Exchange[]): string[] {
+  const calls: string[] = [];
+  for (const e of exchanges) {
+    const line = callLine(e);
+    if (calls.at(-1) !== line) calls.push(line);
+  }
+  return calls;
+}
+
+async function record(recipe: Recipe, c: RunContext): Promise<Recording> {
+  const { steps, data } = await recipe.run(c);
+  return {
+    recipe: recipe.name,
+    paid: recipe.paid,
+    calls: callList(c.exchanges),
+    steps,
+    data,
+  };
+}
+
+export { callLine, capture, findRecipe, record, RECIPES };
+export type { Capture, Exchange, Kit, Recipe, Recording, RunContext };

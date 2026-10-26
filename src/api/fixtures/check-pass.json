@@ -1,0 +1,317 @@
+{
+  "recipe": "check-pass",
+  "paid": true,
+  "calls": [
+    "POST /judge/brand-adherence 202",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 409",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900 200",
+    "GET /judge/brand-adherence/00000000-0000-4000-8000-000000000900/result 200"
+  ],
+  "steps": [
+    { "status": "extracting", "current_step": "waiting_for_extractions" },
+    { "status": "judging", "current_step": "judging_scene" },
+    { "status": "completed", "current_step": "completed" }
+  ],
+  "data": {
+    "accepted": {
+      "job_id": "00000000-0000-4000-8000-000000000900",
+      "status": "accepted",
+      "reference_url": "https://www.tastelabs.com/",
+      "candidate_url": "https://tastelabs.com/",
+      "accepted_at": "2026-10-26T15:27:04.596117Z",
+      "is_public": false,
+      "cache_hit": {
+        "design_extraction": { "reference": true, "source": false },
+        "verifier_extraction": { "reference": false, "source": false },
+        "final_report": false
+      },
+      "pipeline_version": "brand-adherence-v2",
+      "reference_submission_id": "00000000-0000-4000-8000-000000000901",
+      "candidate_submission_id": "00000000-0000-4000-8000-000000000902",
+      "reference_extraction_id": "00000000-0000-4000-8000-000000000101",
+      "candidate_extraction_id": "00000000-0000-4000-8000-000000000903",
+      "source_url": "https://tastelabs.com/",
+      "source_submission_id": "00000000-0000-4000-8000-000000000902",
+      "source_extraction_id": "00000000-0000-4000-8000-000000000903"
+    },
+    "job": {
+      "job_id": "00000000-0000-4000-8000-000000000900",
+      "status": "completed",
+      "reference_url": "https://www.tastelabs.com/",
+      "candidate_url": "https://tastelabs.com/",
+      "accepted_at": "2026-10-26T15:27:04.596117Z",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:31:05.970018Z",
+      "completed_at": "2026-10-26T15:31:05.970018Z",
+      "is_public": false,
+      "api_key_name": "example",
+      "error": null,
+      "cache_hit": {
+        "design_extraction": { "reference": true, "source": false },
+        "verifier_extraction": { "reference": false, "source": false },
+        "final_report": false
+      },
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "team_id": null,
+      "pipeline_version": "brand-adherence-v2",
+      "reference_submission_id": "00000000-0000-4000-8000-000000000901",
+      "candidate_submission_id": "00000000-0000-4000-8000-000000000902",
+      "reference_extraction_id": "00000000-0000-4000-8000-000000000101",
+      "candidate_extraction_id": "00000000-0000-4000-8000-000000000903",
+      "reference_verifier_extraction_id": null,
+      "candidate_verifier_extraction_id": null,
+      "credit_ref_id": null,
+      "source_url": "https://tastelabs.com/",
+      "source_submission_id": "00000000-0000-4000-8000-000000000902",
+      "source_extraction_id": "00000000-0000-4000-8000-000000000903",
+      "source_verifier_extraction_id": null
+    },
+    "not_ready": {
+      "status": 409,
+      "body": {
+        "detail": {
+          "error": "NOT_READY",
+          "message": "Brand adherence job is extracting"
+        }
+      }
+    },
+    "verdict": {
+      "job_id": "00000000-0000-4000-8000-000000000900",
+      "status": "completed",
+      "reference_url": "https://www.tastelabs.com/",
+      "candidate_url": "https://tastelabs.com/",
+      "accepted_at": "2026-10-26T15:27:04.596117Z",
+      "completed_at": "2026-10-26T15:31:05.970018Z",
+      "is_public": false,
+      "score": 0.9,
+      "recommendations": [
+        "Tighten the inter-section vertical gaps toward the reference ~48px median to restore the denser vertical rhythm (current median 65px).",
+        "Insert a line break or separating space between 'subjective domains' and 'the Taste infra layer for AI' so the two-line headline reads cleanly as intended.",
+        "Bind the 'Try the API' label to the declared Azeret Semimono Secondary Button Text (15px w400) typeface so it stops falling back to Arial.",
+        "Restore the 'About' link so the primary nav exposes the full reference set of four links.",
+        "Ensure the 'TAS' wordmark renders with sufficient contrast against the dark navigation background, matching the reference's visible white mark.",
+        "Constrain the rightward content overflow (currently 2562px / 277.9% of viewport) closer to the reference 255% envelope so horizontally-scrolling sections match the reference footprint."
+      ],
+      "fixes": [
+        {
+          "action": "add_divider",
+          "divider": "Form Divider",
+          "to_value": "#FFFFFF"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Navigation'",
+          "gap_detail": "layout 'horizontal sticky bar with 12-column grid' vs reference 'fixed top bar, left-aligned logo, right-aligned cta'"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Hero'",
+          "gap_detail": "layout 'centered, full-viewport height (100vh), layered with video background' vs reference 'centered'"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Mission'",
+          "gap_detail": "layout 'split 12-column grid (4 columns text + 8 columns lottie animation)' vs reference 'split 50/50, asymmetric 3d icon positioning'; missing components: card"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Product'",
+          "gap_detail": "layout '2-column grid (6 columns each), top-aligned, extra-black background (#111)' vs reference 'grid 2-column'; missing components: button, form"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Team'",
+          "gap_detail": "layout 'centered headline + horizontal scrolling marquee (draggable)' vs reference 'centered, grid of team photos'; missing components: button"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Careers'",
+          "gap_detail": "layout 'grid layout with headline (7 columns) + job listing cards (6 columns)' vs reference 'vertical list with category headers'; missing components: icon"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Blog'",
+          "gap_detail": "layout 'left column text (6 columns) + vertical scrolling article cards (6 columns)' vs reference 'split layout with sticky sidebar (desktop) / stacked (mobile)'"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Interactive Footer'",
+          "gap_detail": "layout 'full-width embedded taste card swipe game' vs reference 'centered, full-screen interactive card swiper'; missing components: button, card"
+        },
+        {
+          "action": "rewrite_toward_axis",
+          "property": "section 'Footer'",
+          "gap_detail": "layout '4-column grid with links and logo' vs reference 'grid 4-column'"
+        },
+        {
+          "action": "fix_button_style",
+          "button": "Join our team (Text Arrow)",
+          "note": "closest current button diverges from the reference spec (similarity 0.55)",
+          "gap_detail": "radius rounded vs reference rounded-none; default.background #1E1E1E vs reference transparent; default.border_color #1E1E1E vs reference transparent; default.border_width 1px vs reference 0; hover.background #F5F7F2 vs reference transparent; hover.border_color #F5F7F2 vs reference transparent; missing hover.border_width (reference 0); missing hover.opacity (reference 0.5); hover.text_color #1E1E1E vs reference #F5F7F2"
+        },
+        {
+          "action": "snap_to_token",
+          "property": "button group spacing",
+          "field": null,
+          "from": "3rem",
+          "to_value": "1rem",
+          "from_alpha": null,
+          "to_alpha": null,
+          "gap_detail": null
+        },
+        {
+          "action": "snap_to_token",
+          "property": "surface 'Glassmorphism Panel'",
+          "field": "solid_colors[9]",
+          "from": "#1E1E1E",
+          "to_value": "#0F1011",
+          "from_alpha": null,
+          "to_alpha": null,
+          "gap_detail": null
+        },
+        {
+          "action": "snap_to_token",
+          "property": "surface 'Custom Radio Background'",
+          "field": "solid_colors[17]",
+          "from": "#EFEEEC",
+          "to_value": "#D0CFCD",
+          "from_alpha": null,
+          "to_alpha": null,
+          "gap_detail": null
+        },
+        {
+          "action": "align_surface_texture",
+          "field": "texture_classification[1]",
+          "to_value": "glass_blur"
+        },
+        {
+          "action": "snap_to_token",
+          "property": "typography.labels",
+          "field": null,
+          "from": "azeret semimono",
+          "to_value": "neue montreal",
+          "from_alpha": null,
+          "to_alpha": null,
+          "gap_detail": null
+        },
+        {
+          "action": "snap_to_token",
+          "property": "box-shadow (Focus Ring Shadow)",
+          "field": null,
+          "from": "inset 0 0 #0000",
+          "to_value": "0 0 0 5px #19F",
+          "from_alpha": null,
+          "to_alpha": null,
+          "gap_detail": null
+        }
+      ],
+      "source_url": "https://tastelabs.com/"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "recipe": "history",
+  "paid": false,
+  "calls": [
+    "GET /design/submissions?limit=20 200",
+    "GET /search/submissions?limit=20 200",
+    "GET /judge/brand-adherence?limit=20 200"
+  ],
+  "steps": [],
+  "data": {
+    "submissions": {
+      "submissions": [
+        {
+          "submission_id": "00000000-0000-4000-8000-000000000200",
+          "status": "completed",
+          "source_url": "https://stripe.com/",
+          "is_public": false,
+          "kind": "website",
+          "current_step": null,
+          "accepted_at": "2026-10-26T10:00:00Z",
+          "updated_at": "2026-10-26T10:03:00Z",
+          "completed_at": "2026-10-26T10:03:00Z",
+          "cache_hit": false,
+          "extraction_id": "00000000-0000-4000-8000-000000000201",
+          "error": null,
+          "credits_consumed": 1,
+          "api_key_name": "example",
+          "sections": null
+        },
+        {
+          "submission_id": "00000000-0000-4000-8000-000000000100",
+          "status": "completed",
+          "source_url": "https://www.tastelabs.com/",
+          "is_public": false,
+          "kind": "website",
+          "current_step": null,
+          "accepted_at": "2026-10-26T10:00:00Z",
+          "updated_at": "2026-10-26T10:03:00Z",
+          "completed_at": "2026-10-26T10:03:00Z",
+          "cache_hit": false,
+          "extraction_id": "00000000-0000-4000-8000-000000000101",
+          "error": null,
+          "credits_consumed": 1,
+          "api_key_name": "example",
+          "sections": null
+        }
+      ],
+      "total": 2,
+      "limit": 20,
+      "offset": 0,
+      "totals": { "completed": 2, "failed": 0, "in_progress": 0 }
+    },
+    "searches": {
+      "submissions": [
+        {
+          "id": "00000000-0000-4000-8000-000000000600",
+          "kind": "search",
+          "query": "dark brutalist developer tools",
+          "depth": "fast",
+          "status": "completed",
+          "result_count": 1,
+          "credits_consumed": 1,
+          "api_key_name": "example",
+          "created_at": "2026-10-26T10:00:00Z",
+          "completed_at": "2026-10-26T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "total_by_status": { "completed": 1 },
+      "limit": 20,
+      "offset": 0
+    },
+    "adherence": {
+      "jobs": [
+        {
+          "job_id": "00000000-0000-4000-8000-000000000900",
+          "status": "completed",
+          "reference_url": "https://www.tastelabs.com/",
+          "candidate_url": "https://tastelabs.com/",
+          "source_url": "https://tastelabs.com/",
+          "accepted_at": "2026-10-26T10:00:00Z",
+          "current_step": null,
+          "completed_at": "2026-10-26T10:03:00Z",
+          "is_public": false,
+          "api_key_name": "example",
+          "error": null
+        }
+      ],
+      "total": 1,
+      "limit": 20,
+      "offset": 0
+    }
+  }
+}

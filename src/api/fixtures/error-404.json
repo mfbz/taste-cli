@@ -1,0 +1,14 @@
+{
+  "recipe": "error-404",
+  "paid": false,
+  "calls": ["GET /design/submissions/00000000-0000-4000-8000-00000000f404 404"],
+  "steps": [],
+  "data": {
+    "error": {
+      "status": 404,
+      "body": {
+        "detail": { "error": "NOT_FOUND", "message": "Submission not found" }
+      }
+    }
+  }
+}

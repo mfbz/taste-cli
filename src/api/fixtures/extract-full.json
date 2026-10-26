@@ -1,0 +1,2021 @@
+{
+  "recipe": "extract-full",
+  "paid": true,
+  "calls": [
+    "POST /auth/v1/oauth/token 200",
+    "POST /design/submissions 202",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000100 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000100/result 200"
+  ],
+  "steps": [{ "status": "completed", "current_step": "completed" }],
+  "data": {
+    "accepted": {
+      "submission_id": "00000000-0000-4000-8000-000000000100",
+      "status": "completed",
+      "source_url": "https://www.tastelabs.com/",
+      "accepted_at": "2026-10-26T15:01:54.677658Z"
+    },
+    "submission": {
+      "submission_id": "00000000-0000-4000-8000-000000000100",
+      "status": "completed",
+      "source_url": "https://www.tastelabs.com/",
+      "is_public": false,
+      "kind": "website",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:01:54.677658Z",
+      "accepted_at": "2026-10-26T15:01:54.677658Z",
+      "completed_at": "2026-10-21T23:21:10.213812Z",
+      "cache_hit": true,
+      "extraction_id": "00000000-0000-4000-8000-000000000101",
+      "error": null,
+      "credits_consumed": 2,
+      "batch_id": null,
+      "batch_label": null,
+      "api_key_name": "example",
+      "sections": null,
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "team_id": null,
+      "credit_ref_id": null
+    },
+    "result": {
+      "submission_id": "00000000-0000-4000-8000-000000000100",
+      "status": "completed",
+      "source_url": "https://www.tastelabs.com/",
+      "extraction_id": "00000000-0000-4000-8000-000000000101",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:01:54.677658Z",
+      "result_updated_at": "2026-10-22T15:31:20.581268Z",
+      "accepted_at": "2026-10-26T15:01:54.677658Z",
+      "completed_at": "2026-10-21T23:21:10.213812Z",
+      "cache_hit": true,
+      "sections": null,
+      "result": {
+        "design_system": {
+          "kind": "website",
+          "profile": {
+            "brand_name": "Taste",
+            "tagline": null,
+            "source_url": "https://tastelabs.com",
+            "page_type_category": "Core Marketing",
+            "page_type": "Homepage",
+            "industry": "SaaS / AI",
+            "primary_purpose": "Position Taste as the infrastructure layer for AI taste and judgment, attract enterprise clients for model training and agent integration, and recruit technical and creative talent",
+            "main_cta": "Try the API",
+            "copy_tone": ["Intellectual", "Mission-driven", "Technical"],
+            "brand_signature": "Dark, monochromatic design with stark contrast between deep blacks (#1e1e1e, #111) and off-white/cream (#f5f7f2) sections. Bold, modern typography combining Matter sans-serif with Azeret Mono for technical credibility. Animated 3D card carousels, Lottie animations, and interactive elements create a sophisticated, research-lab aesthetic.",
+            "visual_language": {
+              "keywords": [
+                "monochromatic",
+                "technical",
+                "editorial",
+                "research-driven",
+                "sophisticated",
+                "minimal"
+              ],
+              "accent_strategy": "Minimal accent color use; relies primarily on high contrast between black backgrounds and white/cream text with subtle grey (#8b8b8b) for secondary content. Occasional blue (#002bba) appears in interactive elements.",
+              "highlights": "3D rotating card carousels, Lottie SVG animations for mission visualization, draggable team marquee, and interactive swipe-based footer game create dynamic focal points against static dark backgrounds"
+            },
+            "strategy": {
+              "target_audience": [
+                "AI/ML engineers and researchers seeking infrastructure solutions for subjective domain evaluation in model training",
+                "Enterprise product teams building AI agents or applications that require aesthetic judgment and brand consistency",
+                "Technical and creative professionals considering careers at the intersection of AI and design/taste evaluation"
+              ],
+              "executive_synthesis": "Taste's visual identity deliberately positions the company as a serious research institution rather than a typical startup, using monochromatic palettes and technical typography to signal credibility in the nascent field of AI taste infrastructure. The dark, lab-like aesthetic reinforces their mission to 'end AI slop' by visually demonstrating sophisticated judgment. Interactive elements (3D carousels, swipe interfaces) serve dual purposes: showcasing product capabilities while engaging visitors in the core value proposition of subjective evaluation. The prominent careers section and team photography humanize the technical mission, targeting both enterprise buyers and talent simultaneously."
+            },
+            "style_classification": {
+              "primary_style": "Brutalism",
+              "confidence": "High",
+              "category_style": "Historical Movement",
+              "reasoning": "The design exhibits clear Brutalist characteristics with a modern tech company execution. The most distinctive element is the raw, default web blue (#0000EE) used for links - this is the unmistakable \"Brutalist Hyperlink Aesthetic\" that directly references unstyled HTML hyperlinks, creating a deliberately raw, technical, and anti-polished feel. The color palette is severely restricted to monochromatic blacks (#1E1E1E, #111111, #121212) and whites (#F5F7F2, #FFFFFF), with stark structural inversions between dark and light sections. Typography uses Azeret Semimono (a semi-monospace font) for headlines and UI elements, reinforcing the code-centric, technical aesthetic typical of digital Brutalism. The layout features generous whitespace and centered symmetric compositions, but the raw material honesty comes through in the high-contrast color blocking, minimal decoration, and the unpolished quality of using system-default blue. The 3D elements in the hero add visual interest but don't override the fundamentally stark, stripped-back approach. Scoring on the 6 spectra: Visual Density is Airy/Spacious (generous 9rem vertical padding); Color Cleanliness is Clean/Pure (monochromatic grayscale with one stark accent); Chronology is Modern/Contemporary; Dimensionality is primarily Flat with 3D illustration accents; Decoration is Minimal (no ornamental patterns, raw typography); Structure is Rigid Grid (12-column system, centered layouts).",
+              "secondary_style": "Corporate",
+              "reasoning_secondary": "Corporate modifier applies because despite the Brutalist raw aesthetic, the site serves a legitimate tech/AI infrastructure company with professional polish. The generous whitespace, clean hierarchy, clear navigation, job listings section, and research/blog content all signal corporate credibility and trustworthiness. The design balances Brutalist edge (raw hyperlink blue, monospace fonts, stark contrasts) with Corporate professionalism (clean typography hierarchy, systematic spacing, polished 3D illustrations). This creates a \"tech-forward startup\" aesthetic that says \"we're serious engineers who don't need decorative polish\" while still maintaining professional credibility for enterprise clients."
+            }
+          },
+          "layout": {
+            "classification": ["centered_symmetric", "generous_whitespace"],
+            "grid": { "columns": 12, "gutter": "2rem", "max_width": "90rem" },
+            "breakpoints": {
+              "mobile": "0px - 767px (1 Column, 1.5rem gutter, fluid layout)",
+              "tablet": "768px - 991px (8 Columns, 2rem gutter)",
+              "desktop": "992px - 1439px (12 Columns, 2rem gutter, max-width 90rem)",
+              "large": "1440px+ (12 Columns, 2rem gutter, max-width 90rem)"
+            },
+            "section_separation": "Sections alternate between deep black (#1e1e1e), off-white/cream (#f5f7f2), pure white, and extra-dark black (#111). Transitions use gradient overlays (hero-bg, api-gradient) and generous vertical padding (9rem desktop, 4rem mobile). Horizontal strokes with gray opacity separate content blocks within sections. Navigation color transitions (nav-black-to-white, nav-white-to-dark-black) create visual continuity across color-block sections.",
+            "ascii_template": "```\n┌──────────────────────────────────────────────────────────┐\n│  [TWITE LOGO]        Home Product Careers Research       │\n│                                          [Try for free →]│\n├──────────────────────────────────────────────────────────┤\n│                                                          │\n│                    [HERO - Centered]                     │\n│          [Colorful 3D icon composition graphic]          │\n│                                                          │\n│         Encoding a cinematic AI narrative                │\n│            The Twite infra layer for AI                  │\n│                                                          │\n│                  [Start with Twite →]                    │\n│                                                          │\n├──────────────────────────────────────────────────────────┤\n│                                                          │\n│  ┌────────────┐                                          │\n│  │ [3D Icon]  │    For AI                                │\n│  └────────────┘                                          │\n│                                                          │\n│           ┌────────────┐                Mission         │\n│           │ [3D Icon]  │                                 │\n│           └────────────┘           [Mission text...]    │\n│                                                          │\n│  ┌────────────┐    For Crypto                           │\n│  │ [3D Icon]  │                                          │\n│  └────────────┘                                          │\n│                                                          │\n│           ┌────────────┐    For AI                       │\n│           │ [3D Icon]  │                                 │\n│           └────────────┘                                 │\n│                                                          │\n├──────────────────────────────────────────────────────────┤\n│           Twite across the stack                         │\n│                                                          │\n│  ┌──────────────────────────┐  ┌─────────────────────┐  │\n│  │ [Icon grid layout]       │  │ [White card]        │  │\n│  │                          │  │                     │  │\n│  │ Twite for Training Models│  │ Twite for Agents    │  │\n│  │ [Description...]         │  │ or Apps             │  │\n│  │                          │  │ [Description...]    │  │\n│  │ [Explore code]           │  │                     │  │\n│  │          [Set up in 5 min]│  │ [Explore code]     │  │\n│  └──────────────────────────┘  │          [Set up in 5 min]│\n│                                 └─────────────────────┘  │\n├──────────────────────────────────────────────────────────┤\n│                                                          │\n│        Join our mission to end AI silos.                 │\n│                                                          │\n│           [Team photo grid - 8 people]                   │\n│                                                          │\n│        Who we are →                                      │\n├──────────────────────────────────────────────────────────┤\n│                      [Open Positions]                    │\n│                                                          │\n│  Senior Designer                                         │\n│  San Francisco / London / Remote                         │\n│                                                          │\n│  Strategic Product (Blockchain)                          │\n│  San Francisco / Sydney / Remote                         │\n│                                                          │\n│  Decentralized Strategies Commodity                      │\n│  San Francisco / Remote                                  │\n│                                                          │\n│  Growth Lead                                             │\n│  San Francisco / London / Remote                         │\n│                                                          │\n│  AI Payments                                             │\n│  San Francisco / Remote                                  │\n│                                                          │\n│  Design Research Engineer                                │\n│  San Francisco / Sydney / Remote                         │\n│                                                          │\n│  AI Engineer, Full Stack                                 │\n│  San Francisco / Tokyo / Remote                          │\n│                                                          │\n│  AI Systems, Full Stack                                  │\n│  San Francisco / Sydney / Remote                         │\n│                                                          │\n│  AI Research, Blockchain                                 │\n│  San Francisco / London / Remote                         │\n├──────────────────────────────────────────────────────────┤\n│                                                          │\n│              Read Our Research and Blog                  │\n│                                                          │\n│                   [Explore all ideas →]                  │\n│                                                          │\n├──────────────────────────────────────────────────────────┤\n│  ┌──────────────────┐ ┌──────────────────┐ ┌─────────┐  │\n│  │ Finding Gems At  │ │ Iterate, Execute │ │ Harvesting│\n│  │ AI Engineer      │ │ or what          │ │ accessible│\n│  │ Crossings        │ │ [...]            │ │ [...]     │\n│  │ [Text...]        │ │ [Text...]        │ │ [Text...] │\n│  │ Read full →      │ │ Read full →      │ │ Read full →│\n│  └──────────────────┘ └──────────────────┘ └─────────┘  │\n├──────────────────────────────────────────────────────────┤\n│                                                          │\n│                   Shape Your AI                          │\n│                  Play crypto bets                        │\n│                                                          │\n│              [3D icon composition grid]                  │\n│                                                          │\n├──────────────────────────────────────────────────────────┤\n│  Company          Get in touch      Location    Community│\n│                                                          │\n│  [Links...]       [Contact info]    [Locations] [Social]│\n│                                                          │\n│  © 2025 Twite                                            │\n└──────────────────────────────────────────────────────────┘\n```\n\n---VISUAL ANNOTATIONS---\n\n**NAV:**\n- Background: Dark black (#1a1a1a)\n- Logo: \"TWITE\" in white, minimalist sans-serif\n- Nav links: White text, subtle gray on hover\n- Buttons/CTAs: \"Try for free →\" (white outline pill button, right-aligned)\n- Colors: Black background, white text\n- Typography: Clean, modern sans-serif\n\n**HERO:**\n- Background: Dark black continuing from nav\n- Imagery: Vibrant 3D composition of colorful abstract shapes (coral, yellow, blue, green, pink, white) with central blue circular element featuring a yellow star\n- Text: White centered headline in elegant serif/display font\n- Subheading: Smaller white text\n- Buttons/CTAs: \"Start with Twite →\" (white text with arrow, appears as link)\n- Colors: Bright multi-color 3D elements against deep black\n- Typography: Sophisticated, cinematic feel\n\n**MISSION SECTION:**\n- Background: Off-white/cream (#f5f5f0)\n- Imagery: Four 3D icons positioned asymmetrically:\n  - Dark charcoal/black cube (For AI)\n  - Brown/chocolate square with depth (top right)\n  - Peach/coral gradient rounded square (For Crypto)\n  - Yellow/gold rounded square (For AI)\n- Each icon has subtle \"For AI\" or \"For Crypto\" label\n- Mission text block on right in dark gray\n- Colors: Warm neutrals, earth tones\n- Typography: Clean sans-serif for body text\n\n**STACK SECTION (Two Cards):**\n- Background: Dark black/charcoal (#1a1a1a)\n- Section title: \"Twite across the stack\" in white\n- Left card: Dark background with icon grid (colorful small icons - pink, yellow, gray, white elements)\n  - Title: \"Twite for Training Models\" in white\n  - Description in gray text\n  - Buttons/CTAs: \"Explore code\" (subtle ghost button) | \"Set up in 5 min\" (white outline pill button)\n- Right card: Clean white background card\n  - Single search/input interface mockup\n  - Title: \"Twite for Agents or Apps\" in dark text\n  - Description in gray\n  - Buttons/CTAs: \"Explore code\" (ghost) | \"Set up in 5 min\" (dark outline pill)\n- Colors: High contrast dark/light split\n- Typography: Modern sans-serif, hierarchical\n\n**TEAM SECTION:**\n- Background: White/off-white\n- Text: \"Join our mission to end AI silos.\" centered in dark text\n- Imagery: Grid of 8 team member photos (grayscale/desaturated)\n- Link: \"Who we are →\" in dark text with arrow\n- Colors: Minimal, grayscale photography\n- Typography: Clean, inviting\n\n**CAREERS/POSITIONS:**\n- Background: White\n- Layout: Vertical list of job positions\n- Each position: \n  - Job title in bold dark text\n  - Location in lighter gray (e.g., \"San Francisco / London / Remote\")\n- Positions listed:\n  - Senior Designer\n  - Strategic Product (Blockchain)\n  - Decentralized Strategies Commodity\n  - Growth Lead\n  - AI Payments\n  - Design Research Engineer\n  - AI Engineer, Full Stack\n  - AI Systems, Full Stack\n  - AI Research, Blockchain\n- Colors: Black and gray text on white\n- Typography: Consistent sans-serif, clear hierarchy\n\n**BLOG SECTION:**\n- Background: Dark black\n- Section title: \"Read Our Research and Blog\" in white\n- Buttons/CTAs: \"Explore all ideas →\" (white link with arrow)\n- Three blog cards:\n  - Card backgrounds: Dark charcoal/black\n  - Titles in white\n  - Snippet text in gray\n  - Each card has \"Read full →\" link at bottom\n  - Titles visible: \"Finding Gems At AI Engineer Crossings\", \"Iterate, Execute or what\", \"Harvesting accessible\"\n- Colors: Dark theme, white/gray text\n- Typography: Readable, modern\n\n**CLOSING HERO:**\n- Background: Light cream/off-white\n- Text: \"Shape Your AI / Play crypto bets\" centered\n- Imagery: 3D icon composition grid - pastel colored abstract shapes (pink, yellow, green, purple rings and geometric forms)\n- Colors: Soft pastels on light background\n- Typography: Display font, playful\n\n**FOOTER:**\n- Background: White\n- Layout: Four columns\n  - Company\n  - Get in touch\n  - Location\n  - Community\n- Links in dark gray/black\n- Copyright: \"© 2025 Twite\" at bottom\n- Colors: Minimal black/gray on white\n- Typography: Small, clean sans-serif\n\n**OVERALL COLOR PALETTE:**\n- Primary: Deep black (#1a1a1a), clean white, cream/off-white\n- Accent: Vibrant multi-colors (coral, yellow, blue, pink, purple) in 3D elements\n- Text: White on dark, dark gray/black on light\n- Style: High contrast, modern, cinematic with playful 3D elements\n\n**BUTTON/CTA SUMMARY:**\n- \"Try for free →\" (nav - white outline pill)\n- \"Start with Twite →\" (hero - white link)\n- \"Explore code\" (appears twice - ghost buttons)\n- \"Set up in 5 min\" (appears twice - outline pills, one white on dark, one dark on light)\n- \"Who we are →\" (link)\n- \"Explore all ideas →\" (link)\n- \"Read full →\" (appears three times in blog cards)",
+            "insights": [
+              "High-contrast color blocking (black/white/cream) creates bold section rhythm; each major section is a distinct color zone with deliberate palette shifts.",
+              "Generous vertical spacing (9rem default desktop padding) and centered layouts emphasize breathing room and hierarchy; mobile collapses to 4rem padding with stacked layouts.",
+              "Interactive 3D elements (carousel, draggable marquee, card swiper footer) add depth and engagement while maintaining clean, minimal structure; Lottie animations and GSAP transitions enhance cinematic feel.",
+              "Typography scale uses fluid clamp() for responsive sizing (global-headline-l: 2.5rem → 4rem); Azeret Semimono for UI, Matter for body, creating a modern, technical aesthetic.",
+              "Grid system is flexible: strict 12-column for desktop, collapses to single-column mobile, with intermediate 8-column tablet; custom 24-column grid available for fine-grained layouts."
+            ]
+          },
+          "colors": {
+            "baseline": [
+              {
+                "name": "Ink Black",
+                "type": "Neutral",
+                "rules": {
+                  "description": "The foundational dark hue serving a dual purpose: as the immersive background for dark-themed sections and the primary text ink on light ones.",
+                  "when_to_use": [
+                    "Hero and Research section backgrounds",
+                    "Global navigation menu background",
+                    "Primary typography in the light About and Team sections"
+                  ]
+                },
+                "hex": "#333333",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#1E1E1E",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#1D1D1D",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#272726",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#212121", "alpha": null, "aliases": [] }
+                ],
+                "score": 1.0824
+              },
+              {
+                "name": "System Blue",
+                "type": "Dark",
+                "rules": {
+                  "description": "A raw, default web blue used exclusively as an interactive accent to highlight links and brand elements.",
+                  "when_to_use": [
+                    "Brand logo rendering",
+                    "\"Try the API\" CTA and article links",
+                    "Open job listing links in the Team section"
+                  ]
+                },
+                "hex": "#0000EE",
+                "alpha": null,
+                "shades": [],
+                "score": 0.1926
+              }
+            ],
+            "secondary": [
+              {
+                "name": "Paper White",
+                "type": "Light",
+                "rules": {
+                  "description": "The primary light surface color and the inverse text color that provides stark, clean contrast against the dark layouts.",
+                  "when_to_use": [
+                    "About, Team, and Footer section backgrounds",
+                    "Headings and body copy in dark sections",
+                    "Ghost button borders and text",
+                    "Form input text and success/error notification backgrounds"
+                  ]
+                },
+                "hex": "#F5F7F2",
+                "alpha": null,
+                "shades": [
+                  {
+                    "name": "",
+                    "hex": "#FFFFFF",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  {
+                    "name": "",
+                    "hex": "#EAECE7",
+                    "alpha": null,
+                    "aliases": []
+                  },
+                  { "name": "", "hex": "#EFEEEC", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.1483
+              },
+              {
+                "name": "Void Black",
+                "type": "Dark",
+                "rules": {
+                  "description": "An ultra-dark contrast shade used to ground specific components or create subtle depth against the primary dark background.",
+                  "when_to_use": [
+                    "Product section overall background",
+                    "Form wrapper backgrounds within dark cards",
+                    "SVG illustration shapes and fills",
+                    "Footer base text color"
+                  ]
+                },
+                "hex": "#111111",
+                "alpha": null,
+                "shades": [],
+                "score": 0.0518
+              },
+              {
+                "name": "Slate Gray",
+                "type": "Neutral",
+                "rules": {
+                  "description": "A functional mid-gray applied to de-emphasize secondary text and draw subtle structural lines without overwhelming the content.",
+                  "when_to_use": [
+                    "Subheadlines and supporting paragraph text",
+                    "Structural divider strokes between list items",
+                    "Dropdown menu secondary descriptions",
+                    "Footer caption text"
+                  ]
+                },
+                "hex": "#8B8B8B",
+                "alpha": null,
+                "shades": [
+                  { "name": "", "hex": "#747370", "alpha": null, "aliases": [] }
+                ],
+                "score": 0.045899999999999996
+              }
+            ],
+            "insights": [
+              "Brutalist Hyperlink Aesthetic: The bold, unadulterated #0000EE directly references default web hyperlinks, giving the brand a raw, technical, and engineer-focused feel that aligns with an API product.",
+              "Structural Inversion: The palette is built on stark reversals; the core black and paper white constantly swap roles between background and ink depending on the section (e.g., Dark Hero vs. Light Mission).",
+              "Monochromatic Restraint: By restricting the design to grayscales and one stark accent, the interface strips away subjectivity, fitting the brand's narrative of being a fundamental \"infra layer\" for AI."
+            ]
+          },
+          "typography": {
+            "titles": {
+              "variants": [
+                {
+                  "name": "Matter TRIAL",
+                  "role": "Hero Headline",
+                  "specs": {
+                    "size": "var(--hero-size)",
+                    "line_height": "1.02",
+                    "font_weight": "700",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "var(--display)",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Azeret Semimono",
+                  "role": "Global Headline L",
+                  "specs": {
+                    "size": "clamp(2.5rem, 4vw, 4rem)",
+                    "line_height": "1.2em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Azeret Semimono\", Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Global Headline M",
+                  "specs": {
+                    "size": "clamp(2rem, 3vw, 2.2rem)",
+                    "line_height": "1.2em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Global Headline S",
+                  "specs": {
+                    "size": "clamp(1.8rem, 2.2vw, 2rem)",
+                    "line_height": "1.25em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Global Headline XS",
+                  "specs": {
+                    "size": "clamp(1.2rem, 1.6vw, 1.4rem)",
+                    "line_height": "1.25em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "paragraphs": {
+              "description": "Body are used for longer passages of text in your app. Use typefaces intended for body styles, which are readable at smaller sizes and can be comfortably read in longer passages.",
+              "variants": [
+                {
+                  "name": "Matter",
+                  "role": "Body Text",
+                  "specs": {
+                    "size": "clamp(1rem, 1.05vw, 1.1rem)",
+                    "line_height": "1.5em",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Body Small",
+                  "specs": {
+                    "size": "clamp(0.9rem, 1vw, 1rem)",
+                    "line_height": "1.3em",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Azeret Semimono",
+                  "role": "Body Text Azeret",
+                  "specs": {
+                    "size": "clamp(1rem, 1.05vw, 1.1rem)",
+                    "line_height": "1.5em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Azeret Semimono\", Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Blog Paragraph",
+                  "specs": {
+                    "size": "17px",
+                    "line_height": "1.5em",
+                    "font_weight": "300",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "labels": {
+              "description": "Label styles are smaller, utilitarian styles, used for things like the text inside components or for very small text in the content body, such as captions.",
+              "variants": [
+                {
+                  "name": "Azeret Semimono",
+                  "role": "Button Text",
+                  "specs": {
+                    "size": "clamp(0.8125rem, 0.9vw, 0.9375rem)",
+                    "line_height": "1.4em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Azeret Semimono\", Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Nav Link Text",
+                  "specs": {
+                    "size": "clamp(0.8125rem, 0.9vw, 0.9375rem)",
+                    "line_height": "1.4em",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Azeret Semimono",
+                  "role": "Tag / Badge",
+                  "specs": {
+                    "size": "12px",
+                    "line_height": "1em",
+                    "font_weight": "500",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "\"Azeret Semimono\", Arial, sans-serif",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "var(--mono)",
+                  "role": "Hero Badge",
+                  "specs": {
+                    "size": "clamp(9px, 1.02vw, 16px)",
+                    "line_height": "20px",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "var(--mono)",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "var(--mono)",
+                  "role": "Hero Caption",
+                  "specs": {
+                    "size": "clamp(11px, 1vw, 14px)",
+                    "line_height": "20px",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "var(--mono)",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Neue Montreal",
+                  "role": "Tab Item",
+                  "specs": {
+                    "size": "15px",
+                    "line_height": "",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Neue Montreal",
+                    "file_url": null
+                  }
+                },
+                {
+                  "name": "Matter",
+                  "role": "Form Input",
+                  "specs": {
+                    "size": "16px",
+                    "line_height": "1.2",
+                    "font_weight": "400",
+                    "font_variation_settings": ""
+                  },
+                  "licensing": null,
+                  "technical": {
+                    "font_family_css": "Matter, Arial, sans-serif",
+                    "file_url": null
+                  }
+                }
+              ]
+            },
+            "others": {
+              "description": "Font that does not have a classifier, that is small like regular.",
+              "variants": []
+            },
+            "highlights": null,
+            "insights": [
+              "The brand identity is heavily influenced by monospace and semi-monospace fonts (Azeret Semimono, Azeret Mono), giving it a distinct technical, AI-centric aesthetic.",
+              "Fluid typography is implemented extensively using CSS clamp(), allowing headings, body text, and even UI labels to scale seamlessly across viewports.",
+              "Matter is used as the primary workhorse sans-serif for high legibility in body copy and core headings, contrasting with the monospace elements used for data and UI accents."
+            ]
+          },
+          "surfaces": {
+            "texture_classification": ["gradient_linear", "glass_blur"],
+            "solid_colors": [
+              {
+                "name": "Primary Black",
+                "description": "Main dark background for sections and navigation",
+                "when_to_use": [
+                  "Default section backgrounds",
+                  "Navigation bar",
+                  "Page transition overlay"
+                ],
+                "hex": "#1E1E1E"
+              },
+              {
+                "name": "Extra Black",
+                "description": "Deeper black for product section and footer",
+                "when_to_use": [
+                  "Product section background",
+                  "Footer embed container",
+                  "Page transition"
+                ],
+                "hex": "#111111"
+              },
+              {
+                "name": "Dark Black",
+                "description": "Dark background variant for transitions and overlays",
+                "when_to_use": [
+                  "Page transitions",
+                  "Section backgrounds",
+                  "FAQs and accordions"
+                ],
+                "hex": "#121212"
+              },
+              {
+                "name": "Cream Background",
+                "description": "Light neutral background for sections",
+                "when_to_use": [
+                  "About section",
+                  "Card containers",
+                  "Light mode surfaces"
+                ],
+                "hex": "#F5F7F2"
+              },
+              {
+                "name": "Off-White",
+                "description": "Subtle off-white for cards and inputs",
+                "when_to_use": [
+                  "Form inputs",
+                  "Card backgrounds",
+                  "Timeline sections"
+                ],
+                "hex": "#FBFBFB"
+              },
+              {
+                "name": "Card Background",
+                "description": "Pure white for primary cards and boxes",
+                "when_to_use": [
+                  "Box components",
+                  "Tab items",
+                  "Navigation panels"
+                ],
+                "hex": "#FFFFFF"
+              },
+              {
+                "name": "Bouncy Tabs Background",
+                "description": "Dark background for tab navigation",
+                "when_to_use": ["Tab navigation containers"],
+                "hex": "#171717"
+              },
+              {
+                "name": "Bouncy Tabs Indicator",
+                "description": "Active indicator for bouncy tabs",
+                "when_to_use": ["Active tab state indicator"],
+                "hex": "#262626"
+              },
+              {
+                "name": "Dark Grey Card",
+                "description": "Dark card surface for black sections",
+                "when_to_use": [
+                  "Tags on dark backgrounds",
+                  "Dropdown menus",
+                  "Dark UI cards"
+                ],
+                "hex": "#272726"
+              },
+              {
+                "name": "Blue Primary",
+                "description": "Primary brand blue for accents and CTAs",
+                "when_to_use": [
+                  "Submit buttons",
+                  "Timeline dot active state",
+                  "Copied state indicator"
+                ],
+                "hex": "#002BBA"
+              },
+              {
+                "name": "Copy Email Button Background",
+                "description": "Dark button background for email copy",
+                "when_to_use": ["Copy email icon wrapper"],
+                "hex": "#303030"
+              },
+              {
+                "name": "Glassmorphism Panel",
+                "description": "Dark frosted glass surface with backdrop blur",
+                "when_to_use": ["Navigation bar on scroll", "Floating panels"],
+                "hex": "#0F1011"
+              },
+              {
+                "name": "Taste Footer Cream",
+                "description": "Custom cream background for Taste footer embed",
+                "when_to_use": [
+                  "Taste footer container",
+                  "Footer card surfaces"
+                ],
+                "hex": "#EAECE7"
+              },
+              {
+                "name": "Taste Footer Ink",
+                "description": "Dark ink color for inverted footer state",
+                "when_to_use": ["Footer inverted mode background"],
+                "hex": "#111111"
+              },
+              {
+                "name": "Form Notification Background",
+                "description": "Light surface for form notifications",
+                "when_to_use": ["Form success/error messages"],
+                "hex": "#EFEEEC"
+              },
+              {
+                "name": "Modal Card",
+                "description": "Modal card background",
+                "when_to_use": ["Modal outer card"],
+                "hex": "#EFEEEC"
+              },
+              {
+                "name": "Modal Scroll",
+                "description": "Scrollable modal content area",
+                "when_to_use": ["Modal scroll container"],
+                "hex": "#E2E1DF"
+              },
+              {
+                "name": "Custom Radio Background",
+                "description": "Focus state for custom radio/checkbox",
+                "when_to_use": ["Radio button focus state"],
+                "hex": "#D0CFCD"
+              }
+            ],
+            "gradients": [
+              {
+                "name": "Hero Background Overlay",
+                "description": "Subtle dark gradient overlay from transparent to 25% black",
+                "when_to_use": ["Hero video overlays", "Image overlays"],
+                "css_code": "linear-gradient(#fff0, #00000040)"
+              },
+              {
+                "name": "Mobile Hero Background",
+                "description": "Vertical gradient with solid dark ends and transparent middle",
+                "when_to_use": [
+                  "Mobile hero backgrounds",
+                  "Overlay on hero videos"
+                ],
+                "css_code": "linear-gradient(0deg, #1e1e1e 35%, #21212100 50%, #21212100 75%, #1e1e1e 90%)"
+              },
+              {
+                "name": "API Gradient",
+                "description": "Complex multi-stop gradient from dark to transparent and back",
+                "when_to_use": [
+                  "API section backgrounds",
+                  "Section transitions"
+                ],
+                "css_code": "linear-gradient(0deg, #1e1e1e, #fff0 30%, #4e4e4e00 80%, #1e1e1e 90%)"
+              },
+              {
+                "name": "API Gradient Mobile",
+                "description": "Mobile variant of API gradient with adjusted stops",
+                "when_to_use": ["API section on mobile devices"],
+                "css_code": "linear-gradient(0deg, #1e1e1e 23%, #fff0 37%, #4e4e4e00 77%, #1e1e1e 86%)"
+              },
+              {
+                "name": "Timeline Fade Top",
+                "description": "Fade from off-white to transparent, top to bottom",
+                "when_to_use": ["Top edge fade on timeline sections"],
+                "css_code": "linear-gradient(#fbfbfb, #fff0)"
+              },
+              {
+                "name": "Timeline Fade Bottom",
+                "description": "Fade from transparent to off-white, top to bottom",
+                "when_to_use": ["Bottom edge fade on timeline sections"],
+                "css_code": "linear-gradient(#fff0, #fbfbfb)"
+              },
+              {
+                "name": "Cover Marquee Left-Right",
+                "description": "Horizontal gradient creating edge fade effect for marquee",
+                "when_to_use": ["Marquee edge fade-outs on light backgrounds"],
+                "css_code": "linear-gradient(270deg, #f5f7f2, #3330 20%, #dedede00 80%, #f5f7f2)"
+              },
+              {
+                "name": "Cover Marquee Black",
+                "description": "Dark variant of marquee edge fade",
+                "when_to_use": ["Marquee edge fade-outs on dark backgrounds"],
+                "css_code": "linear-gradient(270deg, #1e1e1e, #3330 20%, #dedede00 80%, #1e1e1e)"
+              },
+              {
+                "name": "Cover Marquee Dark Black",
+                "description": "Extra dark marquee edge fade",
+                "when_to_use": [
+                  "Marquee edge fade-outs on extra dark backgrounds"
+                ],
+                "css_code": "linear-gradient(270deg, #111, #3330 20%, #dedede00 80%, #111)"
+              },
+              {
+                "name": "Bunny Player Interface Fade",
+                "description": "Gradient from transparent to black for video controls",
+                "when_to_use": ["Video player control overlays"],
+                "css_code": "linear-gradient(#0000, #000)"
+              },
+              {
+                "name": "Swiper Slide Shadow Left",
+                "description": "Shadow gradient for 3D carousel left side",
+                "when_to_use": ["Swiper 3D slide shadows - left"],
+                "css_code": "linear-gradient(270deg, #00000080, #0000)"
+              },
+              {
+                "name": "Swiper Slide Shadow Right",
+                "description": "Shadow gradient for 3D carousel right side",
+                "when_to_use": ["Swiper 3D slide shadows - right"],
+                "css_code": "linear-gradient(90deg, #00000080, #0000)"
+              },
+              {
+                "name": "Swiper Slide Shadow Top",
+                "description": "Shadow gradient for 3D carousel top",
+                "when_to_use": ["Swiper 3D slide shadows - top"],
+                "css_code": "linear-gradient(0deg, #00000080, #0000)"
+              },
+              {
+                "name": "Swiper Slide Shadow Bottom",
+                "description": "Shadow gradient for 3D carousel bottom",
+                "when_to_use": ["Swiper 3D slide shadows - bottom"],
+                "css_code": "linear-gradient(180deg, #00000080, #0000)"
+              }
+            ],
+            "highlights": [
+              "Navigation bar uses glassmorphism: -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); with background-color: #fffc (white with transparency)",
+              "Copy email button hover effect with background transition: background: rgba(48, 48, 48, 0.9)",
+              "Big video player button with glassmorphism: backdrop-filter: blur(1em); background-color: #64646433",
+              "Lightbox play button with backdrop blur: backdrop-filter: blur(5px); background-color: #f5f5f54d",
+              "Timeline progress bars with color overlays and opacity effects",
+              "Animated rotating logo in blog section",
+              "Swiper 3D effect with shadow overlays on carousel slides using rgba gradients",
+              "Form notification backgrounds with 10% opacity overlay using currentColor",
+              "Bunny player loading overlay: background-color: #00000054 with opacity transition"
+            ]
+          },
+          "elevation": {
+            "description": "Elevation allows elements to be lifted from the background. It can be defined by applying drop shadows or other visual cues, such as color and borders",
+            "shadows": {
+              "description": "Elevation using shadows reflects a spatial relationship by indicating separation from the background or allowing content to be scrolled under another element. This design system primarily uses subtle borders for elevation rather than extensive shadow usage.",
+              "levels": [
+                {
+                  "name": "Webflow Badge Shadow",
+                  "type": "drop",
+                  "description": "Composite shadow with 10% black border ring and subtle lift shadow. Used for the Webflow badge UI element.",
+                  "css_value": "0 0 0 1px #0000001a,0 1px 3px #0000001a",
+                  "when_to_use": ["Webflow badge", "Small floating UI elements"]
+                },
+                {
+                  "name": "Focus Ring Shadow",
+                  "type": "drop",
+                  "description": "5px solid ring used for focus states on interactive elements like flickity buttons.",
+                  "css_value": "0 0 0 5px #19F",
+                  "when_to_use": [
+                    "Focus states",
+                    "Accessibility indicators",
+                    "Button focus"
+                  ]
+                }
+              ]
+            },
+            "borders": [
+              { "hex": "#0000000D", "width": "1px", "style": "solid" },
+              { "hex": "#FFFFFF0D", "width": "1px", "style": "solid" },
+              { "hex": "#FF4C24", "width": "1px", "style": "solid" },
+              { "hex": "#131313", "width": "1px", "style": "solid" },
+              { "hex": "#CCCCCC", "width": "1px", "style": "solid" },
+              { "hex": "#F5F7F2", "width": "1px", "style": "solid" },
+              { "hex": "#1E1E1E", "width": "1px", "style": "solid" },
+              { "hex": "#FFFFFF4D", "width": "1px", "style": "solid" },
+              { "hex": "#FFFFFF1A", "width": "1px", "style": "solid" },
+              { "hex": "#002BBA", "width": "5px", "style": "solid" },
+              { "hex": "#E2E2E2", "width": "5px", "style": "solid" }
+            ]
+          },
+          "interactions": {
+            "global_patterns": [
+              "sticky_header",
+              "marquee",
+              "scroll_reveal",
+              "video_background",
+              "hover_transform",
+              "carousel"
+            ],
+            "animations": [
+              {
+                "name": "tastePageIn",
+                "css": "@keyframes tastePageIn { from { opacity: 0; } to { opacity: 1; } }",
+                "description": "Fade-in animation for the interactive footer card section on page load"
+              },
+              {
+                "name": "spin",
+                "css": "@keyframes spin { 0% { transform: rotate(0) } to { transform: rotate(360deg) } }",
+                "description": "Continuous rotation animation used for loading spinners"
+              },
+              {
+                "name": "tab-transition",
+                "css": "transition: background-color 200ms ease, color 200ms ease",
+                "description": "Smooth color transitions for tab item state changes"
+              },
+              {
+                "name": "nav-link-hover",
+                "css": "transition: all 0.3s",
+                "description": "Fade transition on navigation links with opacity change on hover"
+              },
+              {
+                "name": "button-hover-transition",
+                "css": "transition: all 0.2s",
+                "description": "Quick transition for secondary button background and color changes on hover"
+              },
+              {
+                "name": "modal-transition",
+                "css": "transition: all 0.2s linear",
+                "description": "Linear fade transition for modal overlay visibility"
+              },
+              {
+                "name": "swiper-wrapper-ease",
+                "css": "transition-timing-function: cubic-bezier(0.625, 0.05, 0, 1)",
+                "description": "Custom easing curve for Swiper carousel slide transitions"
+              },
+              {
+                "name": "flip-text",
+                "css": "transition: transform 0.5s cubic-bezier(0.6, 0.04, 0.3, 1)",
+                "description": "3D flip rotation for text reveal effects in footer interactive section"
+              },
+              {
+                "name": "underline-scale",
+                "css": "",
+                "description": "JS-driven GSAP animation for nav link underline scale effect on hover"
+              },
+              {
+                "name": "draggable-marquee",
+                "css": "",
+                "description": "JS-driven continuous horizontal scroll animation for team photo strip and image carousel"
+              },
+              {
+                "name": "page-transition",
+                "css": "",
+                "description": "JS-driven GSAP page transition with full-screen dark overlay translating from bottom"
+              },
+              {
+                "name": "img-carousel-3d",
+                "css": "",
+                "description": "JS-driven 3D perspective rotation carousel for image panels with scale and depth effects"
+              }
+            ],
+            "insights": [
+              "The design system uses a brutalist hyperlink aesthetic with raw #0000EE blue for links, creating a technical/developer-focused feel appropriate for an AI infrastructure product.",
+              "Motion is primarily JS-driven (GSAP) with only basic CSS transitions for micro-interactions; the 3D carousel and marquees rely on JavaScript for their complex animations.",
+              "The component palette is highly restrained—relying almost exclusively on text-based buttons with arrow icons rather than filled CTAs, reinforcing the minimalist technical brand identity."
+            ]
+          },
+          "actions": {
+            "button_list": [
+              {
+                "name": "Try the API (Secondary Outline)",
+                "usage": "Navigation CTA button in header for API access",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "Azeret Semimono",
+                      "size": "15px",
+                      "padding": "0.43rem 2rem"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#F5F7F2",
+                    "border_color": "#F5F7F2",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "#F5F7F2",
+                    "text_color": "#1E1E1E",
+                    "border_color": "#F5F7F2",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "",
+                    "text_color": "",
+                    "border_color": "",
+                    "border_width": "1px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              },
+              {
+                "name": "Join our team (Text Arrow)",
+                "usage": "Hero and careers CTA with decorative arrow icon",
+                "specs": {
+                  "radius": "rounded-none",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "Azeret Semimono",
+                      "size": "16px",
+                      "padding": "0"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#F5F7F2",
+                    "border_color": "transparent",
+                    "border_width": "0",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#F5F7F2",
+                    "border_color": "transparent",
+                    "border_width": "0",
+                    "opacity": "0.5",
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "",
+                    "text_color": "",
+                    "border_color": "",
+                    "border_width": "1px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              },
+              {
+                "name": "Get in touch (Secondary Outline)",
+                "usage": "Form submit button on dark cards for contact forms",
+                "specs": {
+                  "radius": "rounded",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "Azeret Semimono",
+                      "size": "15px",
+                      "padding": "0.43rem 2rem"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#F5F7F2",
+                    "border_color": "#F5F7F2",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "#F5F7F2",
+                    "text_color": "#1E1E1E",
+                    "border_color": "#F5F7F2",
+                    "border_width": "1px",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "",
+                    "text_color": "",
+                    "border_color": "",
+                    "border_width": "1px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              },
+              {
+                "name": "Explore articles (Text Arrow)",
+                "usage": "Blog section CTA to navigate to full article listing",
+                "specs": {
+                  "radius": "rounded-none",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "Azeret Semimono",
+                      "size": "16px",
+                      "padding": "0"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#F5F7F2",
+                    "border_color": "transparent",
+                    "border_width": "0",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#F5F7F2",
+                    "border_color": "transparent",
+                    "border_width": "0",
+                    "opacity": "0.5",
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "",
+                    "text_color": "",
+                    "border_color": "",
+                    "border_width": "1px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              },
+              {
+                "name": "Explore (Text Link)",
+                "usage": "Article card footer link on blog cards",
+                "specs": {
+                  "radius": "rounded-none",
+                  "sizes": [
+                    {
+                      "name": "Default",
+                      "font": "Azeret Semimono",
+                      "size": "16px",
+                      "padding": "0"
+                    }
+                  ]
+                },
+                "visuals": {
+                  "default": {
+                    "background": "transparent",
+                    "text_color": "#8B8B8B",
+                    "border_color": "transparent",
+                    "border_width": "0",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "hover": {
+                    "background": "transparent",
+                    "text_color": "#1E1E1E",
+                    "border_color": "transparent",
+                    "border_width": "0",
+                    "opacity": null,
+                    "cursor": null
+                  },
+                  "disabled": {
+                    "background": "",
+                    "text_color": "",
+                    "border_color": "",
+                    "border_width": "1px",
+                    "opacity": "0.5",
+                    "cursor": "not-allowed"
+                  }
+                }
+              }
+            ],
+            "button_group": {
+              "description": "Buttons are typically placed inline with consistent spacing",
+              "spacing": "1rem"
+            },
+            "links": { "text_decoration": "underline" }
+          },
+          "navigation": {
+            "top_nav": {
+              "height": "22.4px",
+              "position": "fixed",
+              "background": {
+                "hex": "#1E1E1E",
+                "color_reference": "Ink Black",
+                "opacity": null,
+                "blur": null
+              },
+              "border_bottom": null
+            },
+            "announcement_bar": null,
+            "tabs": {
+              "style_name": "Pill Tab",
+              "description": "Tabs organize content into multiple sections and allow users to navigate between them.",
+              "when_to_use": [
+                "Navigation between related views",
+                "Switching content categories",
+                "Filtering job listings or product features"
+              ],
+              "states": [
+                {
+                  "name": "default",
+                  "visual_change": "White background with dark text and subtle border",
+                  "background": "#FFFFFF",
+                  "text": "#1E1E1E",
+                  "icon": null
+                },
+                {
+                  "name": "selected",
+                  "visual_change": "Inverted colors - dark background with light text",
+                  "background": "#1E1E1E",
+                  "text": "#FBFBFB",
+                  "icon": null
+                },
+                {
+                  "name": "hover",
+                  "visual_change": "Border color darkens slightly",
+                  "background": null,
+                  "text": null,
+                  "icon": null
+                }
+              ]
+            }
+          },
+          "data_display": {
+            "charts": [],
+            "tables": [],
+            "tiles": [
+              {
+                "name": "Job Listing Tile",
+                "description": "Displays job position with title, location, and employment type in a row format with hover arrow",
+                "when_to_use": [
+                  "Career pages listing open positions",
+                  "Team section showing available roles"
+                ]
+              },
+              {
+                "name": "Blog Article Card",
+                "description": "Square aspect ratio image with title, description, and explore link below",
+                "when_to_use": [
+                  "Research and blog sections",
+                  "Content showcase grids"
+                ]
+              },
+              {
+                "name": "Product Feature Card",
+                "description": "Dark card with Lottie animation, heading, description, and form input",
+                "when_to_use": [
+                  "Product feature showcase",
+                  "Service offering display"
+                ]
+              }
+            ]
+          },
+          "structure": {
+            "accordion": null,
+            "dividers": [
+              {
+                "name": "Section Stroke",
+                "description": "Subtle horizontal divider used between content sections and list items",
+                "when_to_use": [
+                  "Between job listing categories",
+                  "Separating content sections within cards",
+                  "List item separators"
+                ],
+                "color": "#747370",
+                "height": "1px",
+                "style": "solid"
+              },
+              {
+                "name": "Form Divider",
+                "description": "White semi-transparent divider used in forms",
+                "when_to_use": [
+                  "Between form sections",
+                  "Mobile blog card separators"
+                ],
+                "color": "#FFFFFF",
+                "height": "1px",
+                "style": "solid"
+              }
+            ]
+          },
+          "icons": [
+            {
+              "name": "Form Validation Icons",
+              "description": "Line art icons used for indicating success or error states in form fields.",
+              "when_to_use": [
+                "Form fields",
+                "Validation states",
+                "Success/Error notifications"
+              ],
+              "format": "SVG",
+              "style": "Line Art / Monoline",
+              "sizes": { "small": "16px", "medium": "24px" },
+              "examples": [
+                {
+                  "name": "Check Circle",
+                  "svg_code": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M11.25 14.25L9 12\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path d=\"M15 10.5L11.25 14.25\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path d=\"M3 12C3 16.9706 7.02943 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02943 16.9706 3 12 3C7.02943 3 3 7.02943 3 12Z\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg>"
+                },
+                {
+                  "name": "Alert Circle",
+                  "svg_code": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\"><path opacity=\"0.1\" d=\"M12 3C16.971 3 21 7.029 21 12C21 16.971 16.971 21 12 21C7.029 21 3 16.971 3 12C3 7.029 7.029 3 12 3Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path d=\"M12 3C16.971 3 21 7.029 21 12C21 16.971 16.971 21 12 21C7.029 21 3 16.971 3 12C3 7.029 7.029 3 12 3Z\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path d=\"M12 12.5V7.5\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path><path d=\"M11.996 14.5C11.444 14.5 10.996 14.948 11 15.5C11 16.052 11.448 16.5 12 16.5C12.552 16.5 13 16.052 13 15.5C13 14.948 12.552 14.5 11.996 14.5Z\" fill=\"currentColor\"></path></svg>"
+                }
+              ]
+            },
+            {
+              "name": "Caption Arrows",
+              "description": "Small arrow icons used alongside captions or interactive elements.",
+              "when_to_use": ["Captions", "Hero sections", "Drag indicators"],
+              "format": "SVG",
+              "style": "Line Art",
+              "sizes": { "small": "12px", "medium": "16px" },
+              "examples": [
+                {
+                  "name": "Arrow Right",
+                  "svg_code": "<svg class=\"hero__caption-icon\" viewBox=\"0 0 13 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"> <path d=\"M1 6h11M7 1l5 5-5 5\" stroke=\"currentColor\" stroke-width=\"1.4\" fill=\"none\"></path> </svg>"
+                }
+              ]
+            }
+          ],
+          "assets": {
+            "logos": [
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-4.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-4.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a61b55e90f07899e23b06fb_favicon-light-mode.png",
+                "description": "Detected from <link rel='icon'>."
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-3.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-3.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a61b5567bc0a8c4d4ebe576_favicon-dark-mode.png",
+                "description": "Detected from <link rel='icon'>."
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/favicon.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/favicon.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a61b55eec36243c7f9bc726_favicon-light-mode.png",
+                "description": "Detected from <link rel='icon'>."
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-2.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-2.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1da2ace70c673cd8c75ace_clip.png",
+                "description": "Detected from <link rel='apple-touch-icon'>."
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-6.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-6.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1da2acdd4e1c25a905d681_clip.png",
+                "description": "Detected from <link rel='icon'>."
+              },
+              {
+                "role": "Favicon",
+                "format": "PNG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-5.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/favicon-5.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1da2ac3e6ba66f852367c6_clip.png",
+                "description": "Detected from <link rel='icon'>."
+              },
+              {
+                "role": "Primary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/primary.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/primary.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a306ae79b1ce1b28e27e16b_5b4c828c6dbacad50282c2cdc22e9af0_taste_Logo.svg",
+                "description": "Taste Primary Logo"
+              },
+              {
+                "role": "Primary",
+                "format": "SVG",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/logos/primary-2.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/logos/primary-2.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a4f4fe67db139e22e8ee0fe_logo_black.svg",
+                "description": "Taste Primary Logo (Black version)"
+              }
+            ],
+            "media": [
+              {
+                "name": "Home hero loop (desktop)",
+                "type": "video",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loop-desktop.webm",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loop-desktop.webm",
+                "origin_url": "https://footertaste.b-cdn.net/website_home/home_hero_loop_desktop.webm",
+                "usage_context": "Used as the looping background video for the desktop hero section"
+              },
+              {
+                "name": "Home hero loader (desktop)",
+                "type": "video",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loader-desktop.webm",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loader-desktop.webm",
+                "origin_url": "https://footertaste.b-cdn.net/website_home/home_hero_loader_desktop.webm",
+                "usage_context": "Used as the preloader video for the desktop hero section"
+              },
+              {
+                "name": "Home hero loop (mobile)",
+                "type": "video",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loop-mobile.webm",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loop-mobile.webm",
+                "origin_url": "https://footertaste.b-cdn.net/website_home/home_hero_loop_mobile.webm",
+                "usage_context": "Used as the looping background video for the mobile hero section"
+              },
+              {
+                "name": "Home hero loader (mobile)",
+                "type": "video",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loader-mobile.webm",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/video/home-hero-loader-mobile.webm",
+                "origin_url": "https://footertaste.b-cdn.net/website_home/home_hero_loader_mobile.webm",
+                "usage_context": "Used as the preloader video for the mobile hero section"
+              },
+              {
+                "name": "Abstract geometric background graphic",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/abstract-geometric-background-graphic.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/abstract-geometric-background-graphic.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a292456778cdc9244f8d0c1_5f3499b658ebd37d1ea72444be37c33c_Group%201000007827%20%281%29.png",
+                "usage_context": "Decorative abstract geometric design used in the navigation menu background"
+              },
+              {
+                "name": "Opening bracket button icon",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/opening-bracket-button-icon.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/opening-bracket-button-icon.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1d777ccb930df5affd3cd5_Vector%20(2).svg",
+                "usage_context": "Opening bracket icon used in the mobile 'Open menu' button"
+              },
+              {
+                "name": "Closing bracket button icon",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/closing-bracket-button-icon.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/closing-bracket-button-icon.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1d777ccb930df5affd3cdb_Vector%20(3).svg",
+                "usage_context": "Closing bracket icon used in the mobile 'Open menu' button"
+              },
+              {
+                "name": "Call-to-action button arrow icon (initial state)",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/call-to-action-button-arrow-icon-initial-state.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/call-to-action-button-arrow-icon-initial-state.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a4636bb8a1cc7d7c60a4a14_160c7ca07ef76d7691c66b85b13f14ac_btn_icon_1.svg",
+                "usage_context": "Default arrow icon shown on call-to-action buttons"
+              },
+              {
+                "name": "Call-to-action button arrow icon (hover state)",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/call-to-action-button-arrow-icon-hover-state.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/call-to-action-button-arrow-icon-hover-state.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a4636bba2a554599fb5249b_ddb41a8244dc0b690deafb351b9e9b3f_btn_icon_2.svg",
+                "usage_context": "Secondary arrow icon shown on call-to-action buttons when hovered"
+              },
+              {
+                "name": "Showcase image of 'The Collective' section",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-the-collective-section.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-the-collective-section.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb1142b609298bb2d75d_448c933e9deebbb2156d4ae1d58d188c_Frame%201171280140.avif",
+                "usage_context": "Image representing a website section titled The Collective"
+              },
+              {
+                "name": "Showcase image of vintage-style microphone",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-vintage-style-microphone.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-vintage-style-microphone.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb117f04b11c29aea486_ab1e2f502f4f5a9711ee55518b286ae9_Frame%201171280141.avif",
+                "usage_context": "Image representing a vintage-style microphone with green bokeh background"
+              },
+              {
+                "name": "Showcase image of article on chromatic evolution",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-article-on-chromatic-evolution.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-article-on-chromatic-evolution.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb117fba4e209a4c71ea_4aa8e137ef5595f1cdfce591c930ae61_Frame%201171280139.avif",
+                "usage_context": "Image representing an article on the chromatic evolution of hyperpop"
+              },
+              {
+                "name": "Showcase image of pricing plans comparison",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-pricing-plans-comparison.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-pricing-plans-comparison.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb1142b609298bb2d74b_093da6815205c58ef56f0fb47c1e9da8_Frame%201171280138.avif",
+                "usage_context": "Image representing a pricing plans comparison (Starter, Professional, Enterprise)"
+              },
+              {
+                "name": "Showcase image of Soft Tech for a Gentler Life headline",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-soft-tech-for-a-gentler-life-headline.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-soft-tech-for-a-gentler-life-headline.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb119b397fb853e34b86_de05d9ebd3cc9297bd79ca13f63bbd86_Frame%201171280137.avif",
+                "usage_context": "Image representing a website homepage with 'Soft Tech for a Gentler Life' headline"
+              },
+              {
+                "name": "Showcase image of FAQ page",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-faq-page.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-faq-page.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb112dd15c70d1860836_ee4e1d2628004fdd3fa05ce3cfacfdb4_Frame%201171280131.png",
+                "usage_context": "Image representing a FAQ page with questions on ordering, shipping, returns"
+              },
+              {
+                "name": "Showcase image of design philosophy text",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-design-philosophy-text.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-design-philosophy-text.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb11f8dc9bd6d894b70b_32646e38172599d705d461d760c24fbe_Frame%201171280132.avif",
+                "usage_context": "Image representing text on design philosophy emphasizing quiet nuance"
+              },
+              {
+                "name": "Showcase image of Crafting the Celestial Interface",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-crafting-the-celestial-interface.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-crafting-the-celestial-interface.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb115e1240f3d257f84b_3348cbd99d403a1c72c8cbc60dca1305_Frame%201171280136.avif",
+                "usage_context": "Image representing a webpage titled 'Crafting the Celestial Interface'"
+              },
+              {
+                "name": "Showcase image of cute moments photo gallery",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-cute-moments-photo-gallery.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-cute-moments-photo-gallery.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb11dd8c37dcbb6096e9_05124003ce29eb0bf8befdc97f0f1022_Frame%201171280129.avif",
+                "usage_context": "Image representing a gallery of photos including strawberries, mountains, and a woman"
+              },
+              {
+                "name": "Showcase image of SaaS pricing plans",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-saas-pricing-plans.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-saas-pricing-plans.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb115840e0a456bc0585_feb11ca417d753006dc7d42ee9318870_Frame%201171280125.avif",
+                "usage_context": "Image representing standard, professional, and custom enterprise SaaS pricing plans"
+              },
+              {
+                "name": "Showcase image of dark-themed webpage",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-dark-themed-webpage.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-dark-themed-webpage.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb115840e0a456bc0580_c0dbb93828d225013217535c8d8cc21e_Frame%201171280128.avif",
+                "usage_context": "Image representing a dark-themed webpage showing 'Direct Knowing' and a timeline"
+              },
+              {
+                "name": "Showcase image of Seedling/Sapling/Forest pricing plans",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-seedling-sapling-forest-pricing-plans.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-seedling-sapling-forest-pricing-plans.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb1183ddf2489b3d7bc7_eb46a89d20bcb0ee031b78603fb13fcf_Frame%201171280130.avif",
+                "usage_context": "Image representing pricing plans for organic growth platforms"
+              },
+              {
+                "name": "Showcase image of dark-themed contact form",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-dark-themed-contact-form.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-dark-themed-contact-form.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb11f6ced96c53b657a3_75682d69f3a3d4e3e22f88e05d5f8d56_Frame%201171280124.avif",
+                "usage_context": "Image representing a dark-themed contact form with a header 'Where Dreams Become Structure'"
+              },
+              {
+                "name": "Showcase image of 'Ghost Frequencies' title",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-ghost-frequencies-title.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-ghost-frequencies-title.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb11ed08fd2374bab01a_e9cd5a7ed19bdca4330eb67fde5539c6_Frame%201171280126.avif",
+                "usage_context": "Image representing a title 'Ghost Frequencies' with text about a Berlin textile mill"
+              },
+              {
+                "name": "Showcase image of 'Beyond Surface' creative agency story",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-beyond-surface-creative-agency-story.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-beyond-surface-creative-agency-story.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb112fd9144b363a0127_867efbcb282ef55777e85f117637cfcb_Frame%201171280135.avif",
+                "usage_context": "Image representing website text for a creative agency story"
+              },
+              {
+                "name": "Showcase image of 'Crafting Digital Dreams' dark webpage",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-crafting-digital-dreams-dark-webpage.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-crafting-digital-dreams-dark-webpage.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50cb1152b12491ba980add_7c4f21fea80a1e9bcff4b3226dee3e7d_Frame%201171280127.avif",
+                "usage_context": "Image representing a dark webpage with text 'Crafting Digital Dreams'"
+              },
+              {
+                "name": "Showcase image of 'Coloring the Void' blue header",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-coloring-the-void-blue-header.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/showcase-image-of-coloring-the-void-blue-header.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a50d22a42b609298bb7780d_Frame%201171280059.avif",
+                "usage_context": "Image representing a blue header with 'Coloring the Void'"
+              },
+              {
+                "name": "Showcase image of SYNTAX ENGINE features",
+                "type": "image",
+                "url": "https://cdn.prod.website-files.com/6a50d22a6627c349e8613fca_Frame%201171280142.avif",
+                "path": null,
+                "origin_url": null,
+                "usage_context": "Image representing a website section for SYNTAX ENGINE integration options"
+              },
+              {
+                "name": "Team member portrait: Ana",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-ana.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-ana.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e5a9f4ba81ca00fc311_202605_TheTasteAI_Ana%201.avif",
+                "usage_context": "Portrait of a smiling woman in a black sweater used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Maria",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-maria.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-maria.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6ff0513cfd007b3ebc_202605_TheTasteAI_Maria%201.avif",
+                "usage_context": "Portrait of a smiling woman in a black dress used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Lauta",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-lauta.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-lauta.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6f43bb13657f8ff32a_202605_TheTasteAI_Lauta%201.avif",
+                "usage_context": "Portrait of a young man smiling used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Marcelo",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-marcelo.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-marcelo.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6f84ce331e9429e3de_202605_TheTasteAI_Marcelo%201.avif",
+                "usage_context": "Black and white portrait of a man with glasses used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Remi",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-remi.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-remi.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6fe7da16cc3735f965_202605_TheTasteAI_Remi%201.avif",
+                "usage_context": "Portrait of a smiling man kneeling used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Lucas",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-lucas.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-lucas.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6fd6193b3508367ca2_202605_TheTasteAI_Lucas%201.avif",
+                "usage_context": "Portrait of a smiling man with a beard used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Joseph",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-joseph.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-joseph.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6f162f46304527f1ae_202605_TheTasteAI_Joseph%201.avif",
+                "usage_context": "Portrait of a smiling man in a black shirt used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Matthew",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-matthew.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-matthew.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6fca5c9e934a8fa9e5_202605_TheTasteAI_Matthew%201.avif",
+                "usage_context": "Portrait of a man with glasses and beard used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Hami",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-hami.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-hami.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6f81cf1a2962919a3e_202605_TheTasteAI_Hami%201.avif",
+                "usage_context": "Portrait of a woman with braided hair used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Dave",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-dave.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-dave.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e6f8497e7a448d5fe13_202605_TheTasteAI_Dave%201.avif",
+                "usage_context": "Portrait of a smiling man in a black shirt used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Mo",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-mo.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-mo.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e70d4ba43c9a67d6ebd_202605_TheTasteAI_Mo%201.avif",
+                "usage_context": "Portrait of a smiling young man with glasses used in the team carousel"
+              },
+              {
+                "name": "Team member portrait: Thais1",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-thais1.avif",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/team-member-portrait-thais1.avif",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a1e7e7038e1c40ab357ce2e_202605_TheTasteAI_Thais1%201.avif",
+                "usage_context": "Portrait of a woman with long dark hair used in the team carousel"
+              },
+              {
+                "name": "Arrow up-right icon",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/arrow-up-right-icon.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/arrow-up-right-icon.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a43872a2a8b82ac75205bce_39437e68455fc81757f9cb88f670ec55_arrow-up-right.svg",
+                "usage_context": "Icon used alongside open roles in the job listing section"
+              },
+              {
+                "name": "Decorative white rounded diamond shape",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/decorative-white-rounded-diamond-shape.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/decorative-white-rounded-diamond-shape.svg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a217a8a46d15d5baed4d236_bc7fff0a93b61f29d5c683ca52cfdfbf_Frame%2027449.svg",
+                "usage_context": "Decorative graphical element used in the research and blog section"
+              },
+              {
+                "name": "Blog post cover: Ending Slop at AI Engineer Conference",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-ending-slop-at-ai-engineer-conference.jpg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-ending-slop-at-ai-engineer-conference.jpg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6aaade5febfd17741148587b_Frame%201171280006.jpg",
+                "usage_context": "Cover image for the 'Ending Slop at AI Engineer Conference' blog post"
+              },
+              {
+                "name": "Blog post cover: Helping agents create things worth making",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-helping-agents-create-things-worth-making.jpg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-helping-agents-create-things-worth-making.jpg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6aa97c4c75f57092b1c6e01d_Blog%201jpg.jpg",
+                "usage_context": "Cover image for the 'Helping agents create things worth making' blog post"
+              },
+              {
+                "name": "Blog post cover: Introducing prototype",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-introducing-prototype.jpg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-introducing-prototype.jpg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6a762b5fe385e282344f3222_Cover.jpg",
+                "usage_context": "Cover image for the 'Introducing prototype' blog post"
+              },
+              {
+                "name": "Blog post cover: Requests for research",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-requests-for-research.jpg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-requests-for-research.jpg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6a70da7907699e1e8cfb0392_Cover.jpg",
+                "usage_context": "Cover image for the 'Requests for research' blog post"
+              },
+              {
+                "name": "Blog post cover: Stop debating taste",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-stop-debating-taste.jpg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-stop-debating-taste.jpg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6a70666d7c6dd0cbdb045cb7_Cover.jpg",
+                "usage_context": "Cover image for the 'Stop debating taste' blog post"
+              },
+              {
+                "name": "Blog post cover: A manifesto for judgement",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-a-manifesto-for-judgement.jpg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-a-manifesto-for-judgement.jpg",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6a7065c8f7fdfc347041427d_Cover.jpg",
+                "usage_context": "Cover image for the 'A manifesto for judgement' blog post"
+              },
+              {
+                "name": "Blog post cover: Kill the slop",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-kill-the-slop.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-kill-the-slop.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6a316dfa4e5178fea155101a_6a314b37bfb49b17205f944b_scale.png",
+                "usage_context": "Cover image for the 'Kill the slop' blog post"
+              },
+              {
+                "name": "Blog post cover: Mission as a moat",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-mission-as-a-moat.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/blog-post-cover-mission-as-a-moat.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc5/6a316f6be8a916278bc264c9_Group%201000008432.png",
+                "usage_context": "Cover image for the 'Mission as a moat' blog post"
+              },
+              {
+                "name": "Colorful abstract room image",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/colorful-abstract-room-image.png",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/colorful-abstract-room-image.png",
+                "origin_url": "https://cdn.prod.website-files.com/6a1d5baf94efef5f7c435fc3/6a2bd65a50c8fb0b6ae6ad06_Group%201000008383.png",
+                "usage_context": "Decorative asset or blog post cover image"
+              },
+              {
+                "name": "Custom checkbox checkmark",
+                "type": "image",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/site-assets/media/image/custom-checkbox-checkmark.svg",
+                "path": "00000000-0000-4000-8000-000000000101/site-assets/media/image/custom-checkbox-checkmark.svg",
+                "origin_url": "https://d3e54v103j8qbb.cloudfront.net/static/custom-checkbox-checkmark.589d534424.svg",
+                "usage_context": "Used as the background-image for checked custom checkboxes in forms"
+              }
+            ]
+          },
+          "brand_assets": {
+            "assets": [
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/x/00000000-0000-4000-8000-000000000104.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "An exploded smartwatch interface shows a central black screen surrounded by colorful, patterned watch faces on a dark background."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/x/00000000-0000-4000-8000-000000000105.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A white geometric emblem on a black background, with a rounded square centered inside a rounded diamond shape."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/x/00000000-0000-4000-8000-000000000106.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Black graphic with a central rounded-square badge reading “The Brand API Demo,” surrounded by symmetrical cream geometric motifs."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/linkedin/00000000-0000-4000-8000-000000000107.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Black title card reading “AI Engineer, RLE & Evals” in white sans-serif text, framed by thin copper geometric curves."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/x/00000000-0000-4000-8000-000000000108.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Abstract geometric artwork with a bold cream numeral 1 on a vivid green field, beside dark triangular panels and diagonal cream stripes."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/x/00000000-0000-4000-8000-000000000109.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Dark recruitment graphic for a Full-time AI-Engineer, Full Stack role, with a bold centered headline above four rounded portfolio panels."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/linkedin/00000000-0000-4000-8000-000000000110.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A dark honeycomb grid displays colorful design tiles, including geometric artwork, a purple statistics panel, red repeating typography, and a blue “orchids” tile."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/x/00000000-0000-4000-8000-000000000111.jpg",
+                "source": "x",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A curved Nasdaq billboard in a glass skyscraper displays bold white “TASTE” lettering beneath a black-and-neon-green Disruptors ad."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/linkedin/00000000-0000-4000-8000-000000000112.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "Black-and-cream AI-Engineer job poster with mirrored hourglass curves, monospaced text, and a vivid yellow lower panel."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/linkedin/00000000-0000-4000-8000-000000000113.jpg",
+                "source": "linkedin",
+                "content_type": "image/jpeg",
+                "category": "partnership_collaboration_identity",
+                "asset_description": "A dark comparison graphic shows website mockups labeled “Original,” “Without,” and “With the Brand API,” with green accents and overlapping pricing cards."
+              },
+              {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/brand-media/billboard/00000000-0000-4000-8000-000000000114.jpg",
+                "source": "billboard",
+                "content_type": "image/jpeg",
+                "category": "brand_identity",
+                "asset_description": "A curved Nasdaq billboard in a city plaza displays bold white “DISRUPTORS” and “TASTE” text with bright green “60.AI” lettering."
+              }
+            ]
+          },
+          "sections": [
+            {
+              "type": "Navigation",
+              "layout_pattern": "Fixed top bar, left-aligned logo, right-aligned CTA",
+              "headline": null,
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "logo",
+                  "description": "TWITE logo in white, minimalist sans-serif"
+                },
+                {
+                  "type": "navigation",
+                  "description": "White text links for Home, Product, Careers, Research"
+                },
+                {
+                  "type": "button",
+                  "description": "Try for free → white outline pill button"
+                }
+              ]
+            },
+            {
+              "type": "Hero",
+              "layout_pattern": "Centered",
+              "headline": "Encoding a cinematic AI narrative",
+              "subheadline": "The Twite infra layer for AI",
+              "components": [
+                {
+                  "type": "video",
+                  "description": "Full-bleed looping background video, preloader with poster image"
+                },
+                {
+                  "type": "illustration",
+                  "description": "Vibrant 3D composition of colorful abstract shapes (coral, yellow, blue, green, pink) with central blue circular element and yellow star"
+                },
+                {
+                  "type": "button",
+                  "description": "Start with Twite → white link with arrow"
+                }
+              ]
+            },
+            {
+              "type": "Carousel",
+              "layout_pattern": "Centered, 3D rotating carousel",
+              "headline": "AI has made it easy to generate anything. The challenge is knowing what to make. And how to make it great.",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "carousel",
+                  "description": "3D perspective carousel showing generated website designs, rotatable panels with mockup images"
+                }
+              ]
+            },
+            {
+              "type": "Mission",
+              "layout_pattern": "Split 50/50, asymmetric 3D icon positioning",
+              "headline": "Mission",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "animation",
+                  "description": "Lottie animated SVG graphic on left side"
+                },
+                {
+                  "type": "illustration",
+                  "description": "Four 3D icons positioned asymmetrically: dark charcoal cube, brown square, peach gradient rounded square, yellow rounded square"
+                },
+                {
+                  "type": "card",
+                  "description": "Labels 'For AI' and 'For Crypto' next to icons on off-white/cream background"
+                }
+              ]
+            },
+            {
+              "type": "Product / Stack",
+              "layout_pattern": "Grid 2-column",
+              "headline": "Twite across the stack",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "card",
+                  "description": "Dark background card with colorful icon grid, title 'Twite for Training Models', white and gray text"
+                },
+                {
+                  "type": "card",
+                  "description": "White background card with search interface mockup, title 'Twite for Agents or Apps'"
+                },
+                {
+                  "type": "button",
+                  "description": "Explore code (ghost button) and Set up in 5 min (outline pill) on each card"
+                },
+                {
+                  "type": "form",
+                  "description": "Email input field with white border on dark background, 'Get in touch' submit button in each card"
+                }
+              ]
+            },
+            {
+              "type": "Team",
+              "layout_pattern": "Centered, grid of team photos",
+              "headline": "Join our mission to end AI slop.",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "image",
+                  "description": "Draggable marquee of 12 grayscale/desaturated team member photos in portrait orientation"
+                },
+                {
+                  "type": "button",
+                  "description": "Who we are → link in dark text with arrow"
+                }
+              ]
+            },
+            {
+              "type": "Careers",
+              "layout_pattern": "Vertical list with category headers",
+              "headline": "Who we need",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "divider",
+                  "description": "Gray horizontal strokes separating categories"
+                },
+                {
+                  "type": "card",
+                  "description": "Job listings grouped under 'Creative Team', 'Product & operations staff', 'Technical staff' with job title, location, employment type"
+                },
+                {
+                  "type": "icon",
+                  "description": "Arrow-up-right icon next to each job title"
+                }
+              ]
+            },
+            {
+              "type": "Blog / Research",
+              "layout_pattern": "Split layout with sticky sidebar (desktop) / Stacked (mobile)",
+              "headline": "Read our Research and Blog",
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "illustration",
+                  "description": "White rounded diamond shape with black square hole, static decoration"
+                },
+                {
+                  "type": "button",
+                  "description": "Explore articles → white link with arrow"
+                },
+                {
+                  "type": "card",
+                  "description": "Three blog cards with featured images, titles in white Azeret Mono caps, gray snippet text, 'Explore' link"
+                },
+                {
+                  "type": "image",
+                  "description": "Article thumbnails showing video still, blog graphics, and diagrams on dark charcoal backgrounds"
+                }
+              ]
+            },
+            {
+              "type": "Interactive Footer / CTA",
+              "layout_pattern": "Centered, full-screen interactive card swiper",
+              "headline": "Swipe Yes Or No. Play favorites.",
+              "subheadline": "Shape Your AI / Play crypto bets",
+              "components": [
+                {
+                  "type": "card",
+                  "description": "Interactive draggable card deck powered by canvas, cream/off-white background with rounded corners"
+                },
+                {
+                  "type": "illustration",
+                  "description": "3D icon composition grid with pastel colored abstract shapes (pink, yellow, green, purple rings)"
+                },
+                {
+                  "type": "button",
+                  "description": "Side badges showing 'Drag a tile' instruction, flip animations on text"
+                }
+              ]
+            },
+            {
+              "type": "Footer",
+              "layout_pattern": "Grid 4-column",
+              "headline": null,
+              "subheadline": null,
+              "components": [
+                {
+                  "type": "navigation",
+                  "description": "Four columns: Company, Get in touch, Location, Community with dark gray links on white"
+                },
+                {
+                  "type": "logo",
+                  "description": "Footer logo, copyright text '© 2025 Twite'"
+                }
+              ]
+            }
+          ]
+        },
+        "artifacts": {
+          "html": {
+            "path": "00000000-0000-4000-8000-000000000101/crawl/source.html",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/crawl/source.html",
+            "content_type": "text/html"
+          },
+          "css": {
+            "path": "00000000-0000-4000-8000-000000000101/crawl/styles.css",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/crawl/styles.css",
+            "content_type": "text/css"
+          },
+          "screenshot": {
+            "path": "00000000-0000-4000-8000-000000000101/crawl/viewport.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/crawl/viewport.jpg",
+            "content_type": "image/jpeg"
+          },
+          "full_page_screenshot": {
+            "path": "00000000-0000-4000-8000-000000000101/crawl/full.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/crawl/full.jpg",
+            "content_type": "image/jpeg"
+          },
+          "element_layout": {
+            "path": "00000000-0000-4000-8000-000000000101/crawl/element-layout.json",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000101/crawl/element-layout.json",
+            "content_type": "application/json"
+          }
+        }
+      }
+    }
+  }
+}

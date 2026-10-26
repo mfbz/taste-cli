@@ -44,6 +44,10 @@
     "test": "vitest run",
     "build": "tsdown",
     "cli": "tsdown --log-level warn && node dist/main.mjs",
+    "mock": "node scripts/mock-taste.ts",
+    "fixtures:record": "node scripts/record-fixtures.ts",
+    "fixtures:scrub": "node scripts/scrub-fixtures.ts",
+    "fixtures:sample-pdf": "node scripts/make-sample-guidelines.ts",
     "prepack": "npm run build"
   },
   "dependencies": {

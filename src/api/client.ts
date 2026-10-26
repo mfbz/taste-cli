@@ -129,7 +129,7 @@ type ApiErrorFields = {
 
 const USER_AGENT = `taste-cli/${pkg.version} (unofficial)`;
 const TIMEOUT_MS = 30_000;
-// Uploads and asset downloads move more bytes than an API answer.
+// Uploads and asset downloads move more bytes than an API answer; enhance writes with a model.
 const LONG_TIMEOUT_MS = 120_000;
 const ATTEMPTS = 3;
 const BACKOFF_MS = 500;
@@ -425,10 +425,10 @@ function createTasteApi(deps: Deps): TasteApi {
       ),
 
     enhance: (body) =>
-      call(
-        ENHANCE_RESPONSE,
-        write("POST", endpoint("/design/prompts/enhance"), body)
-      ),
+      call(ENHANCE_RESPONSE, {
+        ...write("POST", endpoint("/design/prompts/enhance"), body),
+        timeoutMs: LONG_TIMEOUT_MS,
+      }),
 
     search: (body) =>
       call(BRAND_SEARCH_RESULTS, {
