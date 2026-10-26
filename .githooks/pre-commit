@@ -1,0 +1,5 @@
+#!/bin/sh
+# taste-cli guards (tools/checks/hook.ts), switched on by `npm install` (core.hooksPath).
+# Plain Node 24 runs the TypeScript directly, so the guards work before any dependency is installed.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec node "$ROOT/tools/checks/hook.ts" pre-commit "$@"

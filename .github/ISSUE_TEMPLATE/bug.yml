@@ -1,0 +1,30 @@
+name: Bug
+description: Something doesn't work as TASTE-CLI.md says it should.
+labels: ["bug"]
+body:
+  - type: checkboxes
+    id: secrets
+    attributes:
+      label: Before you paste anything
+      options:
+        - label: "I removed every API key, token and credentials file content from what I am about to paste. A key that was posted publicly is burnt: revoke it in the Taste Engine dashboard."
+          required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran, what you expected and what you saw. Include your OS and Node version.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: taste --version
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: The command's output; `--json` output is most useful.
+      render: text

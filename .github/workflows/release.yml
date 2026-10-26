@@ -1,0 +1,70 @@
+name: Release
+# Publishes @mfbz/taste-cli to npm. By hand only, from main, with an explicit version: nothing releases
+# by itself, and nothing releases while the repository is private. npm trusts this workflow through
+# trusted publishing (OIDC), so there is no npm token anywhere.
+# Before the first run (claiming the name, the trusted publisher): CONTRIBUTING.md, "Repository settings".
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (x.y.z)"
+        required: true
+concurrency:
+  group: release
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  # Installs and runs third-party code, so it has a read-only token and no publishing rights.
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The package stays unpublished until the repository is public.
+      - name: Refuse while the repository is private
+        env:
+          PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          [ "$PRIVATE" = false ] || { echo "::error::the repository is private: nothing is published"; exit 1; }
+      - uses: ./.github/actions/setup
+      - name: Stamp the version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version must be x.y.z"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::v$VERSION is already tagged"; exit 1
+          fi
+          npm version "$VERSION" --no-git-tag-version
+      - run: npm run check
+      - run: npm pack
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package
+          path: mfbz-taste-cli-*.tgz
+          if-no-files-found: error
+
+  # The only job that can write. It runs no installed package: just npm and gh.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: package
+      - run: npm publish ./mfbz-taste-cli-*.tgz --provenance --access public
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes

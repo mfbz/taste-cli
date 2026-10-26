@@ -1,0 +1,31 @@
+name: Task
+description: One piece of work, ready for a person or a coding agent.
+labels: ["task"]
+body:
+  - type: input
+    id: section
+    attributes:
+      label: TASTE-CLI.md section
+      description: The part of the spec this task builds or changes, e.g. "Commands → taste extract". Leave empty for tooling, CI or docs.
+  - type: textarea
+    id: task
+    attributes:
+      label: Task
+      description: What to build or change, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: The acceptance checks this task proves.
+      value: |
+        - [ ] `npm run check` passes
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for the agent
+      description: Files to read first, constraints, anything not obvious from TASTE-CLI.md.

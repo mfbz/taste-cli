@@ -1,0 +1,38 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.tgz
+
+# Secrets never enter the repo; examples do.
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials.json
+
+# Local agent state and process scratch (plans and designs are never committed)
+.claude/settings.local.json
+.claude/worktrees/
+docs/superpowers/
+.superpowers/
+/tmp-*
+
+# Tool caches and logs
+.eslintcache
+.vitest/
+*.log
+npm-debug.log*
+
+# Editors and OS (shared VS Code settings are committed)
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Terminal recordings in progress
+*.cast.tmp

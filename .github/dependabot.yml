@@ -1,0 +1,36 @@
+# Keeps the GitHub Actions (pinned by commit) and the npm dependencies current. Pull requests go to
+# main like every change, grouped so there is one per ecosystem each month.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories: ["/", "/.github/actions/setup"]
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    # Toolchain majors move together (TypeScript, ESLint, typescript-eslint) and @types/node follows
+    # the Node major in .nvmrc, so those are updated by hand when the ecosystem supports them.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      development:
+        dependency-type: development
+      production:
+        dependency-type: production
+    commit-message:
+      prefix: chore
+      prefix-development: chore

@@ -1,0 +1,104 @@
+name: CI
+# Every pull request and every push to main. `ci` is the one check to require: it fails if any job did.
+# The weekly run catches new advisories and runner changes; it can also be started by hand.
+on:
+  # `edited`: the title and description become the squash commit, so a change to them is checked again.
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions:
+  contents: read
+jobs:
+  # What `npm run check` runs locally, plus the audit of what we ship.
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      # Every dependency, development ones too: they run here and on every contributor's machine. An
+      # advisory fails a pull request that changes dependencies (so none can bring one in) and only warns
+      # otherwise (an advisory nobody can fix yet, or a registry outage, mustn't block every change).
+      - name: Audit dependencies
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          if npm audit --audit-level=moderate; then exit 0; fi
+          if [ "$EVENT" = pull_request ] && ! git diff --quiet "origin/$BASE" -- package.json package-lock.json; then exit 1; fi
+          echo "::warning::npm audit found a moderate or worse advisory (see this step's log)"
+
+  # The title and description become the squash commit on main, so they pass the commit guards too.
+  pull-request:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # Passed through the environment, never interpolated into the script: a title is untrusted input.
+      - env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node tools/checks/pull-request.ts
+
+  # The package as people would install it: packed, installed globally and run, on every OS.
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # Usage errors exit 2 by contract (TASTE-CLI.md, Output contract), so anything else fails.
+      - shell: bash
+        run: |
+          npm pack --pack-destination "$RUNNER_TEMP"
+          npm install --global "$RUNNER_TEMP"/mfbz-taste-cli-*.tgz
+          taste --version
+          taste --help
+          set +e
+          taste --nope 2>/dev/null
+          code=$?
+          set -e
+          [ "$code" -eq 2 ] || { echo "an unknown flag must exit 2, got $code"; exit 1; }
+
+  ci:
+    if: always()
+    needs: [checks, pull-request, package]
+    runs-on: ubuntu-latest
+    steps:
+      # Only a pass counts: success, or skipped (the pull-request job on pushes). Anything else fails
+      # the check, including results nobody listed, like a job that never got a runner ("abandoned").
+      - name: Every job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          [ -n "$RESULTS" ] || exit 1
+          for result in $RESULTS; do
+            case "$result" in
+              success | skipped) ;;
+              *) exit 1 ;;
+            esac
+          done

@@ -1,0 +1,65 @@
+{
+  "name": "@mfbz/taste-cli",
+  "version": "0.0.0",
+  "description": "Unofficial CLI for the Taste Engine design API. Extract brands, search, check brand adherence and export DESIGN.md from your terminal, your CI or your agent.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "taste": "dist/main.mjs"
+  },
+  "files": [
+    "dist/",
+    "skills/",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "npm@11.21.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mfbz/taste-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mfbz/taste-cli/issues"
+  },
+  "keywords": [
+    "taste",
+    "cli",
+    "design",
+    "design-system",
+    "brand",
+    "design-md",
+    "ai-agents"
+  ],
+  "scripts": {
+    "prepare": "node -e \"try { require('node:child_process').execFileSync('git', ['config', 'core.hooksPath', '.githooks'], { stdio: 'ignore' }) } catch {}\"",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc -p tsconfig.check.json --noEmit",
+    "test": "vitest run",
+    "build": "tsdown",
+    "cli": "tsdown --log-level warn && node dist/main.mjs",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.8.1",
+    "@commander-js/extra-typings": "^15.0.0",
+    "commander": "^15.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "tsdown": "^0.23.2",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5",
+    "yaml": "^2.9.1"
+  }
+}

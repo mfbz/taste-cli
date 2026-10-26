@@ -1,0 +1,3 @@
+# Prettier 3 also reads .gitignore; only tracked files it must not touch are listed here.
+package-lock.json
+LICENSE

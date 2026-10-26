@@ -1,0 +1,5 @@
+{
+  // What `npm run typecheck` and type-aware lint read. Settings that only matter to checking go here,
+  // so the bundler and the tests keep reading tsconfig.json as it is.
+  "extends": "./tsconfig.json"
+}

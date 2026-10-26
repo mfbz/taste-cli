@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/mfbz/taste-cli/security/advisories/new
+    about: Report vulnerabilities privately, never in a public issue.
+  - name: The Taste Engine itself
+    url: https://docs.tastelabs.com
+    about: Questions about the Taste Engine API, credits or your account belong to Taste Labs. taste-cli is an unofficial tool, not affiliated with Taste Labs.

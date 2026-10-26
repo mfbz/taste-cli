@@ -1,0 +1,61 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-edited-file.mjs\""
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run check)",
+      "Bash(npm test)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run format)",
+      "Bash(npm run build)",
+      "Bash(npx vitest run:*)"
+    ],
+    "deny": [
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit * --no-verify)",
+      "Bash(git commit -n*)",
+      "Bash(git commit * -n)",
+      "Bash(git commit -an*)",
+      "Bash(git commit -a -n*)",
+      "Bash(git push --no-verify*)",
+      "Bash(git push * --no-verify)",
+      "Bash(git -c core.hooksPath*)",
+      "Bash(git -c core.hookspath*)",
+      "Bash(git config core.hooksPath *)",
+      "Bash(git config --local core.hooksPath *)",
+      "Bash(git config --global core.hooksPath *)",
+      "Bash(git config --unset core.hooksPath*)",
+      "Bash(git push * main)",
+      "Bash(git push * main:*)",
+      "Bash(git push * HEAD:main*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push * +*)",
+      "Bash(gh pr merge*)",
+      "Edit(./.githooks/**)",
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Read(./.env.test)",
+      "Read(./.env.development)",
+      "Read(./.env.production)",
+      "Read(./**/credentials.json)",
+      "Read(~/.config/taste-cli/**)",
+      "Read(~/AppData/Roaming/taste-cli/**)"
+    ]
+  }
+}

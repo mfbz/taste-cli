@@ -1,0 +1,4 @@
+# LF everywhere keeps Windows clones green and shell scripts runnable.
+* text=auto eol=lf
+*.png binary
+*.gif binary
