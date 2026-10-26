@@ -2,33 +2,31 @@ import type { ColorLevel } from "./terminal.ts";
 
 type Style = (text: string) => string;
 type Theme = {
-  accent: Style;
+  bold: Style;
   success: Style;
   warning: Style;
   error: Style;
   dim: Style;
-  bold: Style;
+  faint: Style;
 };
 
-// The colours of tastelabs.com. signal is the one accent (the opening's wordmark, the spinner, errors
-// with ✗), acid marks warnings; success goes with ✓; electric is reserved. paper and field are the sign in
-// page's text and ground, never painted in a terminal, where the user's own colours keep light themes
-// readable.
+// tastelabs.com is monochrome: paper type, grey for anything secondary, colour only in content. So is
+// taste, with the terminal's own foreground as the paper, so a light theme stays readable: bold for
+// emphasis, plain for ✓ and warnings, grey for labels and asides, faint for the score bar's track and the version. signal, the one colour in chrome, marks errors, because a failure
+// must stand out. A brand's own colours are content and keep their hex. field is the sign in page's.
 const PALETTE = {
-  signal: "#FF3D00",
-  acid: "#F2F04A",
-  electric: "#1E7BFF",
-  success: "#3DDC84",
   paper: "#F3F3EF",
-  field: "#1B1B1B",
+  grey: "#8B8B8B",
+  faint: "#5A5A5A",
+  signal: "#FF3D00",
+  field: "#1E1E1E",
 } as const;
 const RESET = "\u001b[0m";
-// The basic colour that means the same thing, for 16-colour terminals.
-const BASIC: Readonly<Record<string, number>> = {
-  [PALETTE.signal]: 31,
-  [PALETTE.success]: 32,
-  [PALETTE.acid]: 33,
-  [PALETTE.electric]: 34,
+// 256-colour and 16-colour codes picked by hand: the colour cube has no greys this close.
+const FALLBACK: Readonly<Record<string, readonly [number, number]>> = {
+  [PALETTE.grey]: [245, 90],
+  [PALETTE.faint]: [240, 90],
+  [PALETTE.signal]: [202, 31],
 };
 
 function rgb(hex: string): [number, number, number] {
@@ -42,36 +40,37 @@ function to256([r, g, b]: [number, number, number]): number {
   return 16 + 36 * step(r) + 6 * step(g) + step(b);
 }
 
-function sgr(code: string): Style {
-  return (text) => `\u001b[${code}m${text}${RESET}`;
+function foreground(hex: string, level: ColorLevel): string {
+  if (level === 3) return `38;2;${rgb(hex).join(";")}`;
+  const [n256, n16] = FALLBACK[hex] ?? [to256(rgb(hex)), 39];
+  return level === 2 ? `38;5;${n256}` : String(n16);
 }
 
-function colour(hex: string, level: ColorLevel): Style {
-  if (level === 3) return sgr(`38;2;${rgb(hex).join(";")}`);
-  if (level === 2) return sgr(`38;5;${to256(rgb(hex))}`);
-  return sgr(String(BASIC[hex] ?? 39));
+function sgr(code: string): Style {
+  return (text) => `\u001b[${code}m${text}${RESET}`;
 }
 
 function createTheme(level: ColorLevel): Theme {
   if (level === 0) {
     const plain: Style = (text) => text;
     return {
-      accent: plain,
+      bold: plain,
       success: plain,
       warning: plain,
       error: plain,
       dim: plain,
-      bold: plain,
+      faint: plain,
     };
   }
+  const own: Style = (text) => text;
   return {
-    accent: colour(PALETTE.signal, level),
-    success: colour(PALETTE.success, level),
-    warning: colour(PALETTE.acid, level),
-    // Signal is both the accent and the error colour; errors always carry a glyph or word too.
-    error: colour(PALETTE.signal, level),
-    dim: sgr("2"),
     bold: sgr("1"),
+    success: own,
+    warning: own,
+    // Errors always carry a glyph or a word too, so they read without colour.
+    error: sgr(foreground(PALETTE.signal, level)),
+    dim: sgr(foreground(PALETTE.grey, level)),
+    faint: sgr(foreground(PALETTE.faint, level)),
   };
 }
 

@@ -35,7 +35,7 @@ sleep 1
 # 1. The opening and the menu, then Quit (the last item, one up from the first).
 run "taste"
 expect "What would you like to do?"
-sleep 2.5
+sleep 2
 send "\033\[A"
 sleep 0.8
 send "\r"
@@ -46,17 +46,17 @@ next_scene
 # 2. A brand from a website.
 run "taste extract stripe.com"
 prompt
-sleep 4
+sleep 3.5
 next_scene
 
-# 3. A brand check with a minimum score, as in CI.
-run "taste check stripe.com --against tastelabs.com --min 0.8"
+# 3. The same brand as a DESIGN.md.
+run "taste extract stripe.com --format design-md > DESIGN.md && head -16 DESIGN.md"
 prompt
-sleep 5
+sleep 3.5
 next_scene
 
-# 4. The same brand as a DESIGN.md.
-run "taste extract stripe.com --format design-md | head -30"
+# 4. A brand check with a minimum score, as in CI.
+run "taste check stripe.com --against tastelabs.com --min 0.8"
 prompt
 sleep 5
 

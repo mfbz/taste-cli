@@ -46,12 +46,12 @@ function renderScore(
 ): string {
   if (score === null) return theme.bold("none");
   const filled = Math.round(Math.min(Math.max(score, 0), 1) * BAR_CELLS);
-  const bar = `${"█".repeat(filled)}${"░".repeat(BAR_CELLS - filled)}`;
-  const text = `${theme.bold(score.toFixed(2))}  `;
-  if (min === undefined) return `${text}${bar}`;
-  const style = score >= min ? theme.success : theme.error;
-  const glyph = score >= min ? "✓" : "✗";
-  return `${text}${style(bar)}  ${style(glyph)} ${theme.dim(`min ${min.toFixed(2)}`)}`;
+  const bar = `${theme.success("█".repeat(filled))}${theme.faint("░".repeat(BAR_CELLS - filled))}`;
+  const text = `${theme.bold(score.toFixed(2))}  ${bar}`;
+  if (min === undefined) return text;
+  const note = `min ${min.toFixed(2)}`;
+  if (score >= min) return `${text}  ${theme.success("✓")} ${theme.dim(note)}`;
+  return `${text}  ${theme.error(`✗ ${note}`)}`;
 }
 
 function actionOf(fix: Record<string, unknown>): string {
@@ -119,13 +119,13 @@ function renderVerdict(
   const label = (text: string) => theme.dim(text.padEnd(LABEL_WIDTH));
   const id = plain(verdict.job_id);
   const lines = [
-    `${label("Score")}${renderScore(verdict.score, theme, min)}`,
-    `${label("Candidate")}${fit(plain(verdict.candidate_url), room)}`,
-    `${label("Reference")}${fit(plain(verdict.reference_url), room)}`,
+    `${label("score")}${renderScore(verdict.score, theme, min)}`,
+    `${label("candidate")}${fit(plain(verdict.candidate_url), room)}`,
+    `${label("reference")}${fit(plain(verdict.reference_url), room)}`,
   ];
   const items = verdict.recommendations.map(clean).filter(Boolean);
   if (items.length) {
-    lines.push("", theme.dim("Recommendations"));
+    lines.push("", theme.dim("recommendations"));
     const digits = String(items.length).length;
     items.forEach((item, i) => {
       const number = `  ${String(i + 1).padStart(digits)}. `;
@@ -138,7 +138,7 @@ function renderVerdict(
   lines.push(
     ...renderFixes(verdict, theme, width),
     "",
-    `${label("Id")}${fit(id, room)}`,
+    `${label("id")}${fit(id, room)}`,
     theme.dim(fit(`Share it: taste share ${id}`, width))
   );
   return lines.join("\n");

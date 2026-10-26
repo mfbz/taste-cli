@@ -5,11 +5,11 @@ import { createContext } from "../context.ts";
 import type { Io } from "../io.ts";
 import { createOutput } from "../output/output.ts";
 import { createTheme } from "../output/theme.ts";
-import { openingFrame, playOpening, WORDMARK } from "./opening.ts";
+import { openingLines, playOpening } from "./opening.ts";
 
 const HIDE = "\u001b[?25l";
 const SHOW = "\u001b[?25h";
-const settled = `${openingFrame(1, createTheme(0)).join("\n")}\n`;
+const settled = openingLines(createTheme(0), 80);
 
 function opening(seams: Partial<Io> = {}, terminal = { motion: true }) {
   let err = "";
@@ -35,11 +35,9 @@ function opening(seams: Partial<Io> = {}, terminal = { motion: true }) {
 }
 
 describe("the opening", () => {
-  it("is our own lettering, 5 rows that fit 64 columns", () => {
-    expect(WORDMARK).toHaveLength(5);
-    for (const line of WORDMARK) expect(line.length).toBeLessThanOrEqual(64);
-    expect(settled).toContain(
-      `unofficial CLI for the Taste Engine · ${pkg.version}`
+  it("is the name, the tagline and the version over a rule", () => {
+    expect(settled).toBe(
+      `◇ taste  unofficial CLI for the Taste Engine  ${pkg.version}\n${"─".repeat(58)}\n`
     );
   });
 
@@ -49,14 +47,14 @@ describe("the opening", () => {
     expect(run.err()).toBe(settled);
   });
 
-  it("plays its frames, hiding the cursor and showing it again", async () => {
+  it("types the name, hiding the cursor and showing it again", async () => {
     const run = opening();
     await run.play();
     const err = run.err();
     expect(err.startsWith(HIDE)).toBe(true);
-    expect(err.endsWith(SHOW)).toBe(true);
-    expect(err).toContain("▒");
-    expect(err.split("unofficial CLI").length - 1).toBe(12);
+    expect(err.endsWith(`${settled}${SHOW}`)).toBe(true);
+    for (const typed of ["◇ t_", "◇ tast_", "◇ taste_"])
+      expect(err).toContain(typed);
   });
 
   it("jumps to the final frame on a key press", async () => {
@@ -71,9 +69,9 @@ describe("the opening", () => {
       },
     });
     await run.play();
-    expect(run.err().split("unofficial CLI").length - 1).toBe(3);
-    expect(run.err()).toContain(WORDMARK[0]);
-    expect(run.err().endsWith(SHOW)).toBe(true);
+    expect(run.err()).toContain("◇ ta_");
+    expect(run.err()).not.toContain("◇ tas_");
+    expect(run.err().endsWith(`${settled}${SHOW}`)).toBe(true);
   });
 
   it("shows the cursor again when drawing fails", async () => {
@@ -82,11 +80,11 @@ describe("the opening", () => {
     expect(run.err().endsWith(SHOW)).toBe(true);
   });
 
-  it("is one line in a terminal narrower than the wordmark", async () => {
+  it("shortens the rule in a narrow terminal", async () => {
     const run = opening({
-      terminal: { tty: true, width: 50, colorLevel: 0, motion: true },
+      terminal: { tty: true, width: 40, colorLevel: 0, motion: false },
     });
     await run.play();
-    expect(run.err()).toBe("TASTE · unofficial CLI for the Taste Engine\n");
+    expect(run.err().endsWith(`\n${"─".repeat(36)}\n`)).toBe(true);
   });
 });

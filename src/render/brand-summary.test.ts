@@ -40,7 +40,7 @@ describe("renderBrandSummary", () => {
     expect(text).toContain("Brutalism");
     expect(text).toContain("Intellectual, Mission-driven, Technical");
     expect(text).toContain(
-      "Type   Matter TRIAL, Azeret Semimono, Matter, Neue Montreal"
+      "type   Matter TRIAL, Azeret Semimono, Matter, Neue Montreal"
     );
     expect(text).toContain(
       "taste wait 00000000-0000-4000-8000-000000000100 --format json"
@@ -63,7 +63,7 @@ describe("renderBrandSummary", () => {
   it("falls back to the address for a selective result with no profile", () => {
     const selective = result("extract-selective");
     expect(brandName(selective)).toBe("linear.app");
-    expect(renderBrandSummary(selective, plain)).not.toContain("Style");
+    expect(renderBrandSummary(selective, plain)).not.toContain("style ");
   });
 
   it("cleans control characters out of the server's text", () => {
