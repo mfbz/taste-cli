@@ -72,7 +72,7 @@ Run `taste` on its own in a terminal for a menu:
 taste
 ```
 
-A short opening draws the TASTE wordmark, a line says who you are signed in as, and a menu offers every action: extract a brand, check brand adherence, search brands, a brand kit from a PDF, enhance a prompt, your history, sign in or out. Each action asks for what it needs, marks what spends credits and asks before spending them, then runs the same code as the command typed directly. Ctrl-C at a prompt goes back to the menu; at the menu it quits.
+A short opening types `◇ taste` with its tagline and version over a thin rule, a line says who you are signed in as, and a menu offers every action: extract a brand, check brand adherence, search brands, a brand kit from a PDF, enhance a prompt, your history, sign in or out. Each action asks for what it needs, marks what spends credits and asks before spending them, then runs the same code as the command typed directly. Ctrl-C at a prompt goes back to the menu; at the menu it quits.
 
 It never runs in a pipe, in CI (`CI` set), under `TERM=dumb` or under `--json`: there `taste` prints the help, with no animation. Any key skips the opening; `TASTE_NO_MOTION=1` (or `NO_COLOR`) shows only its last frame.
 
@@ -167,7 +167,7 @@ Spends credits. Judges how closely the first site follows the brand of the one a
 - `--min <score>`: a score from 0 to 1 the check must reach, for CI. Below it (or with no score at all) the command exits 1 with `BELOW_THRESHOLD`. Anything outside 0 to 1 fails with `USAGE_INVALID_VALUE`. Without `--min` a finished check always exits 0. Not with `--no-wait` (`USAGE_CONFLICTING_OPTIONS`).
 - `--no-wait`, `--timeout <seconds>`: as for `extract`.
 
-Progress goes to stderr as for `extract`, ending with `✓ Checked <host> in 4m 01s`. On stdout: the score with two decimals and a 20-cell bar (coloured, with `✓` or `✗` and the minimum, only with `--min`), the two addresses, every recommendation numbered in Taste's order, the fixes counted by action with the first three in full, the id and `taste share <id>`. Below `--min` the verdict is printed, then the error. A check that fails on Taste's side ends with `ADHERENCE_FAILED` and its reason; Taste refunds it.
+Progress goes to stderr as for `extract`, ending with `✓ Checked <host> in 4m 01s`. On stdout: the score with two decimals and a 20-cell bar (with `✓` or `✗` and the minimum only with `--min`), the two addresses, every recommendation numbered in Taste's order, the fixes counted by action with the first three in full, the id and `taste share <id>`. Below `--min` the verdict is printed, then the error. A check that fails on Taste's side ends with `ADHERENCE_FAILED` and its reason; Taste refunds it.
 
 `--json` data: `{"id","score","passed","min","recommendations","fixes"}`; `passed` and `min` are `null` without `--min`. Below `--min` the document is the `BELOW_THRESHOLD` error, with that same data in `error.details`, so a script has the recommendations without another call.
 
@@ -272,7 +272,7 @@ Free. Lists one page of a list, newest first: `extractions` (the default, brand 
 - `--search <text>`: only entries whose address (extractions, checks) or query (searches) contains it.
 - `--limit <n>` (1 to 100, default 20) and `--offset <n>` (default 0): the page.
 
-It prints a table: the id, when it started (UTC, to the minute), the status and the address. Checks show a `SCORE` column (two decimals, empty while there is none) and the candidate address; searches show the query. When there are more, a last line names the `--offset` for the next page.
+It prints a table: the id, when it started (UTC, to the minute), the status and the address. Checks show a `score` column (two decimals, empty while there is none) and the candidate address; searches show the query. When there are more, a last line names the `--offset` for the next page.
 
 `--json` data: the list exactly as Taste returned it.
 

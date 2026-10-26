@@ -30,7 +30,7 @@ function renderProgressLine(
   const spinner = FRAMES[frame % FRAMES.length] ?? FRAMES[0];
   const tail = `· ${formatElapsed(elapsedMs)}`;
   const room = width - 1 - (spinner.length + 1) - (tail.length + 1);
-  return `${theme.accent(spinner)} ${fit(humanizeStep(step), room)} ${theme.dim(tail)}`;
+  return `${theme.bold(spinner)} ${fit(humanizeStep(step), room)} ${theme.dim(tail)}`;
 }
 
 function renderStepNote(step: string, elapsedMs: number, theme: Theme): string {

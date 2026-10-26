@@ -32,9 +32,9 @@ type Page = { rows: string[][]; shown: number; total?: number };
 
 const HISTORY_LISTS = ["extractions", "checks", "searches"] as const;
 const HEADERS: Record<HistoryList, string[]> = {
-  extractions: ["ID", "WHEN (UTC)", "STATUS", "ADDRESS"],
-  checks: ["ID", "WHEN (UTC)", "STATUS", "SCORE", "CANDIDATE"],
-  searches: ["ID", "WHEN (UTC)", "STATUS", "QUERY"],
+  extractions: ["id", "when (UTC)", "status", "address"],
+  checks: ["id", "when (UTC)", "status", "score", "candidate"],
+  searches: ["id", "when (UTC)", "status", "query"],
 };
 // The verdict reads behind the checks' scores, at most this many at once.
 const SCORE_READS = 4;

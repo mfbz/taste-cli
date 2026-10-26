@@ -84,7 +84,7 @@ With no arguments, in an interactive terminal (stdin, stdout and stderr all term
 
 The session, all on stderr except each command's result:
 
-1. The opening (DESIGN.md, "The opening and the menu"): about half a second, skipped by any key or Ctrl-C; the last frame only without motion (`TASTE_NO_MOTION`, `NO_COLOR`, `TERM=dumb`); one line in a terminal narrower than 64 columns. The cursor is always shown again.
+1. The opening (DESIGN.md, "The opening and the menu"): `◇ taste`, the tagline and the version over a thin rule, with `taste` typing itself in about a quarter of a second, skipped by any key or Ctrl-C; the last frame only without motion (`TASTE_NO_MOTION`, `NO_COLOR`, `TERM=dumb`); in a narrow terminal the rule gets shorter. The cursor is always shown again.
 2. One line on who taste is signed in as, read locally without a request: `Signed in as <email>.`, `Signed in with an API key.`, `Using an API key from TASTE_API_KEY.` or `Not signed in.`
 3. A menu: Extract a brand, Check brand adherence, Search brands, Brand kit from a PDF, Enhance a prompt (each marked `(uses credits)`), History, Sign in or Sign out (whichever applies), Quit.
 
@@ -99,7 +99,7 @@ Acceptance (proven by `src/commands/session.test.ts` and `src/ui/opening.test.ts
 - A private address is refused at the prompt, before any request.
 - Ctrl-C at a prompt returns to the menu; at the menu the session exits 0.
 - Not interactive, or with `CI` set: the help, and no `ESC[?25l` in the output.
-- Without motion the opening writes only its last frame; a key press jumps to the last frame; the cursor is shown again when drawing fails; a narrow terminal gets one line.
+- Without motion the opening writes only its last frame; a key press jumps to the last frame; the cursor is shown again when drawing fails; a narrow terminal gets a shorter rule.
 
 ### `taste login`
 
@@ -309,7 +309,7 @@ Judges how closely a site follows a reference brand, such as a preview deploymen
 
 Progress on stderr as `taste extract`, ending with `✓ Checked <candidate host> in 4m 01s`.
 
-Human output on stdout, laid out at least 40 columns wide: the score with two decimals and a 20-cell bar (`█` and `░`; none while the score is null), coloured, with `✓` or `✗` and the minimum, only with `--min`; the candidate and reference addresses; every recommendation, numbered in Taste's order and wrapped to the width; the fixes summed by `action` (`20 fixes: snap_to_token 19, align_profile_field 1`), the first three in full and `taste wait <id> --format json` for the rest; the id and `taste share <id>`. Every string from Taste is cleaned of control characters. Below `--min` the verdict is shown first, then the error on stderr.
+Human output on stdout, laid out at least 40 columns wide: the score with two decimals and a 20-cell bar (`█` and `░`; none while the score is null), with `✓` or `✗` and the minimum only with `--min`, the `✗` in the error colour; the candidate and reference addresses; every recommendation, numbered in Taste's order and wrapped to the width; the fixes summed by `action` (`20 fixes: snap_to_token 19, align_profile_field 1`), the first three in full and `taste wait <id> --format json` for the rest; the id and `taste share <id>`. Every string from Taste is cleaned of control characters. Below `--min` the verdict is shown first, then the error on stderr.
 
 `--json`: `{"ok":true,"data":{"id","score","passed","min","recommendations","fixes"}}`: `score` is Taste's (0 to 1, or null), `passed` is `score >= min`, and `passed` and `min` are `null` without `--min`; `recommendations` and `fixes` are as Taste sent them. Below `--min`: `{"ok":false,"error":{"code":"BELOW_THRESHOLD",…,"details":<that same data, with passed false>}}`, so a script reads the findings without another call. With `--no-wait`, `{"ok":true,"data":{"id","status"}}`.
 

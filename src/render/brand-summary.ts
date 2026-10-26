@@ -124,23 +124,23 @@ function renderBrandSummary(
   ]
     .map((s) => plain(s ?? "").trim())
     .filter(Boolean);
-  if (style.length) lines.push(field("Style", style.join(", ")));
+  if (style.length) lines.push(field("style", style.join(", ")));
   const tone = (profile?.copy_tone ?? []).map((t) => plain(t).trim());
-  if (tone.length) lines.push(field("Tone", tone.join(", ")));
+  if (tone.length) lines.push(field("tone", tone.join(", ")));
   const palette = colors(d);
   if (palette.length) {
-    lines.push("", theme.dim("Palette"));
+    lines.push("", theme.dim("palette"));
     for (const color of palette) {
       const name = fit(color.name, width - COLOR_ROW_PREFIX);
       lines.push(`  ${renderColorRow({ ...color, name }, colorLevel, theme)}`);
     }
   }
   const type = families(d);
-  if (type.length) lines.push("", field("Type", type.join(", ")));
+  if (type.length) lines.push("", field("type", type.join(", ")));
   lines.push(
     "",
-    field("Source", plain(result.source_url)),
-    field("Id", plain(result.submission_id)),
+    field("source", plain(result.source_url)),
+    field("id", plain(result.submission_id)),
     "",
     theme.dim(
       fit(
