@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SECTION_NAME } from "../api/schemas.ts";
+import { INDUSTRY, PAGE_TYPE, SECTION_NAME } from "../api/schemas.ts";
 import {
   CATALOGUE,
   CliError,
@@ -120,6 +120,39 @@ describe("CliError", () => {
   it("lists every section name the API knows in the sections hint", () => {
     const hint = toErrorReport(new CliError("USAGE_INVALID_SECTIONS")).hint;
     for (const name of SECTION_NAME.options) expect(hint).toContain(name);
+  });
+
+  it("lists every page type the API knows, and a few industries, in their hints", () => {
+    const pageTypes = toErrorReport(
+      new CliError("USAGE_INVALID_PAGE_TYPE")
+    ).hint;
+    for (const name of PAGE_TYPE.options) expect(pageTypes).toContain(name);
+    const industries = toErrorReport(
+      new CliError("USAGE_INVALID_INDUSTRY")
+    ).hint;
+    const named = INDUSTRY.options.filter((name) =>
+      new RegExp(`\\b${name}\\b`).test(industries)
+    );
+    expect(named.length).toBeGreaterThanOrEqual(4);
+    expect(industries).toContain("taste search --help");
+  });
+
+  it("names the address to extract when a brand given by address has no usable extraction", () => {
+    const missing = toErrorReport(
+      new CliError("NOT_FOUND", { url: "https://stripe.com/" })
+    );
+    expect(missing.code).toBe("NOT_FOUND");
+    expect(missing.hint).toContain("taste extract https://stripe.com/");
+    expect(missing.retryable).toBe(false);
+    const selective = toErrorReport(
+      new CliError("FULL_EXTRACTION_REQUIRED", { url: "https://linear.app/" })
+    );
+    expect(selective.hint).toContain("taste extract https://linear.app/");
+    expect(selective.hint).toContain("--sections");
+    // Without an address, the id's own words.
+    expect(toErrorReport(new CliError("NOT_FOUND")).hint).toContain(
+      "taste history"
+    );
   });
 
   it("names the real --sections and --map flags when they can't be combined", () => {

@@ -187,6 +187,26 @@ const CATALOGUE = {
     "Try again in a minute.",
     true
   ),
+  USAGE_INVALID_QUERY: entry(
+    2,
+    "A search query is 2 to 400 characters.",
+    'Describe the look you want, such as taste search "dark brutalist developer tools".'
+  ),
+  USAGE_INVALID_INDUSTRY: entry(
+    2,
+    "--industry takes one of Taste's industries.",
+    "Such as saas, ai, fintech, developer_tools, e_commerce or healthcare. taste search --help lists them all."
+  ),
+  USAGE_INVALID_PAGE_TYPE: entry(
+    2,
+    "--page-type takes one of Taste's page types.",
+    "Page types: homepage, about, pricing, careers, case_study, features, customer_stories, portfolio, product, collections, solutions, blog, landing_page, team, services."
+  ),
+  USAGE_INVALID_PROMPT: entry(
+    2,
+    "The prompt is empty.",
+    'Give the prompt in quotes, such as taste enhance "a pricing page" --brand stripe.com.'
+  ),
   SELECTIVE_MAP_UNSUPPORTED: entry(
     2,
     "--sections and --map can't be used together.",
@@ -390,6 +410,20 @@ const SAVE_HINTS: Partial<Record<ErrorCode, string>> = {
   SAVE_FAILED: `${SAVE_AGAIN}, and --overwrite if it has files, to save it for free.`,
 };
 
+// A brand given by its address (similar, enhance) with no usable extraction: the way forward is one
+// command, so it is named with the address taste already normalized.
+const BRAND_URL: Partial<Record<ErrorCode, Pick<Entry, "message" | "hint">>> = {
+  NOT_FOUND: {
+    message: "You have no finished extraction of {url}.",
+    hint: "Run taste extract {url} first. It spends credits.",
+  },
+  FULL_EXTRACTION_REQUIRED: {
+    message:
+      "Your extraction of {url} has only some sections, and this needs a full one.",
+    hint: "Run taste extract {url} without --sections first. It spends credits.",
+  },
+};
+
 // A save stopped by a sign in or credit problem keeps that code and hint, with the job's id added.
 const KEPT_ON_SAVE = new Set<ErrorCode>([
   "NOT_SIGNED_IN",
@@ -459,12 +493,14 @@ function fill(template: string, params: Params): string {
 }
 
 function report(code: ErrorCode, params: Params = {}): FullReport {
-  const { exit, message } = CATALOGUE[code];
+  const { exit } = CATALOGUE[code];
+  const byUrl = params.url === undefined ? undefined : BRAND_URL[code];
+  const message = byUrl?.message ?? CATALOGUE[code].message;
   const hasJob = isJobId(String(params.id ?? ""));
   const paid = params.paid === "yes" && PAID_CODES.has(code);
   const hint =
     (hasJob ? (JOB_HINTS[code] ?? SAVE_HINTS[code]) : undefined) ??
-    (paid ? PAID_HINT : CATALOGUE[code].hint);
+    (paid ? PAID_HINT : (byUrl?.hint ?? CATALOGUE[code].hint));
   return {
     code,
     message: fill(message, params),
