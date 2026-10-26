@@ -31,8 +31,11 @@ type OutputOptions = {
 // the server is the server's to choose, so it is cleaned before it reaches a terminal: an escape
 // sequence could otherwise clear the screen, retitle the window or forge a line of output.
 const CLEAR_LINE = "\r\u001b[2K";
-const CONTROL = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g;
-const CONTROL_AND_LAYOUT = /[\u0000-\u001f\u007f-\u009f]/g;
+// Bidi overrides and isolates (U+202A to U+202E, U+2066 to U+2069) too: they reorder what follows.
+const CONTROL =
+  /[\u0000-\u0008\u000b-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g;
+const CONTROL_AND_LAYOUT =
+  /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g;
 
 /** Untrusted text made safe to print in a terminal. JSON output needs none of this: JSON escapes it. */
 function plain(text: string, options: { newlines?: boolean } = {}): string {

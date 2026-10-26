@@ -103,6 +103,7 @@ describe("untrusted text", () => {
     expect(h.err()).not.toContain("\u001b");
     expect(h.err().split("\n")).toHaveLength(3);
     expect(plain("WE\u001b[31mTH\n")).toBe("WE[31mTH");
+    expect(plain("a\u202eb\u2066c\u2069")).toBe("abc");
   });
 });
 

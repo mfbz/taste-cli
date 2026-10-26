@@ -236,9 +236,6 @@ Fluid modular scale: The typography system uses a robust set of CSS custom prope
 
 Negative letter spacing on large type: Heading XL and XXL use tighter negative letter spacing (-0.02em, -0.025em), ensuring large headings remain optically balanced.
 
-- **sohne-var:** Heading XXL, Heading XL, Heading LG, Heading MD, Heading SM, Heading XS, Heading XXS, Heading Hero LG, Heading Hero MD, Heading Hero SM, Text XXL, Text XL, Text LG, Text MD, Text SM, Text XS, Text XXS, Button, Label, Field Description / Error, Text Input, Textarea, Tooltip, Listbox Item, Globalization Picker Listbox Item, Navigation Trigger, Checkbox Label, Checkbox Input
-- **SourceCodePro:** Monospace
-
 ## Layout
 
 Uses a responsive 4/8/12-column grid system with consistent 16px gutters and a 1264px max content width, allowing flexible card-based layouts that adapt seamlessly across breakpoints.
@@ -249,7 +246,6 @@ Compositional strategy favors centered, symmetric layouts for hero/titles, then 
 
 Alternating white backgrounds with gradient overlays; dark sections (stats) use deep blue-to-purple gradients for contrast; subtle dashed borders between major content blocks; generous whitespace (56px mobile, 64px tablet, 96px desktop) creates clear visual breathing room between sections; promotional banners use full-bleed imagery with overlay content.
 
-- **Grid:** 12 columns, 16px gutter, 1264px max width
 - **Mobile:** 0px - 639px (4 Columns, 16px gutter)
 - **Tablet:** 640px - 939px (8 Columns, 16px gutter)
 - **Desktop:** 940px - 1297px (12 Columns, 16px gutter)
@@ -300,4 +296,4 @@ Heavy use of CSS custom properties (--hds-*) enables theming between light/dark 
 
 Interactive elements follow a consistent disabled state pattern: 0.5 opacity background tint, muted gray text (#95A4BA), and cursor: default/not-allowed.
 
-_Extracted from https://stripe.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial)._
+Extracted from https://stripe.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial).

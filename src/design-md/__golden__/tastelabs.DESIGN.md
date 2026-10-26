@@ -144,11 +144,6 @@ Fluid typography is implemented extensively using CSS clamp(), allowing headings
 
 Matter is used as the primary workhorse sans-serif for high legibility in body copy and core headings, contrasting with the monospace elements used for data and UI accents.
 
-- **Matter TRIAL:** Hero Headline
-- **Azeret Semimono:** Global Headline L, Body Text Azeret, Button Text, Tag / Badge
-- **Matter:** Global Headline M, Global Headline S, Global Headline XS, Body Text, Body Small, Blog Paragraph, Nav Link Text, Form Input
-- **Neue Montreal:** Tab Item
-
 ## Layout
 
 High-contrast color blocking (black/white/cream) creates bold section rhythm; each major section is a distinct color zone with deliberate palette shifts.
@@ -163,7 +158,6 @@ Grid system is flexible: strict 12-column for desktop, collapses to single-colum
 
 Sections alternate between deep black (#1e1e1e), off-white/cream (#f5f7f2), pure white, and extra-dark black (#111). Transitions use gradient overlays (hero-bg, api-gradient) and generous vertical padding (9rem desktop, 4rem mobile). Horizontal strokes with gray opacity separate content blocks within sections. Navigation color transitions (nav-black-to-white, nav-white-to-dark-black) create visual continuity across color-block sections.
 
-- **Grid:** 12 columns, 2rem gutter, 90rem max width
 - **Mobile:** 0px - 767px (1 Column, 1.5rem gutter, fluid layout)
 - **Tablet:** 768px - 991px (8 Columns, 2rem gutter)
 - **Desktop:** 992px - 1439px (12 Columns, 2rem gutter, max-width 90rem)
@@ -200,4 +194,4 @@ Motion is primarily JS-driven (GSAP) with only basic CSS transitions for micro-i
 
 The component palette is highly restrained—relying almost exclusively on text-based buttons with arrow icons rather than filled CTAs, reinforcing the minimalist technical brand identity.
 
-_Extracted from https://www.tastelabs.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial)._
+Extracted from https://www.tastelabs.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial).

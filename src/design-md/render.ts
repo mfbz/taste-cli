@@ -122,7 +122,9 @@ function paragraph(text: string): string {
 }
 
 function bullet(label: string, text: string): string {
-  return label ? `- **${label}:** ${text}` : `- ${paragraph(text)}`;
+  // A * in a label would end its bold early.
+  const bold = label.replace(/\*/g, "");
+  return bold ? `- **${bold}:** ${text}` : `- ${paragraph(text)}`;
 }
 
 function section(title: string, blocks: string[][]): string[] {
@@ -297,27 +299,15 @@ function colorsProse(ds: Rec, palette: Rec[]): string[][] {
       const use =
         str(rec(c.rules).description) || strs(c.when_to_use).join(" ");
       const label = `${str(c.name) || "Color"} (${str(c.hex)})`;
-      return use ? bullet(label, use) : `- **${label}**`;
+      return use ? bullet(label, use) : `- **${label.replace(/\*/g, "")}**`;
     }),
   ];
 }
 
 function typographyProse(ds: Rec): string[][] {
   const typography = rec(ds.typography);
-  // Website extractions: each family with the roles it sets.
-  const roles = new Map<string, string[]>();
-  for (const group of TYPE_GROUPS)
-    for (const variant of arr(rec(typography[group]).variants).map(rec)) {
-      const family = str(variant.name);
-      if (!family || /[()]/.test(family)) continue;
-      roles.set(
-        family,
-        [...(roles.get(family) ?? []), str(variant.role)].filter(Boolean)
-      );
-    }
   return [
     ...strs(typography.insights).map((text) => [paragraph(text)]),
-    [...roles].map(([family, list]) => bullet(family, list.join(", "))),
     // Brand kits: each typeface with how to use it.
     arr(typography.typefaces)
       .map(rec)
@@ -333,14 +323,6 @@ function typographyProse(ds: Rec): string[][] {
 
 function layoutProse(ds: Rec): string[][] {
   const layout = rec(ds.layout);
-  const grid = rec(layout.grid);
-  const gridText = [
-    grid.columns === undefined ? "" : `${str(grid.columns)} columns`,
-    str(grid.gutter) && `${str(grid.gutter)} gutter`,
-    str(grid.max_width) && `${str(grid.max_width)} max width`,
-  ]
-    .filter(Boolean)
-    .join(", ");
   const breakpoints = Object.entries(rec(layout.breakpoints))
     .filter(([, text]) => str(text))
     .map(([name, text]) =>
@@ -351,7 +333,7 @@ function layoutProse(ds: Rec): string[][] {
     str(layout.section_separation)
       ? [paragraph(str(layout.section_separation))]
       : [],
-    [...(gridText ? [bullet("Grid", gridText)] : []), ...breakpoints],
+    breakpoints,
   ];
 }
 
@@ -437,7 +419,7 @@ function renderDesignMd(result: SubmissionResult, meta: DesignMdMeta): string {
     ...section("Elevation & Depth", elevationProse(ds)),
     ...section("Components", componentsProse(ds)),
     ...section("Do's and Don'ts", dosAndDonts(ds)),
-    `_Extracted from ${source} on ${meta.extractedAt} with the Taste Engine, via ${meta.generator} (unofficial)._`,
+    `Extracted from ${source} on ${meta.extractedAt} with the Taste Engine, via ${meta.generator} (unofficial).`,
   ];
   return `${front.join("\n")}\n\n${body.join("\n\n")}\n`;
 }

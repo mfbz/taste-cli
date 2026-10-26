@@ -94,4 +94,4 @@ ACME is a sample brand for testing, not a real company. Its tagline is “Tools 
 - Use a 1.5 px Ink border.
 - Use an Ink label.
 
-_Extracted from sample-guidelines.pdf on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial)._
+Extracted from sample-guidelines.pdf on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial).
