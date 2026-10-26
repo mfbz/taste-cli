@@ -80,7 +80,7 @@ Credits are real money. These rules hold for every command that spends them (tod
 
 ### `taste`
 
-With no arguments, in an interactive terminal (stdin, stdout and stderr all terminals, `CI` unset), `taste` starts a session; anywhere else (a pipe, CI, `--json`, any argument) it prints the help as `taste --help` does, with no animation bytes.
+With no arguments, in an interactive terminal (stdin, stdout and stderr all terminals, `CI` unset, `TERM` not `dumb`), `taste` starts a session; anywhere else (a pipe, CI, `TERM=dumb`, `--json`, any argument) it prints the help as `taste --help` does, with no animation bytes.
 
 The session, all on stderr except each command's result:
 

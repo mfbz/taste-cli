@@ -129,9 +129,11 @@ async function askSecret(
   return isCancel(answer) ? null : answer;
 }
 
-// Clack is loaded on the first question, so commands that ask none never load it.
-function clackPrompter(signal: AbortSignal): Prompter {
-  const common = { output: process.stderr, signal };
+// Clack is loaded on the first question, so commands that ask none never load it. No signal here:
+// clack never removes its abort listener, so each prompt would print a blank line on a later Ctrl-C.
+// In raw mode Ctrl-C is a key, which clack already reads as cancel.
+function clackPrompter(): Prompter {
+  const common = { output: process.stderr };
   return {
     async select(message, choices) {
       const { isCancel, select } = await import("@clack/prompts");
@@ -203,7 +205,7 @@ function processIo(
       delay(ms, undefined, sleepSignal ? { signal: sleepSignal } : {}),
     stdinText: () => readStdin(signal),
     askSecret: (message) => askSecret(message, signal),
-    prompter: clackPrompter(signal),
+    prompter: clackPrompter(),
     keypress,
     signal,
   };

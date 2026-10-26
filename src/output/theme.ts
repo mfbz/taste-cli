@@ -11,7 +11,7 @@ type Theme = {
 };
 
 // The colours of tastelabs.com. signal is the one accent (the opening's wordmark, the spinner, errors
-// with ✗), acid marks warnings and success a ✓; electric is reserved. paper and field are the sign in
+// with ✗), acid marks warnings; success goes with ✓; electric is reserved. paper and field are the sign in
 // page's text and ground, never painted in a terminal, where the user's own colours keep light themes
 // readable.
 const PALETTE = {

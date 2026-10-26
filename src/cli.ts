@@ -368,8 +368,14 @@ async function run(argv: string[], io: Io): Promise<number> {
   // A key in argv is already in shell history; say so, and never parse or echo it.
   if (argv.some((arg) => KEY_ARG.test(arg)))
     return output.fail(new CliError("KEY_IN_ARGV"));
-  // Bare taste in a terminal a person is at; a pipe, CI or a script gets the help instead.
-  if (argv.length === 0 && io.interactive && io.terminal?.tty && !io.env?.CI)
+  // Bare taste in a terminal a person is at; a pipe, CI, a dumb terminal or a script gets the help.
+  if (
+    argv.length === 0 &&
+    io.interactive &&
+    io.terminal?.tty &&
+    !io.env?.CI &&
+    io.env?.TERM !== "dumb"
+  )
     return session(() => createContext(io, output)).catch((error: unknown) =>
       output.fail(error)
     );

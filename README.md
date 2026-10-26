@@ -60,7 +60,7 @@ taste
 
 A short opening draws the TASTE wordmark, a line says who you are signed in as, and a menu offers every action: extract a brand, check brand adherence, search brands, a brand kit from a PDF, enhance a prompt, your history, sign in or out. Each action asks for what it needs, marks what spends credits and asks before spending them, then runs the same code as the command typed directly. Ctrl-C at a prompt goes back to the menu; at the menu it quits.
 
-It never runs in a pipe, in CI (`CI` set) or under `--json`: there `taste` prints the help, with no animation. Any key skips the opening; `TASTE_NO_MOTION=1` (or `NO_COLOR`, or `TERM=dumb`) shows only its last frame.
+It never runs in a pipe, in CI (`CI` set), under `TERM=dumb` or under `--json`: there `taste` prints the help, with no animation. Any key skips the opening; `TASTE_NO_MOTION=1` (or `NO_COLOR`) shows only its last frame.
 
 ## Sign in
 
