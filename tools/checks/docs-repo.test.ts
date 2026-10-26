@@ -11,7 +11,9 @@ const NOT_AFFILIATED = "not affiliated with Taste Labs";
 // Assembled at run time, so this file doesn't match itself. The repo is a standalone tool: nothing in
 // it says why it was built.
 const OFF_LIMITS = new RegExp(
-  [String.raw`\bhir(?:e|ing)\b`, ["job", "application"].join(" ")].join("|"),
+  [String.raw`\bhir(?:e|ed|es|ing)\b`, ["job", "application"].join(" ")].join(
+    "|"
+  ),
   "i"
 );
 
@@ -55,6 +57,13 @@ describe("public docs", () => {
       );
     }
   );
+
+  it("the off-limits check catches every form of the words", () => {
+    for (const word of ["hi" + "re", "hi" + "red", "hi" + "res", "hi" + "ring"])
+      expect(OFF_LIMITS.test(`to get ${word}`), word).toBe(true);
+    expect(OFF_LIMITS.test(["a job", "application"].join(" "))).toBe(true);
+    expect(OFF_LIMITS.test("a chirpy shire")).toBe(false);
+  });
 
   it("no committable file says why the tool exists", () => {
     const found = committableFiles().filter((path) => {

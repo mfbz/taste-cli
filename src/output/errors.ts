@@ -65,6 +65,13 @@ type ErrorCode = keyof typeof CATALOGUE;
 // What a filled-in parameter may look like: a name, a path, a word. Anything else becomes "…", so a
 // typed value or a token can never ride into a message.
 const SAFE_PARAM = /^[A-Za-z0-9 _.,:/~@+=-]{1,80}$/;
+// A command or option name is echoed from what was typed, so it is held to the shape of a real one:
+// at most four short lowercase words. Anything longer, or starting like a known key, is never shown.
+const NAME_PARAMS = new Set(["command", "option"]);
+const NAME = /^(?:--?)?[a-z][a-z0-9]{0,15}(?:-[a-z0-9]{1,16}){0,3}$/;
+const KEY_PREFIX = /^(?:--?)?(?:sk-|gh[pousr]-|npm-|xox|akia|asia|aiza)/;
+// Key- and token-shaped text anywhere in any parameter: Taste keys, provider keys, JWTs, long runs.
+const KEY_SHAPED = /taste_|sk-|eyJ|[A-Za-z0-9_-]{24,}/;
 
 class CliError extends Error {
   readonly code: ErrorCode;
@@ -86,7 +93,10 @@ class CliError extends Error {
 function fill(template: string, params: Params): string {
   return template.replace(/\{(\w+)\}/g, (_match, name: string) => {
     const value = params[name] ?? "";
-    return SAFE_PARAM.test(value) ? value : "…";
+    const safe = NAME_PARAMS.has(name)
+      ? NAME.test(value) && !KEY_PREFIX.test(value)
+      : SAFE_PARAM.test(value);
+    return safe && !KEY_SHAPED.test(value) ? value : "…";
   });
 }
 

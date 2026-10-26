@@ -61,6 +61,38 @@ describe("taste", () => {
     expect(err).toContain("nope");
   });
 
+  it("never echoes a key typed as an unknown command or option, in human or --json output", async () => {
+    // Built at run time, so the guards never see a key in this file.
+    const keys = [
+      ["sk", "-ant-", "api03-", "Ab3d".repeat(8)].join(""),
+      ["sk", "-ant-api03-abc"].join(""),
+      ["tas", "te_", "Ab3_d-".repeat(5)].join(""),
+      [
+        "ey",
+        "J",
+        "a".repeat(20),
+        ".ey",
+        "J",
+        "b".repeat(20),
+        ".",
+        "c".repeat(20),
+      ].join(""),
+      "abcdefghijklmnopqrstuvwxyz0123",
+    ];
+    for (const key of keys) {
+      for (const argv of [[key], [`--${key}`], [`--${key}=value`]]) {
+        for (const json of [false, true]) {
+          const { code, out, err } = await capture(
+            json ? ["--json", ...argv] : argv
+          );
+          expect(code, argv[0]).toBe(2);
+          expect(out + err, argv[0]).not.toContain(key);
+          expect(out + err, argv[0]).toContain("…");
+        }
+      }
+    }
+  });
+
   it("answers a usage error with one JSON document under --json", async () => {
     const { code, out, err, doc } = await capture(["--json", "--nope"]);
     expect(code).toBe(2);

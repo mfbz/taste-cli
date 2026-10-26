@@ -30,7 +30,8 @@ const USAGE_CODES: Readonly<Record<string, ErrorCode>> = {
   "commander.missingMandatoryOptionValue": "USAGE_MISSING_ARGUMENT",
   "commander.invalidArgument": "USAGE_INVALID_VALUE",
 };
-const OPTION_NAME = /'(--?[a-z][a-z0-9-]{0,30})/;
+// The whole option as typed, up to "=" or the closing quote; errors.ts decides whether it may be shown.
+const OPTION_NAME = /'(-[^'=\s]*)/;
 
 function isCommanderError(error: unknown): error is { code: string } {
   const code: unknown =
@@ -43,7 +44,7 @@ function isCommanderError(error: unknown): error is { code: string } {
 function usageError(error: { code: string; message?: unknown }): CliError {
   const code = USAGE_CODES[error.code] ?? "USAGE";
   const message = typeof error.message === "string" ? error.message : "";
-  // The option's name only (never what follows "="), and only if it looks like an option name.
+  // The option's name only (never what follows "="); the catalogue shows it only if it looks like one.
   const option = OPTION_NAME.exec(message)?.[1] ?? "…";
   return new CliError(code, { option });
 }

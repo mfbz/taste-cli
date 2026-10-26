@@ -20,7 +20,7 @@ const ALLOWED_KEYS = new Set([
 const NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_NAME = 64;
 const MAX_DESCRIPTION = 1024;
-// An option's definition string: "--json", "-y, --yes", "--spread <bps>".
+// An option's definition string: "--json", "-y, --yes", "--top <n>".
 const OPTION_DEFINITION = /"(?:-[a-z], )?(--[a-z][a-z-]*)( <[^>]+>)?"/g;
 // `program.command("history")`, then `history.command("checks")`: a group's variable is its name.
 const COMMAND_DEFINITION = /\b([a-z]+)\s*\.command\("([a-z]+)"/g;

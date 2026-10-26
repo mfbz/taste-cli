@@ -30,7 +30,7 @@ describe("the CI workflow", () => {
     );
   });
 
-  it("audits every dependency, development ones included: the SDK is one, and it ships in the bundle", () => {
+  it("audits every dependency, development ones included: they run in CI and on every contributor's machine", () => {
     const audit =
       ci.jobs.checks?.steps?.find((step) => step.name === "Audit dependencies")
         ?.run ?? "";
