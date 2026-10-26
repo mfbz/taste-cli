@@ -39,7 +39,7 @@ Motion is turned off with `TASTE_NO_MOTION=1`, not a flag. There is no `--yes`: 
 
 Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 
-- `taste --version` prints `0.0.0` and exits 0; under `--json` it is `{"ok":true,"data":{"version":"0.0.0"}}`.
+- `taste --version` prints the version (`0.0.1` today) and exits 0; under `--json` it is `{"ok":true,"data":{"version":"0.0.1"}}`.
 - `taste --help`, and `taste` with no command, print the help with the unofficial line and exit 0; under `--json` the help is `data.help`.
 - An unknown option exits 2 and names the option but never its value; under `--json` it is one document with `error.code` `USAGE_UNKNOWN_OPTION`. An unknown command exits 2 with `USAGE_UNKNOWN_COMMAND`.
 - A reader that closes the pipe early is not an error.
