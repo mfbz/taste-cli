@@ -2,6 +2,7 @@
 // the CLI's own client. A recipe is data (its name, whether it spends credits, what it calls, its
 // inputs) plus the few lines that make those calls. Every response is captured raw on the way in, so
 // a 409 or a refusal is kept as the exact envelope the API sent.
+// Recipes read public content only: the account (me) and its history are hand-written fixtures.
 import { TasteApiError } from "../src/api/client.ts";
 import type { TasteApi } from "../src/api/client.ts";
 import type { Envelope, Step } from "../src/api/fixtures.ts";
@@ -294,26 +295,6 @@ const answers = (data: Record<string, unknown>): Recorded => ({
 });
 
 const RECIPES: readonly Recipe[] = [
-  {
-    name: "me",
-    paid: false,
-    calls: "GET /design/me",
-    inputs: {},
-    run: async (c) => answers({ me: await c.api.me() }),
-  },
-  {
-    name: "history",
-    paid: false,
-    calls:
-      "GET /design/submissions, GET /search/submissions, GET /judge/brand-adherence (first page each)",
-    inputs: { limit: "20" },
-    run: async (c) =>
-      answers({
-        submissions: await c.api.listSubmissions({ limit: 20 }),
-        searches: await c.api.listSearches({ limit: 20 }),
-        adherence: await c.api.listAdherence({ limit: 20 }),
-      }),
-  },
   ...(
     [
       ["extract-full", "https://www.tastelabs.com/"],

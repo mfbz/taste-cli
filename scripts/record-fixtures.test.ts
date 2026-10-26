@@ -1,5 +1,5 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -24,7 +24,7 @@ import {
   describeRecipe,
   spends,
 } from "./record-fixtures.ts";
-import { scrubFiles } from "./scrub-fixtures.ts";
+import { check, fakeId, normalise } from "./scrub-fixtures.ts";
 
 const KEY = ["taste", "mock", "rec"].join("_");
 
@@ -76,8 +76,6 @@ async function recordAgainstMock(
 describe("the fixture recipes", () => {
   it("are the brief's list, with what each spends", () => {
     expect(RECIPES.map((r) => [r.name, r.paid])).toEqual([
-      ["me", false],
-      ["history", false],
       ["extract-full", true],
       ["extract-full-2", true],
       ["extract-selective", true],
@@ -239,19 +237,22 @@ describe("the fixture recipes", () => {
     );
   });
 
-  it("go from recording to scrubbed fixtures the fake API and the mock read", async () => {
-    for (const { name } of RECIPES) await recordAgainstMock(name);
+  it("go from recording, through normalise and check, to fixtures the fake API and the mock read", async () => {
+    const recordings: Record<string, unknown> = {};
+    for (const { name } of RECIPES)
+      recordings[name] = await recordAgainstMock(name);
+    const docs = normalise(recordings);
+    expect(Object.entries(docs).flatMap(([n, d]) => check(n, d))).toEqual([]);
     const fixtures = join(dir, "fixtures");
-    const written = await scrubFiles({
-      from: dir,
-      to: fixtures,
-      home: homedir(),
-    });
-    expect(written).toHaveLength(RECIPES.length);
+    mkdirSync(fixtures);
+    for (const [name, doc] of Object.entries(docs))
+      writeFileSync(join(fixtures, `${name}.json`), JSON.stringify(doc));
     const loaded = loadFixtures(fixtures);
     const api = createFakeApi(fixtureState(loaded));
-    expect((await api.me()).email).toBe("person@example.com");
     expect((await api.listSubmissions({})).submissions).toHaveLength(4);
+    expect((await api.getSubmission(fakeId("extract-full"))).source_url).toBe(
+      "https://www.tastelabs.com/"
+    );
     expect(createLibrary(loaded).notFound.status).toBe(404);
     expect(createLibrary(loaded).fullExtractionRequired.body).toMatchObject({
       detail: { error: "FULL_EXTRACTION_REQUIRED" },
@@ -280,6 +281,6 @@ describe("approving a paid recipe", () => {
     expect(text).toContain("POST /search (depth deep)");
     expect(text).toContain("dark brutalist developer tools");
     expect(text).toContain("spends credits");
-    expect(describeRecipe(findRecipe("me")!, "x")).toContain("Free");
+    expect(describeRecipe(findRecipe("error-404")!, "x")).toContain("Free");
   });
 });

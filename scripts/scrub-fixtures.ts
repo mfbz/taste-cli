@@ -1,7 +1,8 @@
-// npm run fixtures:scrub [-- <recipe>…]: copies recorded responses from tmp-fixtures/ into
-// src/api/fixtures/ with personal data and secrets replaced, long lists and strings trimmed so every
-// file stays well under the size guard, and the guards run on the result. Deterministic: the same
-// recording always gives the same fixture. Nothing is written if any file would still trip a guard.
+// npm run fixtures:scrub: copies tmp-fixtures/*.json to src/api/fixtures/ after two boring steps.
+// Normalise: the ids the recipes created become fixed fake UUIDs, and URLs off the Taste API lose
+// their query and fragment (signed download links). Check: anything that still looks personal or
+// secret fails the run, listed as file:path, and nothing is written; a person fixes it by hand.
+// Recipes record public content only (me and history are hand-written), so nothing else is repaired.
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
@@ -10,411 +11,153 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
 
 import { format, resolveConfig } from "prettier";
 
-import type { z } from "zod";
+import { FIXTURES_DIR } from "../src/api/fixtures.ts";
+import { RECIPES } from "./fixture-recipes.ts";
 
-import { FIXTURE, FIXTURES_DIR } from "../src/api/fixtures.ts";
-import { checkFile } from "../tools/checks/guards.ts";
-import { findRecipe } from "./fixture-recipes.ts";
-
-type Limits = { array: number; string: number };
-type Raw = z.infer<typeof FIXTURE>;
-// What one scrub run knows from all its recordings: personal values to replace wherever they appear,
-// and the ids and queries the recipes themselves created (the only history worth keeping).
-type Known = {
-  literals: [RegExp, string][];
-  ids: Set<string>;
-  queries: Set<string>;
-};
-type ScrubOptions = {
-  from: string;
-  to: string;
-  home: string;
-  names?: string[];
-};
-type Written = { name: string; bytes: number };
+type Docs = Record<string, unknown>;
+type Visit = (path: string, key: string, value: unknown) => unknown;
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const RAW_DIR = join(ROOT, "tmp-fixtures");
-const MAX_BYTES = 200 * 1024;
-// Tighter each round, until the file fits under MAX_BYTES.
-const FIRST_ROUND: Limits = { array: 50, string: 4000 };
-const ROUNDS: readonly Limits[] = [
-  FIRST_ROUND,
-  { array: 20, string: 1000 },
-  { array: 5, string: 200 },
-];
-const RECIPE_NAME = /^[a-z0-9-]+$/;
-const PERSON_EMAIL = "person@example.com";
-const REMOVED = "[removed]";
-// Lists that grow with the page and say nothing more after a few items.
-const SHORT_LISTS = new Set(["layout", "assets", "brand_assets"]);
-const SHORT_LIST_ITEMS = 5;
-// Personal or account values, replaced by key, and then wherever else their value shows up.
-const BY_KEY: Readonly<Record<string, string>> = {
-  user_id: "00000000-0000-4000-8000-000000000001",
-  email: PERSON_EMAIL,
-  api_key_id: "key_example",
-  api_key_name: "example",
-  batch_id: "batch_example",
-  batch_label: "example batch",
-  credit_ref_id: "credit_example",
-};
-// Account ids under any name, and anything about an API key, at any depth: the schemas are loose
-// and raw bodies keep fields Taste may add.
-const PERSONAL_ID =
-  /(?:^|_)(?:user|org|organization|account|owner|team|workspace|customer|tenant)_id$/i;
-const KEY_FIELD = /^(?:api_key_.+|key_prefix)$/i;
-// One or two characters say nothing and match everywhere: those are replaced by key only.
-const MIN_LITERAL = 3;
-// An id is replaced wherever it appears, glued to other text or not (user_<uuid>, <uuid>_thumb):
-// anything with a digit and at least this long, or shaped like a UUID, an email or a JWT.
-const MIN_ID = 6;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const EMAIL_SHAPE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const JWT_SHAPE = /^eyJ[\w-]+\.eyJ[\w-]+/;
-// A word is replaced only as a whole token, so "default" never rewrites "defaultColor" and "app"
-// never rewrites "linear.app".
-const WORD_EDGE = "[A-Za-z0-9_.-]";
-// Query parameters that carry a credential or a signature, on any host.
-const CREDENTIAL_PARAM =
-  /^(?:sig|signature|token|access_token|key|expires|policy|key-pair-id|x-amz-.*|x-goog-.*)$/i;
-const ID_KEYS = new Set(["submission_id", "job_id", "search_id", "id"]);
+const FAKE = "00000000-0000-4000-8000-";
+const ID_KEYS = new Set([
+  "submission_id",
+  "job_id",
+  "extraction_id",
+  "search_id",
+  "id",
+]);
 const TASTE_API_HOST = "api.tastelabs.com";
-// The same shapes the guards block (tools/checks/guards.ts), JWTs a little more broadly.
-const TASTE_KEY = /\btaste_[A-Za-z0-9_-]{16,}/g;
-const JWT = /\beyJ[\w-]+\.eyJ[\w-]+(?:\.[\w-]*)?/g;
-// An email, plain or percent-encoded, unless it is a file name such as logo@2x.png.
-const EMAIL =
-  /[A-Za-z0-9._%+-]+(?:@|%40)[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.(?!(?:png|jpe?g|gif|svg|webp|avif|ico|css|js|woff2?|ttf|otf|pdf|mp4|webm)\b)[A-Za-z]{2,}\b/gi;
 const WEB_URL = /https?:\/\/[^\s"'<>()]+/g;
+const CHECKS: readonly [string, RegExp][] = [
+  // example.com is the placeholder; logo@2x.png is a file name.
+  [
+    "email",
+    /[\w.%+-]+@(?!example\.com\b)[\w-]+(?:\.[\w-]+)*\.(?!(?:png|jpe?g|gif|svg|webp|css|js|pdf)\b)[a-z]{2,}/i,
+  ],
+  ["JWT", /eyJ[\w-]+\.eyJ[\w-]+/],
+  ["Taste key", /taste_[A-Za-z0-9_-]{16,}/],
+  ["Bearer token", /Bearer\s+\S{8,}/i],
+  [
+    "unmapped UUID",
+    /\b(?!00000000-0000-4000-8000-)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i,
+  ],
+  [
+    "credential in a URL",
+    /[?&](?:sig|signature|token|key|x-amz-[^=&]*|x-goog-[^=&]*|expires)=/i,
+  ],
+];
 
-function walk(
-  value: unknown,
-  visit: (key: string, value: unknown) => void,
-  key = ""
-): void {
-  visit(key, value);
-  if (Array.isArray(value)) for (const item of value) walk(item, visit, key);
-  else if (value && typeof value === "object")
-    for (const [k, v] of Object.entries(value)) walk(v, visit, k);
+// Fixed per recipe, so the hand-written history can point at the recorded jobs.
+function fakeId(recipe: string, n = 0): string {
+  const index = RECIPES.findIndex((r) => r.name === recipe);
+  return `${FAKE}${String((index + 1) * 100 + n).padStart(12, "0")}`;
 }
 
-function placeholderFor(key: string): string | undefined {
-  if (BY_KEY[key]) return BY_KEY[key];
-  if (PERSONAL_ID.test(key)) return `example_${key.toLowerCase()}`;
-  if (KEY_FIELD.test(key)) return "key_example";
-  return undefined;
-}
-
-function escape(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function isId(value: string): boolean {
-  return (
-    (/\d/.test(value) && value.length >= MIN_ID) ||
-    UUID.test(value) ||
-    EMAIL_SHAPE.test(value) ||
-    JWT_SHAPE.test(value)
-  );
-}
-
-function pattern(value: string, id: boolean): RegExp {
-  return id
-    ? new RegExp(escape(value), "gi")
-    : new RegExp(`(?<!${WORD_EDGE})${escape(value)}(?!${WORD_EDGE})`, "g");
-}
-
-function knownFrom(docs: readonly Raw[]): Known {
-  const literals = new Map<string, string>();
-  const ids = new Set<string>();
-  const queries = new Set<string>();
-  for (const doc of docs) {
-    walk(doc, (key, value) => {
-      if (typeof value !== "string" && typeof value !== "number") return;
-      const text = String(value);
-      const placeholder = placeholderFor(key);
-      // A short number (or any short value with a digit) is too common to replace in other text.
-      const tooCommon = /\d/.test(text) && !isId(text);
-      if (
-        placeholder &&
-        text.length >= MIN_LITERAL &&
-        text !== placeholder &&
-        !tooCommon
-      )
-        literals.set(text, placeholder);
-      if (typeof value !== "string") return;
-      if (doc.recipe !== "history" && ID_KEYS.has(key)) ids.add(value);
-    });
-    const query = findRecipe(doc.recipe)?.inputs.query;
-    if (query && doc.recipe !== "history") queries.add(query);
-  }
-  // Longest first, so a value inside another is never replaced half way.
-  return {
-    literals: [...literals]
-      .sort(([a], [b]) => b.length - a.length)
-      .flatMap(([value, placeholder]) =>
-        // Also as it appears percent-encoded inside a URL.
-        [...new Set([value, encodeURIComponent(value)])].map(
-          (form): [RegExp, string] => [pattern(form, isId(value)), placeholder]
-        )
-      ),
-    ids,
-    queries,
-  };
-}
-
-// A pre-signed asset URL carries its signature in the query: anything off the Taste API loses its
-// query and fragment, and a Taste API URL its fragment and any parameter that looks like a
-// credential.
-function paramName(part: string): string {
-  const name = part.split("=", 1)[0] ?? "";
-  try {
-    return decodeURIComponent(name);
-  } catch {
-    return name;
-  }
-}
-
-// Edits the raw query, so the parameters that stay keep their exact encoding.
-function unsign(url: string): string {
-  const parsed = URL.parse(url);
-  if (!parsed) return url;
-  const bare = url.replace(/#.*$/, "");
-  if (parsed.hostname !== TASTE_API_HOST) return bare.replace(/\?.*$/, "");
-  const [path, query] = bare.split(/\?(.*)/s, 2);
-  if (query === undefined) return bare;
-  const kept = query
-    .split("&")
-    .filter((part) => part && !CREDENTIAL_PARAM.test(paramName(part)));
-  return kept.length ? `${path}?${kept.join("&")}` : (path ?? bare);
-}
-
-function scrubText(text: string, known: Known, limits: Limits | null): string {
-  let clean = text;
-  for (const [pattern, placeholder] of known.literals)
-    clean = clean.replace(pattern, placeholder);
-  clean = clean
-    .replace(TASTE_KEY, REMOVED)
-    .replace(JWT, REMOVED)
-    .replace(EMAIL, PERSON_EMAIL)
-    .replace(WEB_URL, unsign);
-  return limits && clean.length > limits.string
-    ? `${clean.slice(0, limits.string)}…`
-    : clean;
-}
-
-// limits is null outside data, so the calls and steps of a recording are never cut short.
-function scrub(
-  value: unknown,
-  key: string,
-  known: Known,
-  limits: Limits | null
-): unknown {
-  const placeholder = placeholderFor(key);
-  if (typeof value === "string")
-    return placeholder ?? scrubText(value, known, limits);
-  // A number stays a number, so the fixture still matches the schema.
-  if (typeof value === "number" && placeholder) return 0;
-  if (Array.isArray(value)) {
-    const keep = !limits
-      ? value.length
-      : SHORT_LISTS.has(key)
-        ? Math.min(SHORT_LIST_ITEMS, limits.array)
-        : limits.array;
-    return value.slice(0, keep).map((item) => scrub(item, key, known, limits));
-  }
+function walk(value: unknown, path: string, visit: Visit, key = ""): unknown {
+  if (Array.isArray(value))
+    return value.map((v, i) => walk(v, `${path}[${i}]`, visit, key));
   if (value && typeof value === "object")
     return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [k, scrub(v, k, known, limits)])
+      Object.entries(value).map(([k, v]) => [
+        k,
+        walk(v, `${path}.${k}`, visit, k),
+      ])
     );
-  return value;
+  return visit(path, key, value);
 }
 
-function countBy(items: Record<string, unknown>[], key: string) {
-  const counts: Record<string, number> = {};
-  for (const item of items) {
-    const value = String(item[key]);
-    counts[value] = (counts[value] ?? 0) + 1;
+function unsign(url: string): string {
+  return URL.parse(url)?.hostname === TASTE_API_HOST
+    ? url
+    : url.replace(/[?#].*$/, "");
+}
+
+function normalise(docs: Docs): Docs {
+  const ids = new Map<string, string>();
+  // In recipe order, so an id gets the number of the recipe that created it.
+  for (const { name } of RECIPES) {
+    let n = 0;
+    walk(docs[name], "", (_, key, value) => {
+      if (
+        ID_KEYS.has(key) &&
+        typeof value === "string" &&
+        !value.startsWith(FAKE) &&
+        !ids.has(value)
+      )
+        ids.set(value, fakeId(name, n++));
+      return value;
+    });
   }
-  return counts;
-}
-
-// The account's history is private: only entries a recipe created stay, and every total is
-// recounted from what stays, so nothing hints at the rest.
-function keepOwn(
-  page: unknown,
-  listKey: string,
-  idKey: string,
-  known: Known
-): unknown {
-  if (!page || typeof page !== "object") return page;
-  const list = (page as Record<string, unknown>)[listKey];
-  const items = (Array.isArray(list) ? list : []) as Record<string, unknown>[];
-  const kept = items.filter(
-    (item) =>
-      known.ids.has(String(item[idKey])) ||
-      (typeof item.query === "string" && known.queries.has(item.query))
-  );
-  const own: Record<string, unknown> = {
-    [listKey]: kept,
-    total: kept.length,
-    limit: (page as Record<string, unknown>).limit ?? kept.length,
-    offset: 0,
+  const clean: Visit = (_, __, value) => {
+    if (typeof value !== "string") return value;
+    let text = value;
+    for (const [real, fake] of ids) text = text.replaceAll(real, fake);
+    return text.replace(WEB_URL, unsign);
   };
-  if (listKey === "submissions" && idKey === "submission_id") {
-    const byStatus = countBy(kept, "status");
-    own.totals = {
-      completed: byStatus.completed ?? 0,
-      failed: byStatus.failed ?? 0,
-      in_progress:
-        kept.length - (byStatus.completed ?? 0) - (byStatus.failed ?? 0),
-    };
-  }
-  if (idKey === "id") own.total_by_status = countBy(kept, "status");
-  return own;
-}
-
-function ownHistory(data: Record<string, unknown>, known: Known) {
-  return {
-    ...data,
-    submissions: keepOwn(
-      data.submissions,
-      "submissions",
-      "submission_id",
-      known
-    ),
-    searches: keepOwn(data.searches, "submissions", "id", known),
-    adherence: keepOwn(data.adherence, "jobs", "job_id", known),
-  };
-}
-
-function scrubFixture(
-  raw: unknown,
-  limits: Limits = FIRST_ROUND,
-  known?: Known
-): unknown {
-  const doc = FIXTURE.parse(raw);
-  const k = known ?? knownFrom([doc]);
-  const { data, ...rest } = doc;
-  const own = doc.recipe === "history" ? ownHistory(data, k) : data;
-  return {
-    ...(scrub(rest, "", k, null) as object),
-    data: scrub(own, "", k, limits),
-  };
-}
-
-async function render(raw: Raw, known: Known, target: string): Promise<string> {
-  const options = { ...(await resolveConfig(target)), filepath: target };
-  let text = "";
-  for (const limits of ROUNDS) {
-    text = await format(
-      JSON.stringify(scrubFixture(raw, limits, known)),
-      options
-    );
-    if (Buffer.byteLength(text) < MAX_BYTES) return text;
-  }
-  throw new Error(
-    `${target}: still over ${MAX_BYTES / 1024} KB after trimming`
+  return Object.fromEntries(
+    Object.entries(docs).map(([name, doc]) => [name, walk(doc, "", clean)])
   );
 }
 
-async function scrubFiles(options: ScrubOptions): Promise<Written[]> {
-  const names =
-    options.names ??
-    readdirSync(options.from)
-      .filter((file) => file.endsWith(".json"))
-      .map((file) => file.slice(0, -".json".length));
-  const odd = names.find((name) => !RECIPE_NAME.test(name));
-  if (odd !== undefined) throw new Error(`Not a recipe name: ${odd}`);
+function check(name: string, doc: unknown): string[] {
   const problems: string[] = [];
-  // Every recording in the folder, not only those being scrubbed: they all name values to hide and
-  // the jobs the history may keep.
-  const docs = new Map<string, Raw>();
-  for (const file of readdirSync(options.from).sort()) {
-    if (!file.endsWith(".json")) continue;
-    try {
-      const raw: unknown = JSON.parse(
-        readFileSync(join(options.from, file), "utf8")
-      );
-      docs.set(file.slice(0, -".json".length), FIXTURE.parse(raw));
-    } catch (error) {
-      problems.push(`${file}: not a recorded fixture (${String(error)})`);
-    }
-  }
-  const known = knownFrom([...docs.values()]);
-  const ready: { name: string; target: string; text: string }[] = [];
-  for (const name of [...names].sort()) {
-    const file = `${name}.json`;
-    const target = join(options.to, file);
-    const doc = docs.get(name);
-    if (!doc) {
-      if (!problems.some((p) => p.startsWith(file)))
-        problems.push(`${file}: not recorded`);
-      continue;
-    }
-    const text = await render(doc, known, target);
-    problems.push(...checkFile(file, Buffer.from(text), options.home));
-    ready.push({ name, target, text });
-  }
-  if (problems.length)
-    throw new Error(`Nothing written:\n${problems.join("\n")}`);
-  mkdirSync(options.to, { recursive: true });
-  for (const { target, text } of ready) writeFileSync(target, text);
-  return ready.map(({ name, text }) => ({
-    name,
-    bytes: Buffer.byteLength(text),
-  }));
+  walk(doc, `${name}.json:`, (path, _, value) => {
+    if (typeof value === "string")
+      for (const [what, pattern] of CHECKS)
+        if (pattern.test(value)) problems.push(`${path} ${what}`);
+    return value;
+  });
+  return problems;
 }
 
-// Raw recordings hold the maintainer's data: if Git would not ignore them, stop before anything else.
-function rawIsIgnored(): boolean {
+async function main(): Promise<number> {
   try {
     execFileSync(
       "git",
-      ["check-ignore", "-q", "--no-index", "tmp-fixtures/recipe.json"],
+      ["check-ignore", "-q", "--no-index", "tmp-fixtures/x.json"],
       { cwd: ROOT, stdio: "ignore" }
     );
-    return true;
   } catch {
-    return false;
+    process.stderr.write(
+      "tmp-fixtures/ is not ignored by Git: fix .gitignore first.\n"
+    );
+    return 1;
   }
+  if (!existsSync(RAW_DIR)) {
+    process.stderr.write("No tmp-fixtures/ yet: record a recipe first.\n");
+    return 1;
+  }
+  const raw: Docs = {};
+  for (const file of readdirSync(RAW_DIR).filter((f) => f.endsWith(".json")))
+    raw[file.slice(0, -".json".length)] = JSON.parse(
+      readFileSync(join(RAW_DIR, file), "utf8")
+    ) as unknown;
+  const docs = normalise(raw);
+  const problems = Object.entries(docs).flatMap(([name, doc]) =>
+    check(name, doc)
+  );
+  if (problems.length) {
+    process.stderr.write(
+      `Nothing written. Fix these by hand in tmp-fixtures/, then run again:\n${problems.join("\n")}\n`
+    );
+    return 1;
+  }
+  mkdirSync(FIXTURES_DIR, { recursive: true });
+  for (const [name, doc] of Object.entries(docs)) {
+    const target = join(FIXTURES_DIR, `${name}.json`);
+    const options = { ...(await resolveConfig(target)), filepath: target };
+    writeFileSync(target, await format(JSON.stringify(doc), options));
+    process.stderr.write(`src/api/fixtures/${name}.json\n`);
+  }
+  return 0;
 }
 
-async function main(): Promise<void> {
-  const { positionals } = parseArgs({ allowPositionals: true });
-  if (!rawIsIgnored())
-    throw new Error(
-      "tmp-fixtures/ is not ignored by Git: fix .gitignore first."
-    );
-  if (!existsSync(RAW_DIR))
-    throw new Error("No tmp-fixtures/ yet: record a recipe first.");
-  const written = await scrubFiles({
-    from: RAW_DIR,
-    to: FIXTURES_DIR,
-    home: homedir(),
-    names: positionals.length ? positionals : undefined,
-  });
-  for (const { name, bytes } of written)
-    process.stderr.write(
-      `src/api/fixtures/${name}.json  ${Math.ceil(bytes / 1024)} KB\n`
-    );
-}
+if (import.meta.main) void main().then((code) => (process.exitCode = code));
 
-if (import.meta.main)
-  main().catch((error: unknown) => {
-    process.stderr.write(
-      `${error instanceof Error ? error.message : String(error)}\n`
-    );
-    process.exitCode = 1;
-  });
-
-export { knownFrom, scrubFiles, scrubFixture };
-export type { Known, Limits };
+export { check, fakeId, normalise };
