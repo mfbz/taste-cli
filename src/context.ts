@@ -10,9 +10,9 @@ import type { Provider } from "./auth/provider.ts";
 import type { SecretStore } from "./auth/store.ts";
 import { DEFAULT_API_URL, readEnv } from "./config/env.ts";
 import type { Env } from "./config/env.ts";
-import type { Io } from "./io.ts";
+import type { Io, Prompter } from "./io.ts";
 import { CliError } from "./output/errors.ts";
-import type { Output } from "./output/output.ts";
+import type { Output, Writer } from "./output/output.ts";
 import type { TerminalInfo } from "./output/terminal.ts";
 
 type Context = {
@@ -39,6 +39,11 @@ type Context = {
   loginWithBrowser(): Promise<Session>;
   stdinText(): Promise<string>;
   askSecret(message: string): Promise<string | null>;
+  prompter(): Prompter;
+  // Resolves on the next key; never, where there is no keyboard to read.
+  keypress(signal: AbortSignal): Promise<void>;
+  // stderr as it is, for the opening's frames and cursor.
+  screen: Writer;
 };
 
 // Shown by every sign in command while the environment holds a key.
@@ -114,6 +119,9 @@ function createContext(io: Io, output: Output): Context {
     },
     stdinText: () => need(io.stdinText)(),
     askSecret: (message) => need(io.askSecret)(message),
+    prompter: () => need(io.prompter),
+    keypress: (s) => io.keypress?.(s) ?? new Promise(() => {}),
+    screen: io.stderr,
   };
 }
 

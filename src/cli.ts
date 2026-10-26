@@ -16,6 +16,7 @@ import { kit } from "./commands/kit.ts";
 import { login } from "./commands/login.ts";
 import { logout } from "./commands/logout.ts";
 import { search } from "./commands/search.ts";
+import { session } from "./commands/session.ts";
 import { share } from "./commands/share.ts";
 import { similar } from "./commands/similar.ts";
 import { wait } from "./commands/wait.ts";
@@ -367,6 +368,11 @@ async function run(argv: string[], io: Io): Promise<number> {
   // A key in argv is already in shell history; say so, and never parse or echo it.
   if (argv.some((arg) => KEY_ARG.test(arg)))
     return output.fail(new CliError("KEY_IN_ARGV"));
+  // Bare taste in a terminal a person is at; a pipe, CI or a script gets the help instead.
+  if (argv.length === 0 && io.interactive && io.terminal?.tty && !io.env?.CI)
+    return session(() => createContext(io, output)).catch((error: unknown) =>
+      output.fail(error)
+    );
   const captured: Captured = { text: "" };
   try {
     await buildProgram(io, output, captured).parseAsync(argv, {

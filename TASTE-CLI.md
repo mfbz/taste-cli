@@ -6,7 +6,7 @@ taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engi
 
 ## Status
 
-Built: `taste --version`, `taste --help`, the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files and `--format design-md` to export one as a DESIGN.md, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`. Every other command below is planned: its section is filled in by the pull request that builds it.
+Built: `taste --version`, `taste --help`, the interactive session (bare `taste` in a terminal), the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files and `--format design-md` to export one as a DESIGN.md, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`. Every other command below is planned: its section is filled in by the pull request that builds it.
 
 ## What it is
 
@@ -69,7 +69,7 @@ Where a sign in is kept:
 
 Credits are real money. These rules hold for every command that spends them (today `extract`, `kit`, `check`, `search`, `similar` and `enhance`):
 
-- The command's `--help` says it spends credits. A command typed directly does not ask for confirmation: typing it is the decision. (The planned menu will confirm before spending.)
+- The command's `--help` says it spends credits. A command typed directly does not ask for confirmation: typing it is the decision. The interactive menu marks each action that spends credits `(uses credits)` and asks before spending.
 - Every flag, the address and the file are checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds. Not after a network failure, a timeout or any other 5xx; a busy search that stays busy ends with `SEARCH_BUSY`.
 - A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says where to look before running it again, never to try again: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, and for an enhancement, which no history lists, the credits in the Taste account. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
@@ -80,7 +80,26 @@ Credits are real money. These rules hold for every command that spends them (tod
 
 ### `taste`
 
-Planned.
+With no arguments, in an interactive terminal (stdin, stdout and stderr all terminals, `CI` unset), `taste` starts a session; anywhere else (a pipe, CI, `--json`, any argument) it prints the help as `taste --help` does, with no animation bytes.
+
+The session, all on stderr except each command's result:
+
+1. The opening (DESIGN.md, "The opening and the menu"): about half a second, skipped by any key or Ctrl-C; the last frame only without motion (`TASTE_NO_MOTION`, `NO_COLOR`, `TERM=dumb`); one line in a terminal narrower than 64 columns. The cursor is always shown again.
+2. One line on who taste is signed in as, read locally without a request: `Signed in as <email>.`, `Signed in with an API key.`, `Using an API key from TASTE_API_KEY.` or `Not signed in.`
+3. A menu: Extract a brand, Check brand adherence, Search brands, Brand kit from a PDF, Enhance a prompt (each marked `(uses credits)`), History, Sign in or Sign out (whichever applies), Quit.
+
+Each action asks for its inputs (an address is checked as `taste extract` checks it, under the field, as it is typed), asks `<what>? It uses credits.` before anything that spends them, then runs the same code as the command typed directly (`taste extract <url>`, `taste check <url> --against <url>`, `taste search <query>`, `taste kit <file>`, `taste enhance <prompt> --brand <brand>`, `taste history [list]`, `taste login`, `taste logout`), and comes back to the menu. A failed action shows its error and comes back to the menu too.
+
+- Ctrl-C (or Escape) at a prompt goes back to the menu without spending anything; at the menu it quits with exit 0.
+- Ctrl-C while an action runs ends the session the way it ends that command: exit 130, and for a started job the hint `taste wait <id>`.
+
+Acceptance (proven by `src/commands/session.test.ts` and `src/ui/opening.test.ts`):
+
+- Choosing Extract a brand and confirming runs the extraction and prints its summary; declining the confirm makes no request.
+- A private address is refused at the prompt, before any request.
+- Ctrl-C at a prompt returns to the menu; at the menu the session exits 0.
+- Not interactive, or with `CI` set: the help, and no `ESC[?25l` in the output.
+- Without motion the opening writes only its last frame; a key press jumps to the last frame; the cursor is shown again when drawing fails; a narrow terminal gets one line.
 
 ### `taste login`
 

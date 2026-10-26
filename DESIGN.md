@@ -1,6 +1,6 @@
 # DESIGN.md: how taste-cli looks and behaves in a terminal
 
-This file is binding for anything a person sees. The opening and most result layouts are not designed yet; each lands here with the change that builds it, and a test keeps the code and this file in step.
+This file is binding for anything a person sees. Each layout lands here with the change that builds it, and a test keeps the palette in the code and this file in step.
 
 ## Output modes
 
@@ -10,18 +10,36 @@ This file is binding for anything a person sees. The opening and most result lay
 
 ## Palette
 
-Placeholders: the colours observed on tastelabs.com, finalized with the brand pass. `src/output/theme.ts` holds them and a test keeps this table in step.
+The colours of tastelabs.com. `signal` is the one accent; nothing else competes with it. `src/output/theme.ts` holds them and a test keeps this table in step.
 
-| Name       | Hex       | Used for                  |
-| ---------- | --------- | ------------------------- |
-| `signal`   | `#FF3D00` | accent and errors         |
-| `acid`     | `#F2F04A` | warnings                  |
-| `electric` | `#1E7BFF` | reserved                  |
-| `success`  | `#3DDC84` | success                   |
-| `paper`    | `#F3F3EF` | the sign in page's text   |
-| `field`    | `#1B1B1B` | the sign in page's ground |
+| Name       | Hex       | Used for                                                         |
+| ---------- | --------- | ---------------------------------------------------------------- |
+| `signal`   | `#FF3D00` | the accent: the opening's wordmark, the spinner, errors with `✗` |
+| `acid`     | `#F2F04A` | warnings                                                         |
+| `electric` | `#1E7BFF` | reserved                                                         |
+| `success`  | `#3DDC84` | success, with `✓`                                                |
+| `paper`    | `#F3F3EF` | the sign in page's text                                          |
+| `field`    | `#1B1B1B` | the sign in page's ground                                        |
 
-In a terminal the user's own foreground and background are kept. Motion is off in CI, with `NO_COLOR`, `TERM=dumb` and `TASTE_NO_MOTION`.
+`paper` and `field` are never painted in a terminal: the user's own foreground and background are kept, so light themes stay readable. Motion is off in CI, with `NO_COLOR`, `TERM=dumb` and `TASTE_NO_MOTION`.
+
+## The opening and the menu
+
+Bare `taste` in an interactive terminal opens with the TASTE wordmark in our own block lettering (five rows, 58 columns; not Taste Labs' logo), in `signal`, and one dimmed line under it:
+
+```text
+██████████  ▄████████▄  ▄████████▄  ██████████  ██████████
+   ████     ████  ████  ████    ▀▀     ████     ████
+   ████     ██████████  ▀████████▄     ████     ████████
+   ████     ████  ████  ▄▄    ████     ████     ████
+   ████     ████  ████  ▀████████▀     ████     ██████████
+
+unofficial CLI for the Taste Engine · 0.0.0
+```
+
+It resolves in about half a second (12 frames, 45 ms apart): each cell of the wordmark fades in through `░ ▒ ▓` in the order of a 4×4 Bayer matrix as a threshold rises. The cursor is hidden while it plays and always shown again. Any key, or Ctrl-C, jumps to the last frame. Without motion only the last frame is drawn; without colour it is plain; in a terminal narrower than 64 columns it is one line: `TASTE · unofficial CLI for the Taste Engine`. It is drawn on stderr, and never outside an interactive terminal.
+
+Then one dimmed line says who taste is signed in as (`Signed in as <email>.`, `Signed in with an API key.`, `Using an API key from TASTE_API_KEY.` or `Not signed in.`), and a menu (`@clack/prompts`, in its own colours) lists the actions, each one that spends credits marked `(uses credits)`.
 
 ## The sign in page
 
