@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import pkg from "../../package.json" with { type: "json" };
 import { createContext } from "../context.ts";
 import type { Io } from "../io.ts";
 import { createOutput } from "../output/output.ts";
@@ -37,7 +38,9 @@ describe("the opening", () => {
   it("is our own lettering, 5 rows that fit 64 columns", () => {
     expect(WORDMARK).toHaveLength(5);
     for (const line of WORDMARK) expect(line.length).toBeLessThanOrEqual(64);
-    expect(settled).toContain("unofficial CLI for the Taste Engine · 0.0.0");
+    expect(settled).toContain(
+      `unofficial CLI for the Taste Engine · ${pkg.version}`
+    );
   });
 
   it("writes only the final frame without motion", async () => {
