@@ -6,7 +6,10 @@ import { TasteApiError } from "../src/api/client.ts";
 import type { TasteApi } from "../src/api/client.ts";
 import type { Envelope, Step } from "../src/api/fixtures.ts";
 import { jobCheck, waitForJob } from "../src/api/poll.ts";
-import type { SubmissionAccepted } from "../src/api/schemas.ts";
+import type {
+  AdherenceAccepted,
+  SubmissionAccepted,
+} from "../src/api/schemas.ts";
 
 type Exchange = { method: string; path: string; status: number; body: unknown };
 type Capture = { fetch: typeof globalThis.fetch; exchanges: Exchange[] };
@@ -18,7 +21,8 @@ type RunContext = {
   now: () => number;
   signal: AbortSignal;
   log: (line: string) => void;
-  // The id of the recording this recipe builds on (Recipe.needs), or one given with --id.
+  // The id of the recording this recipe builds on (Recipe.needs), or, for a job recipe, the job
+  // to pick up instead of posting a new one (--id).
   id?: string;
   kit?: Kit;
 };
@@ -30,6 +34,8 @@ type Recipe = {
   inputs: Readonly<Record<string, string>>;
   // A recipe whose recording gives this one its id.
   needs?: string;
+  // A job recipe: --id picks up a job already posted, with free polling only.
+  resumes?: boolean;
   run(c: RunContext): Promise<Recorded>;
 };
 type Recording = {
@@ -43,6 +49,11 @@ type Recording = {
 // Long jobs (a deep analysis, a brand kit) can take many minutes; waitForJob backs off meanwhile.
 const WAIT_MS = 20 * 60_000;
 const QUERY = "dark brutalist developer tools";
+// The status of a call sent but not answered (interrupted, or the network failed).
+const PENDING = 0;
+// Printed before the wait, so a timeout or Ctrl-C never costs a second paid call.
+const RESUME = (id: string) =>
+  `Job ${id}. If this stops, pick it up for free with --id ${id}.`;
 const MISSING_ID = "00000000-0000-4000-8000-00000000f404";
 
 function capture(fetch: typeof globalThis.fetch): Capture {
@@ -50,23 +61,26 @@ function capture(fetch: typeof globalThis.fetch): Capture {
   return {
     exchanges,
     fetch: async (input, init) => {
-      const response = await fetch(input, init);
       const url = new URL(
         input instanceof Request ? input.url : input.toString()
       );
-      const text = await response.clone().text();
-      let body: unknown = text;
-      try {
-        body = JSON.parse(text) as unknown;
-      } catch {
-        // Not JSON (a plain-text 500): kept as text.
-      }
-      exchanges.push({
+      // Logged before the request goes out: a paid call that never answers still shows up.
+      const exchange: Exchange = {
         method: init?.method ?? "GET",
         path: `${url.pathname}${url.search}`,
-        status: response.status,
-        body,
-      });
+        status: PENDING,
+        body: null,
+      };
+      exchanges.push(exchange);
+      const response = await fetch(input, init);
+      exchange.status = response.status;
+      const text = await response.clone().text();
+      try {
+        exchange.body = JSON.parse(text) as unknown;
+      } catch {
+        // Not JSON (a plain-text 500): kept as text.
+        exchange.body = text;
+      }
       return response;
     },
   };
@@ -131,12 +145,23 @@ async function wait<
   return { job, steps };
 }
 
+// A job recipe given --id picks that job up instead of posting a new one: free polling only.
 async function extraction(
   c: RunContext,
-  accepted: SubmissionAccepted
+  post: () => Promise<SubmissionAccepted>
 ): Promise<Recorded> {
+  let accepted: SubmissionAccepted;
+  if (c.id) {
+    const found = await c.api.getSubmission(c.id);
+    accepted = {
+      submission_id: found.submission_id,
+      status: found.status,
+      source_url: found.source_url,
+      accepted_at: found.accepted_at ?? "",
+    };
+  } else accepted = await post();
   const id = accepted.submission_id;
-  c.log(`Submission ${id}`);
+  c.log(RESUME(id));
   const { job, steps } = await wait(
     c,
     id,
@@ -160,12 +185,14 @@ async function check(
   reference: string,
   candidate: string
 ): Promise<Recorded> {
-  const accepted = await c.api.createAdherence({
-    reference_url: reference,
-    candidate_url: candidate,
-  });
+  const accepted: AdherenceAccepted = c.id
+    ? await c.api.getAdherence(c.id)
+    : await c.api.createAdherence({
+        reference_url: reference,
+        candidate_url: candidate,
+      });
   const id = accepted.job_id;
-  c.log(`Job ${id}`);
+  c.log(RESUME(id));
   const { job, steps } = await wait(
     c,
     id,
@@ -246,7 +273,8 @@ const RECIPES: readonly Recipe[] = [
     calls:
       "POST /design/submissions (full extraction), then free polling of the submission and its result",
     inputs: { url },
-    run: async (c) => extraction(c, await c.api.createSubmission({ url })),
+    resumes: true,
+    run: (c) => extraction(c, () => c.api.createSubmission({ url })),
   })),
   {
     name: "extract-selective",
@@ -254,10 +282,10 @@ const RECIPES: readonly Recipe[] = [
     calls:
       "POST /design/submissions with sections, then free polling of the submission and its result",
     inputs: { url: "https://linear.app/", sections: "colors,typography" },
-    run: async (c) =>
-      extraction(
-        c,
-        await c.api.createSubmission({
+    resumes: true,
+    run: (c) =>
+      extraction(c, () =>
+        c.api.createSubmission({
           url: "https://linear.app/",
           sections: ["colors", "typography"],
         })
@@ -279,10 +307,11 @@ const RECIPES: readonly Recipe[] = [
     calls:
       "POST /design/submissions/brand-kit (the PDF given with --file), then free polling",
     inputs: { file: "--file <path>" },
-    run: async (c) => {
-      const kit = need(c.kit, "--file <path> to a PDF");
-      return extraction(c, await c.api.createBrandKit(kit));
-    },
+    resumes: true,
+    run: (c) =>
+      extraction(c, () =>
+        c.api.createBrandKit(need(c.kit, "--file <path> to a PDF"))
+      ),
   },
   ...(["fast", "deep"] as const).map((depth): Recipe => ({
     name: `search-${depth}`,
@@ -310,6 +339,7 @@ const RECIPES: readonly Recipe[] = [
       reference: "https://www.tastelabs.com/",
       candidate: "https://www.tastelabs.com/research",
     },
+    resumes: true,
     run: (c) =>
       check(
         c,
@@ -326,6 +356,7 @@ const RECIPES: readonly Recipe[] = [
       reference: "https://www.tastelabs.com/",
       candidate: "https://stripe.com/",
     },
+    resumes: true,
     run: (c) => check(c, "https://www.tastelabs.com/", "https://stripe.com/"),
   },
   {
@@ -373,11 +404,15 @@ function findRecipe(name: string): Recipe | undefined {
   return RECIPES.find((recipe) => recipe.name === name);
 }
 
+function callLine(e: Exchange): string {
+  return `${e.method} ${e.path} ${e.status === PENDING ? "no answer" : e.status}`;
+}
+
 // Consecutive identical calls (a poll) are kept once, so the list reads as what the recipe did.
 function callList(exchanges: Exchange[]): string[] {
   const calls: string[] = [];
   for (const e of exchanges) {
-    const line = `${e.method} ${e.path} ${e.status}`;
+    const line = callLine(e);
     if (calls.at(-1) !== line) calls.push(line);
   }
   return calls;
@@ -394,5 +429,5 @@ async function record(recipe: Recipe, c: RunContext): Promise<Recording> {
   };
 }
 
-export { capture, findRecipe, record, RECIPES };
+export { callLine, capture, findRecipe, record, RECIPES };
 export type { Capture, Exchange, Kit, Recipe, Recording, RunContext };

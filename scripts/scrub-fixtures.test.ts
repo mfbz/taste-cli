@@ -109,6 +109,66 @@ describe("scrubFixture", () => {
   });
 });
 
+describe("scrubFixture, past the obvious fields", () => {
+  it("replaces a user id, key name and batch values wherever else they appear, calls included", () => {
+    const doc = raw({
+      me: { user_id: USER_ID },
+      job: {
+        api_key_name: "maintainer-laptop",
+        batch_id: "b-91f2",
+        batch_label: "launch week",
+        credit_ref_id: "cr-77aa",
+      },
+      artifact: `https://cdn.example.com/u/${USER_ID}/shot.png`,
+      note: "made with maintainer-laptop",
+    });
+    doc.calls.push(`GET /design/submissions?user=${USER_ID} 200`);
+    const text = JSON.stringify(scrubFixture(doc));
+    for (const value of [
+      USER_ID,
+      "maintainer-laptop",
+      "b-91f2",
+      "launch week",
+      "cr-77aa",
+    ])
+      expect(text).not.toContain(value);
+    expect(text).toContain("/u/00000000-0000-4000-8000-000000000001/shot.png");
+  });
+
+  it("strips the query and fragment from URLs off the Taste API, so signatures go", () => {
+    const signed =
+      "https://bucket.s3.amazonaws.com/a/b.png?X-Amz-Signature=abc123&X-Amz-Credential=me#top";
+    const google =
+      "https://storage.googleapis.com/x/y.css?X-Goog-Signature=9f&token=t1";
+    const out = scrubFixture(
+      raw({
+        url: signed,
+        text: `see ${google} now`,
+        api: "https://api.tastelabs.com/design/submissions?limit=5",
+      })
+    ) as { data: Record<string, string> };
+    expect(out.data.url).toBe("https://bucket.s3.amazonaws.com/a/b.png");
+    expect(out.data.text).toBe(
+      "see https://storage.googleapis.com/x/y.css now"
+    );
+    expect(out.data.api).toBe(
+      "https://api.tastelabs.com/design/submissions?limit=5"
+    );
+  });
+
+  it("scrubs a percent-encoded email", () => {
+    const encoded = EMAIL.replace("@", "%40");
+    const text = JSON.stringify(
+      scrubFixture(
+        raw({ link: `https://example.com/?to=${encoded}` }),
+        undefined
+      )
+    );
+    expect(text).not.toContain(encoded);
+    expect(text).not.toContain("maintainer");
+  });
+});
+
 describe("scrubFiles", () => {
   function setup(files: Record<string, unknown>) {
     const from = join(dir, "tmp-fixtures");
@@ -153,6 +213,95 @@ describe("scrubFiles", () => {
     await expect(scrubFiles({ from, to, home: homedir() })).rejects.toThrow(
       /odd\.json/
     );
+  });
+
+  it("keeps only the history entries a recorded recipe created, and recounts the totals", async () => {
+    const extraction = {
+      ...raw({ accepted: { submission_id: "sub-mine" } }),
+      recipe: "extract-full",
+    };
+    const search = {
+      ...raw({ results: { search_id: "s-mine" } }),
+      recipe: "search-fast",
+    };
+    const entry = (id: string, url: string) => ({
+      submission_id: id,
+      status: "completed",
+      source_url: url,
+      is_public: false,
+    });
+    const history = {
+      ...raw({
+        submissions: {
+          submissions: [
+            entry("sub-mine", "https://www.tastelabs.com/"),
+            entry("sub-private", "https://secret-client.example/roadmap"),
+          ],
+          total: 312,
+          limit: 20,
+          offset: 0,
+          totals: { completed: 300, failed: 12, in_progress: 0 },
+        },
+        searches: {
+          submissions: [
+            {
+              id: "s-mine",
+              kind: "search",
+              query: "dark brutalist developer tools",
+              status: "completed",
+            },
+            {
+              id: "s-private",
+              kind: "search",
+              query: "competitor teardown",
+              status: "completed",
+            },
+          ],
+          total: 40,
+          total_by_status: { completed: 40 },
+        },
+        adherence: {
+          jobs: [
+            {
+              job_id: "j-private",
+              reference_url: "https://a.example/",
+              candidate_url: "https://b.example/",
+            },
+          ],
+          total: 9,
+        },
+      }),
+      recipe: "history",
+    };
+    const { from, to } = setup({
+      "extract-full": extraction,
+      "search-fast": search,
+      history,
+    });
+    await scrubFiles({ from, to, home: homedir(), names: ["history"] });
+    const text = readFileSync(join(to, "history.json"), "utf8");
+    for (const gone of [
+      "sub-private",
+      "secret-client",
+      "s-private",
+      "competitor",
+      "j-private",
+      "a.example",
+      "312",
+    ])
+      expect(text).not.toContain(gone);
+    const out = JSON.parse(text) as {
+      data: Record<string, Record<string, unknown>>;
+    };
+    expect(out.data.submissions).toMatchObject({
+      total: 1,
+      totals: { completed: 1, failed: 0, in_progress: 0 },
+    });
+    expect(out.data.searches).toMatchObject({
+      total: 1,
+      total_by_status: { completed: 1 },
+    });
+    expect(out.data.adherence).toMatchObject({ jobs: [], total: 0 });
   });
 
   it("scrubs only the recipes it is given", async () => {

@@ -7,12 +7,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTasteApi } from "../src/api/client.ts";
 import { createFakeApi } from "../src/api/fake-api.ts";
 import { fixtureState, loadFixtures } from "../src/api/fixtures.ts";
-import { capture, findRecipe, record, RECIPES } from "./fixture-recipes.ts";
+import {
+  callLine,
+  capture,
+  findRecipe,
+  record,
+  RECIPES,
+} from "./fixture-recipes.ts";
 import type { Recording } from "./fixture-recipes.ts";
 import { createLibrary } from "./mock-data.ts";
 import { startMock } from "./mock-server.ts";
 import type { Mock } from "./mock-server.ts";
-import { approve, dependencyId, describeRecipe } from "./record-fixtures.ts";
+import {
+  approve,
+  dependencyId,
+  describeRecipe,
+  spends,
+} from "./record-fixtures.ts";
 import { scrubFiles } from "./scrub-fixtures.ts";
 
 const KEY = ["taste", "mock", "rec"].join("_");
@@ -31,7 +42,10 @@ afterEach(async () => {
 });
 
 // Records one recipe against the local mock, exactly as the recorder does against Taste.
-async function recordAgainstMock(name: string): Promise<Recording> {
+async function recordAgainstMock(
+  name: string,
+  given?: string
+): Promise<Recording> {
   const recipe = findRecipe(name)!;
   const captured = capture(globalThis.fetch);
   const recording = await record(recipe, {
@@ -49,7 +63,7 @@ async function recordAgainstMock(name: string): Promise<Recording> {
     now: () => 0,
     signal: new AbortController().signal,
     log: () => {},
-    id: dependencyId(recipe, dir),
+    id: dependencyId(recipe, dir, given),
     kit: {
       name: "sample-guidelines.pdf",
       bytes: new Uint8Array([37, 80, 68, 70]),
@@ -98,6 +112,52 @@ describe("the fixture recipes", () => {
       result: { status: "completed" },
     });
     expect(recording.calls[0]).toBe("POST /design/submissions 202");
+  });
+
+  it("pick up a posted job with --id, polling only, never posting again", async () => {
+    const api = createTasteApi({
+      fetch: globalThis.fetch,
+      baseUrl: mock.url,
+      auth: {
+        header: () => Promise.resolve({ "x-api-key": KEY }),
+        onUnauthorized: () => Promise.resolve(false),
+      },
+      sleep: () => Promise.resolve(),
+    });
+    const posted = await api.createSubmission({ url: "https://stripe.com/" });
+    const job = await api.createAdherence({
+      reference_url: "https://www.tastelabs.com/",
+      candidate_url: "https://stripe.com/",
+    });
+    const extraction = await recordAgainstMock(
+      "extract-full-2",
+      posted.submission_id
+    );
+    expect(extraction.calls.some((c) => c.startsWith("POST"))).toBe(false);
+    expect(extraction.data).toMatchObject({
+      accepted: { submission_id: posted.submission_id },
+      result: { status: "completed" },
+    });
+    const check = await recordAgainstMock("check-fail", job.job_id);
+    expect(check.calls.some((c) => c.startsWith("POST"))).toBe(false);
+    expect(check.data).toMatchObject({ verdict: { job_id: job.job_id } });
+    expect(spends(findRecipe("extract-full")!, posted.submission_id)).toBe(
+      false
+    );
+    expect(spends(findRecipe("extract-full")!)).toBe(true);
+    expect(spends(findRecipe("similar")!, "some-id")).toBe(true);
+  });
+
+  it("log a call before it is sent, so one that never answers is still listed", async () => {
+    const captured = capture(() => Promise.reject(new Error("network down")));
+    await expect(
+      captured.fetch(new URL("/design/submissions", mock.url), {
+        method: "POST",
+      })
+    ).rejects.toThrow();
+    expect(captured.exchanges.map(callLine)).toEqual([
+      "POST /design/submissions no answer",
+    ]);
   });
 
   it("record a refusal as its status and raw envelope", async () => {

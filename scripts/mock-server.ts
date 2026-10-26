@@ -1,8 +1,9 @@
-// A local stand-in for the Taste Engine, for demos and end-to-end tests: every endpoint taste-cli calls,
-// answering from the fixtures (or synthetic data) with the API's own envelopes. A job moves one step
-// every few seconds, so a wait loop sees accepted, the steps, then completed; in fast mode (tests) it
-// moves one step per status read instead, and a result read shows the step it is on. Not an emulator: no real extraction, no persistence. Magic inputs:
-// a URL on a .invalid host makes the job fail; --credits sets the balance that ends in a 402.
+// A local stand-in for the Taste Engine, for demos and end-to-end tests: every endpoint taste-cli
+// calls, answering from the fixtures (or synthetic data) with the API's own envelopes. A job moves
+// one step every few seconds, so a wait loop sees accepted, the steps, then completed; in fast mode
+// (tests) it moves one step per status read instead, and a result read shows the step it is on.
+// Not an emulator: no real extraction, no persistence. Magic inputs: a URL on a .invalid host makes
+// the job fail; --credits sets the balance that ends in a 402.
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -436,7 +437,8 @@ function startMock(options: MockOptions & { port?: number }): Promise<Mock> {
           });
           response.end(JSON.stringify(answer.body));
         })
-        // A body that never arrives whole, or a bug here: the API's plain-text 500, and keep serving.
+        // A body that never arrives whole, or a bug here: the API's plain-text
+        // 500, and the mock keeps serving.
         .catch(() => {
           if (!response.headersSent)
             response.writeHead(500, { "content-type": "text/plain" });

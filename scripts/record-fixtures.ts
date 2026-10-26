@@ -2,7 +2,9 @@
 // Records one recipe against the Taste Engine with the CLI's own client, auth provider and stored
 // sign in (or TASTE_API_KEY), and writes the raw answers to tmp-fixtures/<recipe>.json, never into
 // src/ (npm run fixtures:scrub does that). A paid recipe says what it will call and waits for the
-// maintainer to type yes at a terminal; without a terminal it refuses. One recipe per run, no retries.
+// maintainer to type yes at a terminal; without a terminal it refuses. One recipe per run, and the
+// recorder never repeats a paid call (the client retries only search's 503, which Taste refunds).
+// A job recipe given --id picks up a job already posted, for free.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -16,7 +18,13 @@ import { processIo } from "../src/io.ts";
 import { CliError } from "../src/output/errors.ts";
 import { createOutput } from "../src/output/output.ts";
 import { createTheme } from "../src/output/theme.ts";
-import { capture, findRecipe, record, RECIPES } from "./fixture-recipes.ts";
+import {
+  callLine,
+  capture,
+  findRecipe,
+  record,
+  RECIPES,
+} from "./fixture-recipes.ts";
 import type { Kit, Recipe } from "./fixture-recipes.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -28,13 +36,21 @@ function listRecipes(): string {
   ).join("\n");
 }
 
-function describeRecipe(recipe: Recipe, apiUrl: string): string {
+// A job recipe picking up a posted job only polls, which is free.
+function spends(recipe: Recipe, id?: string): boolean {
+  return recipe.paid && !(recipe.resumes && id);
+}
+
+function describeRecipe(recipe: Recipe, apiUrl: string, id?: string): string {
   const inputs = Object.entries(recipe.inputs).map(([k, v]) => `  ${k}: ${v}`);
+  const resuming = recipe.resumes && id;
   return [
     `Recipe ${recipe.name} against ${apiUrl}`,
-    `Calls: ${recipe.calls}`,
-    ...(inputs.length ? ["Inputs:", ...inputs] : []),
-    recipe.paid
+    resuming
+      ? `Calls: free polling of job ${id}, already posted`
+      : `Calls: ${recipe.calls}`,
+    ...(inputs.length && !resuming ? ["Inputs:", ...inputs] : []),
+    spends(recipe, id)
       ? "This spends credits from the signed-in account. Taste does not publish prices: note the balance before and after, and log it in the pull request."
       : "Free: reads only.",
   ].join("\n");
@@ -114,9 +130,9 @@ async function main(): Promise<number> {
     if (values.file)
       kit = { name: basename(values.file), bytes: readFileSync(values.file) };
     process.stderr.write(
-      `${describeRecipe(recipe, apiUrl)}\nSigned in with: ${identity.method}\n`
+      `${describeRecipe(recipe, apiUrl, id)}\nSigned in with: ${identity.method}\n`
     );
-    if (recipe.paid) {
+    if (spends(recipe, id)) {
       const interactive = io.interactive === true;
       if (!interactive)
         process.stderr.write(
@@ -162,7 +178,7 @@ async function main(): Promise<number> {
   } catch (error) {
     // What was sent before the failure, so a paid call that failed can still be logged.
     process.stderr.write(
-      `Calls made:\n${captured.exchanges.map((e) => `  ${e.method} ${e.path} ${e.status}`).join("\n") || "  none"}\n`
+      `Calls made:\n${captured.exchanges.map((e) => `  ${callLine(e)}`).join("\n") || "  none"}\n`
     );
     if (error instanceof CliError || error instanceof TasteApiError)
       return output.fail(error);
@@ -181,4 +197,4 @@ if (import.meta.main)
     }
   );
 
-export { approve, dependencyId, describeRecipe, listRecipes };
+export { approve, dependencyId, describeRecipe, listRecipes, spends };
