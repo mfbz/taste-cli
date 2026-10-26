@@ -56,8 +56,8 @@
       "Read(./**/credentials.json)",
       "Read(~/.config/taste-cli/**)",
       "Read(~/AppData/Roaming/taste-cli/**)",
-      "Bash(npm run fixtures:record*--yes*)",
-      "Bash(node scripts/record-fixtures.ts*--yes*)"
+      "Bash(*fixtures:record*--yes*)",
+      "Bash(*record-fixtures*--yes*)"
     ]
   }
 }
