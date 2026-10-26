@@ -502,7 +502,8 @@ describe("createTasteApi retries", () => {
     const { api } = setup([
       { status: 200, body: { enhanced_prompt: "p", submission_id: "s" } },
     ]);
-    await api.enhance({ submission_id: "s", prompt: "p" }).catch(() => {});
+    const answer = await api.enhance({ submission_id: "s", prompt: "p" });
+    expect(answer.enhanced_prompt).toBe("p");
     expect(timeout).toHaveBeenCalledWith(120_000);
     timeout.mockRestore();
   });

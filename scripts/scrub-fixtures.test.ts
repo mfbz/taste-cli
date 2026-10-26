@@ -186,6 +186,14 @@ describe("check", () => {
   });
 });
 
+describe("the committed fixtures", () => {
+  // A later hand edit of a recording must not slip anything personal past npm test.
+  it("all pass the check", () => {
+    for (const [name, doc] of Object.entries(loadFixtures()))
+      expect(check(name, doc)).toEqual([]);
+  });
+});
+
 describe("the hand-written fixtures", () => {
   const fixtures = loadFixtures();
 
