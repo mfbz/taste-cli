@@ -39,10 +39,10 @@ const CREDITS_NOTE =
   "\nSpends credits from your Taste account; a failed job is refunded. Ctrl-C stops waiting, not the job: taste wait <id> picks it up for free.";
 // Search, similar and enhance answer at once: there is no job to pick up, and a request that failed
 // on the way may still have been charged.
-const PAID_NOTE =
-  "\nSpends credits from your Taste account. A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.";
+const SPENDS = "\nSpends credits from your Taste account.";
+const PAID_NOTE = `${SPENDS} A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.`;
 const LISTED_NOTE = `${PAID_NOTE} A failed request is refunded. If it fails on the way, check taste history searches before you run it again.`;
-const ENHANCE_NOTE = `${PAID_NOTE} If it fails on the way it may still have been charged: enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.`;
+const ENHANCE_NOTE = `${SPENDS} It is never retried by itself. If it fails on the way it may still have been charged: enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.`;
 const BRAND_HELP =
   "an extraction's id, or the address of a site you extracted in full (looked up for free)";
 const SEARCH_FILTERS = `\nIndustries: ${INDUSTRY.options.join(", ")}.\nPage types: ${PAGE_TYPE.options.join(", ")}.`;

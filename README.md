@@ -60,7 +60,7 @@ Free: no credits are spent.
 
 | Command        | Prints                                                                                                                           |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `taste login`  | `✓ Signed in as <email>.`, or with a key `✓ Signed in as <email> with an API key.`                                               |
+| `taste login`  | `✓ Signed in as <email>.`, or with a key `✓ Signed in as <email> with an API key.` (`✓ Signed in.` when Taste returns no email)  |
 | `taste whoami` | `Signed in as <email> (browser session).`, `Signed in as <email> (API key).` or `Using an API key from TASTE_API_KEY (<email>).` |
 | `taste logout` | `✓ Signed out.` Signing out twice is not an error. It doesn't sign the browser out of Taste.                                     |
 
@@ -270,9 +270,9 @@ taste reads only its flags and these environment variables, never a `.env` or a 
 | `NO_COLOR`        | Set and not empty: no colour and no animation                                                                                                                                                                                                 |
 | `FORCE_COLOR`     | Colour even without a terminal: `2` for 256 colours, `3` for truecolor, anything else for 16; `0` or `false` is ignored                                                                                                                       |
 | `CI`              | Set: no animation                                                                                                                                                                                                                             |
-| `TERM=dumb`       | No colour and no animation                                                                                                                                                                                                                    |
+| `TERM=dumb`       | No colour unless `FORCE_COLOR` is set, and no animation                                                                                                                                                                                       |
 
-A pipe gets plain text: no colour and no animation. Progress redraws one line in place only in a terminal that allows motion; elsewhere each step is one plain line.
+A pipe gets plain text unless `FORCE_COLOR` is set, and never animation. Progress redraws one line in place only in a terminal that allows motion; elsewhere each step is one plain line.
 
 ## Development
 
