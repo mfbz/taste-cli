@@ -5,7 +5,7 @@ import { renderDesignMd } from "./render.ts";
 
 const META = {
   // Pinned so the goldens don't change when a release stamps the version.
-  generator: "taste-cli 0.0.0",
+  generator: "taste-cli 0.0.1",
   extractedAt: "2026-10-26",
 };
 // Golden name to recorded fixture.

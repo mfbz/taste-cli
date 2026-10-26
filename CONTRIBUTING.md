@@ -73,7 +73,7 @@ If a guard trips:
 Nothing is published, and nothing can be while the repository is private: the release workflow refuses to run then. Once it is public, releases are by hand only:
 
 - `.github/workflows/release.yml` runs from **Actions → Release → Run workflow** on `main`, with a version (`x.y.z`). It stamps the version, runs `npm run check`, packs, publishes to npm with provenance through trusted publishing (no npm token anywhere), and creates the GitHub release `vx.y.z` with notes from the merged pull request titles.
-- Versions live in tags only: `package.json` says `0.0.0`, so the code never states a version that could drift.
+- The first version is `0.0.1`, which `package.json` holds; each release stamps the version it publishes, and its tag records it.
 - Pull request titles become the release notes: write them for the people who use taste-cli.
 
 ## Repository settings (maintainer)

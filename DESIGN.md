@@ -29,7 +29,7 @@ Labels (`palette`, `type`, `score`, `recommendations`, a table's header) are sho
 Bare `taste` in an interactive terminal opens with one line and a rule under it:
 
 ```text
-◇ taste  the Taste Engine, in your terminal  0.0.0
+◇ taste  the Taste Engine, in your terminal  0.0.1
 ──────────────────────────────────────────────────────────
 ```
 

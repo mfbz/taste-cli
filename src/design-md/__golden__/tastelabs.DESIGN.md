@@ -194,4 +194,4 @@ Motion is primarily JS-driven (GSAP) with only basic CSS transitions for micro-i
 
 The component palette is highly restrained—relying almost exclusively on text-based buttons with arrow icons rather than filled CTAs, reinforcing the minimalist technical brand identity.
 
-Extracted from https://www.tastelabs.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial).
+Extracted from https://www.tastelabs.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.1 (unofficial).

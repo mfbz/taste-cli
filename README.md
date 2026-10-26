@@ -214,7 +214,7 @@ taste extract stripe.com --format design-md --out stripe          # print it, an
 - It follows the DESIGN.md format version `alpha`: front matter with `name`, `description` and the tokens (`colors`, `typography`, `spacing`, `components`), then the sections Overview, Colors, Typography, Layout, Elevation & Depth, Components and Do's and Don'ts.
 - Only what the extraction holds is written. A token or section with nothing behind it is left out, never guessed. Token names are the extraction's own, such as `blurple` or `heading-xl`.
 - It is rendered on your computer from the result: no extra request, no extra credits.
-- It ends with where and when it was extracted: `Extracted from https://stripe.com/ on 2026-10-20 with the Taste Engine, via taste-cli 0.0.0 (unofficial).`
+- It ends with where and when it was extracted: `Extracted from https://stripe.com/ on 2026-10-20 with the Taste Engine, via taste-cli 0.0.1 (unofficial).`
 - `--json` still prints the result as Taste sent it.
 
 How each field maps, and the examples rendered from recorded results, are in [TASTE-CLI.md](TASTE-CLI.md) and `src/design-md/__golden__/`.

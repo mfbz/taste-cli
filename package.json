@@ -1,6 +1,6 @@
 {
   "name": "@mfbz/taste-cli",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Unofficial CLI for the Taste Engine design API. Extract brands, search, check brand adherence and export DESIGN.md from your terminal, your CI or your agent.",
   "license": "MIT",
   "type": "module",

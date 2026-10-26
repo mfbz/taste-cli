@@ -296,4 +296,4 @@ Heavy use of CSS custom properties (--hds-*) enables theming between light/dark 
 
 Interactive elements follow a consistent disabled state pattern: 0.5 opacity background tint, muted gray text (#95A4BA), and cursor: default/not-allowed.
 
-Extracted from https://stripe.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.0 (unofficial).
+Extracted from https://stripe.com/ on 2026-10-26 with the Taste Engine, via taste-cli 0.0.1 (unofficial).
