@@ -390,8 +390,18 @@ const SAVE_HINTS: Partial<Record<ErrorCode, string>> = {
   SAVE_FAILED: `${SAVE_AGAIN}, and --overwrite if it has files, to save it for free.`,
 };
 
+// A save stopped by a sign in or credit problem keeps that code and hint, with the job's id added.
+const KEPT_ON_SAVE = new Set<ErrorCode>([
+  "NOT_SIGNED_IN",
+  "SESSION_EXPIRED",
+  "INVALID_API_KEY",
+  "FORBIDDEN",
+  "INSUFFICIENT_CREDITS",
+]);
+
 const DETAIL_CODES = new Set<ErrorCode>([
   "BUNDLE_INCOMPLETE",
+  ...KEPT_ON_SAVE,
   ...(Object.keys(SAVE_HINTS) as ErrorCode[]),
   "INTERRUPTED",
   "WAIT_TIMEOUT",
@@ -419,6 +429,18 @@ class CliError extends Error {
   }
 }
 
+// A manifest path made safe to show anywhere: no URL (a signed link stays out), no control
+// characters, key-shaped tokens redacted, at most 120 characters.
+function cleanPath(value: string): string {
+  if (/:\/\/|[?#]/.test(value)) return "…";
+  const path = [...value.replace(CONTROL, "").replace(KEY_TOKEN, "…")];
+  const cut =
+    path.length > TEXT_LIMIT
+      ? `${path.slice(0, TEXT_LIMIT - 1).join("")}…`
+      : path.join("");
+  return cut === "" ? "…" : cut;
+}
+
 function fill(template: string, params: Params): string {
   return template.replace(/\{(\w+)\}/g, (_match, name: string) => {
     const value = String(params[name] ?? "");
@@ -427,15 +449,7 @@ function fill(template: string, params: Params): string {
       const text = value.trim().slice(0, TEXT_LIMIT).replace(KEY_TOKEN, "…");
       return text === "" ? "…" : text;
     }
-    if (PATH_PARAMS.has(name)) {
-      if (/:\/\/|[?#]/.test(value)) return "…";
-      const path = value.replace(CONTROL, "").replace(KEY_TOKEN, "…");
-      const cut =
-        [...path].length > TEXT_LIMIT
-          ? `${[...path].slice(0, TEXT_LIMIT - 1).join("")}…`
-          : path;
-      return cut === "" ? "…" : cut;
-    }
+    if (PATH_PARAMS.has(name)) return cleanPath(value);
     if (KEY_SHAPED.test(value)) return "…";
     const safe = NAME_PARAMS.has(name)
       ? NAME.test(value) && !KEY_PREFIX.test(value)
@@ -550,12 +564,30 @@ function whileWaiting(error: unknown, id: string): unknown {
 function whileSaving(error: unknown, id: string): unknown {
   if (error instanceof CliError) {
     if (error.code === "INTERRUPTED") return whileWaiting(error, id);
-    if (error.code === "BUNDLE_INCOMPLETE" || SAVE_HINTS[error.code])
+    if (
+      error.code === "BUNDLE_INCOMPLETE" ||
+      SAVE_HINTS[error.code] ||
+      KEPT_ON_SAVE.has(error.code)
+    )
       return new CliError(
         error.code,
         { ...error.params, id },
         { cause: error }
       );
+  }
+  // Sign in and credit problems keep their own words: saving again won't help until they are fixed.
+  if (isUpstreamError(error)) {
+    const code = upstreamReport(error).code as ErrorCode;
+    if (KEPT_ON_SAVE.has(code)) {
+      const credits: Params =
+        code === "INSUFFICIENT_CREDITS"
+          ? {
+              balance: error.balance ?? "unknown",
+              required: error.required ?? "unknown",
+            }
+          : {};
+      return new CliError(code, { ...credits, id }, { cause: error });
+    }
   }
   return new CliError("SAVE_FAILED", { id }, { cause: error });
 }
@@ -570,6 +602,7 @@ function toErrorReport(error: unknown): FullReport {
 
 export {
   CATALOGUE,
+  cleanPath,
   CliError,
   isUpstreamError,
   toErrorReport,

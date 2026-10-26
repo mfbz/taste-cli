@@ -1,4 +1,5 @@
 import {
+  chmod,
   mkdir,
   mkdtemp,
   readdir,
@@ -503,7 +504,7 @@ describe("taste extract --out", () => {
         submission_id: "sub-1",
         files: [
           { path: "guidelines.json", content: "{}" },
-          { path, url: "https://cdn.example.com/x.avif?token=signed" },
+          { path, url: "https://brand.example.com/x.avif" },
         ],
       },
     };
@@ -512,11 +513,10 @@ describe("taste extract --out", () => {
     const run = await runCli(["extract", "stripe.com", "--out", out], human.io);
     expect(run.code).toBe(0);
     expect(run.err).toContain(
-      `warning: Skipped a file whose download is gone: ${path} (404)`
+      `warning: Skipped a file whose download is gone or too large: ${path} (404)`
     );
     expect(run.err).toContain("Saved 1 file to");
     expect(run.err).toContain("skipped 1");
-    expect(run.err).not.toContain("token=signed");
     expect(await readdir(out)).toEqual(["guidelines.json"]);
 
     const json = seams({ manifests: files });
@@ -560,5 +560,100 @@ describe("taste extract --out", () => {
       details: { id: "sub-1" },
     });
     expect(JSON.stringify(doc())).not.toContain("token=signed");
+  });
+
+  it("never skips a refused signed link, which a fresh run may fix", async () => {
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [
+            { path: "a.txt", content: "a" },
+            {
+              path: "crawl/full.jpg",
+              url: "https://cdn.example.com/full.jpg?token=signed",
+            },
+          ],
+        },
+      },
+    });
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "signed"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.message).toContain("crawl/full.jpg");
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+    expect(JSON.stringify(doc())).not.toContain("token=signed");
+  });
+
+  it("refuses a folder others can write to before spending anything", async () => {
+    if (process.platform === "win32") return;
+    await chmod(base, 0o777);
+    const { api, io } = seams();
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", base, "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("BUNDLE_PATH_UNSAFE");
+    expect(api.calls).toEqual([]);
+  });
+
+  it("keeps a sign in or credit problem under its own code, with the job's id", async () => {
+    for (const [error, code] of [
+      [new TasteApiError(401, {}), "INVALID_API_KEY"],
+      [
+        new TasteApiError(402, { balance: 0, required: 1 }),
+        "INSUFFICIENT_CREDITS",
+      ],
+      [new CliError("NOT_SIGNED_IN"), "NOT_SIGNED_IN"],
+    ] as const) {
+      const { io } = seams({ errors: { getManifest: error } });
+      const { doc } = await runCli(
+        ["extract", "stripe.com", "--out", join(base, code), "--json"],
+        io
+      );
+      expect(doc().error, code).toMatchObject({
+        code,
+        retryable: false,
+        details: { id: "sub-1" },
+      });
+    }
+  });
+
+  it("cleans a skipped path in the warning as it would in an error", async () => {
+    const key = ["taste", "live", "x".repeat(32)].join("_");
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [
+            { path: "a.txt", content: "a" },
+            {
+              path: `assets/${key}.png`,
+              url: "https://brand.example.com/k.png",
+            },
+            {
+              path: `assets/${"long-name-".repeat(20)}.png`,
+              url: "https://brand.example.com/l.png",
+            },
+          ],
+        },
+      },
+    });
+    const { code, err } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "clean")],
+      io
+    );
+    expect(code).toBe(0);
+    expect(err).not.toContain(key);
+    expect(err).toContain("assets/… (404)");
+    expect(err).not.toContain("long-name-".repeat(20));
   });
 });

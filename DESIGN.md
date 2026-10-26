@@ -81,11 +81,11 @@ With `--out`, one more line on stderr once the files are saved, before the summa
 ✓ Saved 23 files to stripe
 ```
 
-When the download of an asset is gone for good, the line counts it, and one warning names it by path and status:
+When an asset is gone for good (refused at an unsigned address, or too large), the line counts it, and one warning names it by path and status:
 
 ```text
 ✓ Saved 79 files to taste, skipped 1
-warning: Skipped a file whose download is gone: site-assets/media/image/hero.avif (403)
+warning: Skipped a file whose download is gone or too large: site-assets/media/image/hero.avif (403)
 ```
 
 ## History

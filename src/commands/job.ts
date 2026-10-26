@@ -12,7 +12,12 @@ import type {
 import type { Context } from "../context.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
 import type { Saved, Skipped } from "../download/bundle.ts";
-import { CliError, whileSaving, whileWaiting } from "../output/errors.ts";
+import {
+  cleanPath,
+  CliError,
+  whileSaving,
+  whileWaiting,
+} from "../output/errors.ts";
 import { plain } from "../output/output.ts";
 import { startProgress } from "../output/progress.ts";
 import { brandName, renderBrandSummary } from "../render/brand-summary.ts";
@@ -104,7 +109,8 @@ async function saveFiles(
       signal: ctx.signal,
     });
   } catch (error) {
-    throw whileSaving(error, id);
+    // explain first, so a session's final 401 is SESSION_EXPIRED, as anywhere else.
+    throw whileSaving(ctx.auth.explain(error), id);
   }
   const { written, skipped } = saved;
   const files = written.length === 1 ? "file" : "files";
@@ -115,11 +121,11 @@ async function saveFiles(
   if (skipped.length) {
     const named = skipped
       .slice(0, SKIPPED_SHOWN)
-      .map((s) => `${plain(s.path)} (${s.status})`);
+      .map((s) => `${plain(cleanPath(s.path))} (${s.status})`);
     const more = skipped.length - named.length;
     if (more > 0) named.push(`and ${more} more`);
     ctx.output.warn(
-      `Skipped ${skipped.length === 1 ? "a file" : `${skipped.length} files`} whose download is gone: ${named.join(", ")}`
+      `Skipped ${skipped.length === 1 ? "a file" : `${skipped.length} files`} whose download is gone or too large: ${named.join(", ")}`
     );
   }
   return skipped;

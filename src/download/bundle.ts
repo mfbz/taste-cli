@@ -26,7 +26,7 @@ type BundleDeps = {
   // A seam for tests that make a write fail halfway.
   open?: typeof open;
 };
-type Skipped = { path: string; status: number };
+type Skipped = { path: string; status: number | "too large" };
 type Saved = { written: string[]; skipped: Skipped[] };
 type Planned = {
   // Relative, joined with "/", as reported back.
@@ -47,12 +47,18 @@ const BAD_SEGMENT = /[:<>"|?*\u0000-\u001f\u007f-\u009f]|[. ]$/;
 const RESERVED = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\..*)?$/i;
 const NEW_FOLDER_MODE = 0o700;
 
-// The one rule for a download that fails: a permanent refusal (a 4xx other than 408 timeout and 429
-// too many requests) means the asset is gone, often from the brand's own site, and is skipped; any
-// other failure (network, timeout, 5xx, 408, 429) may pass, so it stops the save. Returns the status
-// of a skip, or undefined.
-function goneForGood(error: unknown): number | undefined {
-  if (!(error instanceof CliError) || error.code !== "DOWNLOAD_FAILED")
+// The one rule for a download that fails. Skipped, as gone for good: an asset over the size cap (it
+// is as large on every run), and a 4xx other than 408 and 429 from an unsigned address (a brand's own
+// site that no longer serves it). Everything else stops the save, since a later run may succeed: a
+// network failure, a timeout, a 5xx, 408 or 429, and any refusal of a signed link (one with a query),
+// whose signature may simply have expired; each run gets fresh links. Returns the skip's status.
+function goneForGood(
+  error: unknown,
+  url: string
+): Skipped["status"] | undefined {
+  if (!(error instanceof CliError)) return undefined;
+  if (error.code === "DOWNLOAD_TOO_LARGE") return "too large";
+  if (error.code !== "DOWNLOAD_FAILED" || URL.parse(url)?.search)
     return undefined;
   const status = error.params.status;
   if (typeof status !== "number" || status < 400 || status > 499)
@@ -181,13 +187,18 @@ async function walk(
 // Before a paid job starts, so a folder that can't take the files costs nothing. Creates nothing.
 async function checkOutDir(dir: string, overwrite: boolean): Promise<void> {
   let entries: string[];
+  let real: string;
+  let info: Stats;
   try {
-    const info = await lstatOrNull(resolve(dir));
-    if (info === null) return;
+    if ((await lstatOrNull(resolve(dir))) === null) return;
     entries = await readdir(dir);
+    real = await realpath(dir);
+    info = await lstat(real);
   } catch (error) {
     throw new CliError("OUTPUT_UNUSABLE", {}, { cause: error });
   }
+  // A folder that is there already must be the person's own, checked before anything is paid for.
+  checkFolder(real, info, new Set());
   if (entries.length > 0 && !overwrite) throw new CliError("OUTPUT_EXISTS");
 }
 
@@ -235,8 +246,10 @@ async function writeBundle(deps: BundleDeps): Promise<Saved> {
     try {
       await saveOne(file);
     } catch (error) {
-      const status = goneForGood(error);
+      const status = goneForGood(error, file.url ?? "");
       if (status !== undefined) {
+        // With --overwrite an older copy would otherwise stay, as if it were this result's.
+        if (overwrite) await removeStale(file);
         skipped.push({ path: file.rel, status });
         return;
       }
@@ -244,6 +257,10 @@ async function writeBundle(deps: BundleDeps): Promise<Saved> {
       throw error;
     }
     written.push(file.rel);
+  }
+  async function removeStale(file: Planned): Promise<void> {
+    await walk(root, file.segments, false, created);
+    await rm(safeJoin(root, file.rel), { force: true });
   }
   async function saveOne(file: Planned): Promise<void> {
     const bytes =

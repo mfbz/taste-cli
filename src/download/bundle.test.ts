@@ -413,6 +413,45 @@ describe("writeBundle", () => {
     }
   );
 
+  it("skips an asset over the size cap, and with --overwrite removes its older copy", async () => {
+    await mkdir(dir);
+    await writeFile(join(dir, "big.webm"), "older");
+    const api = createFakeApi();
+    api.download = () =>
+      Promise.reject(new CliError("DOWNLOAD_TOO_LARGE", { file: "big.webm" }));
+    const saved = await writeBundle({
+      api,
+      manifest: manifest([
+        { path: "a.txt", content: "a" },
+        { path: "big.webm", url: `${CDN}big.webm` },
+      ]),
+      dir,
+      overwrite: true,
+    });
+    expect(saved.skipped).toEqual([{ path: "big.webm", status: "too large" }]);
+    expect(await listAll(dir)).toEqual(["a.txt"]);
+  });
+
+  it("stops on a refused signed link, which a fresh run may fix", async () => {
+    const api = createFakeApi();
+    api.download = () =>
+      Promise.reject(
+        new CliError("DOWNLOAD_FAILED", { file: "full.jpg", status: 403 })
+      );
+    const error = await writeBundle({
+      api,
+      manifest: manifest([
+        { path: "crawl/full.jpg", url: `${CDN}full.jpg?token=signed` },
+      ]),
+      dir,
+      overwrite: false,
+    }).catch((e: unknown) => e);
+    expect(error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      params: { written: 0, skipped: 0, total: 1, file: "crawl/full.jpg" },
+    });
+  });
+
   it("removes a half-written file when a write fails", async () => {
     const failing: typeof open = async (path, flags, mode) => {
       const handle = await open(path, flags, mode);
