@@ -43,7 +43,7 @@ type Io = {
   askSecret?: (message: string) => Promise<string | null>;
   // Aborted by Ctrl-C.
   signal?: AbortSignal;
-  // What is in flight, as error params ({ paid: "yes" } or { id }), so a hard stop after Ctrl-C
+  // What is in flight, as error params ({ paid: "job" | "search" | "enhance" } or { id }), so a hard stop after Ctrl-C
   // never invites a second paid run.
   inFlight?: (params: Readonly<Record<string, string>>) => void;
 };

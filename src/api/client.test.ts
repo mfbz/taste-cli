@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import pkg from "../../package.json" with { type: "json" };
 import { CliError, toErrorReport } from "../output/errors.ts";
 import { createTasteApi, TasteApiError } from "./client.ts";
-import type { AuthProvider } from "./client.ts";
+import type { AuthProvider, TasteApi } from "./client.ts";
 
 type Reply = {
   status: number;
@@ -422,6 +422,32 @@ describe("createTasteApi retries", () => {
       expect(report.hint).toContain("taste history");
       expect(report.hint).not.toMatch(/try again/i);
     }
+  });
+
+  it("names where to look for each kind of paid request that failed in flight", async () => {
+    const searches =
+      "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.";
+    const enhancements =
+      "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.";
+    const cases = [
+      [(api: TasteApi) => api.search({ query: "calm fintech" }), searches],
+      [(api: TasteApi) => api.similar("sub-1"), searches],
+      [
+        (api: TasteApi) => api.enhance({ submission_id: "sub-1", prompt: "p" }),
+        enhancements,
+      ],
+    ] as const;
+    for (const [send, hint] of cases)
+      for (const failure of [
+        new TypeError("fetch failed"),
+        new DOMException("timed out", "TimeoutError"),
+      ]) {
+        const { api, fetch } = setup([failure]);
+        const report = toErrorReport(await caught(send(api)));
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(report.hint).toBe(hint);
+        expect(report.retryable).toBe(false);
+      }
   });
 
   it("warns the same way when Ctrl-C lands during a paid POST", async () => {

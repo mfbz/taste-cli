@@ -119,6 +119,36 @@ describe("the mock Taste Engine", () => {
     });
   });
 
+  it("runs taste search, similar and enhance by address end to end", async () => {
+    const { url } = await start();
+    const seams = {
+      env: { TASTE_API_URL: url, TASTE_API_KEY: KEY },
+      fetch: globalThis.fetch,
+      sleep: instant,
+    };
+    expect(
+      (await runCli(["extract", "stripe.com", "--json"], seams)).code
+    ).toBe(0);
+    const search = await runCli(["search", "calm fintech", "--json"], seams);
+    expect(search.doc()).toMatchObject({ ok: true, data: { depth: "fast" } });
+    const similar = await runCli(["similar", "stripe.com", "--json"], seams);
+    expect(similar.doc().ok).toBe(true);
+    const enhance = await runCli(
+      ["enhance", "a pricing page", "--brand", "https://stripe.com"],
+      seams
+    );
+    expect(enhance.code).toBe(0);
+    // stdout is the prompt alone, ending with one newline; the brand line is on stderr.
+    expect(enhance.out).toMatch(/\S/);
+    expect(enhance.out.endsWith("\n")).toBe(true);
+    expect(enhance.out.endsWith("\n\n")).toBe(false);
+    expect(enhance.out).not.toContain("Enhanced for");
+    expect(enhance.out).not.toContain("✓");
+    expect(enhance.err).toContain("Enhanced for");
+    const missing = await runCli(["similar", "linear.app", "--json"], seams);
+    expect(missing.doc().error.code).toBe("NOT_FOUND");
+  });
+
   it("ends a real taste extract on Ctrl-C with 130 and one document naming taste wait", async () => {
     // Not fast: the job takes seconds per step, so the interrupt lands mid-wait. Ctrl-C goes in once
     // the mock has answered the first poll, so the job exists and the wait is underway.

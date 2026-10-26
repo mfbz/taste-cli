@@ -1,5 +1,6 @@
 // What the job commands share (extract and kit start a job, wait picks one up, check will too):
-// starting a paid job so Ctrl-C knows about it, waiting with live progress, and showing the result.
+// starting a paid job or request so Ctrl-C knows about it, waiting with live progress, and showing
+// the result.
 import { TasteApiError } from "../api/client.ts";
 import type { TasteApi } from "../api/client.ts";
 import { jobCheck, waitForJob } from "../api/poll.ts";
@@ -12,6 +13,7 @@ import type {
 import type { Context } from "../context.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
 import type { Saved, Skipped } from "../download/bundle.ts";
+import type { PaidKind } from "../output/errors.ts";
 import {
   cleanPath,
   CliError,
@@ -137,10 +139,23 @@ async function startJob(
   ctx: Context,
   send: () => Promise<SubmissionAccepted>
 ): Promise<SubmissionAccepted> {
-  ctx.inFlight({ paid: "yes" });
+  ctx.inFlight({ paid: "job" });
   const accepted = await send();
   ctx.inFlight({ id: accepted.submission_id });
   return accepted;
+}
+
+// A paid request that answers at once (search, similar, enhance): while it is in flight the hard stop
+// says to check taste history, and once it has answered nothing is left behind.
+async function paidCall<T>(
+  ctx: Context,
+  kind: PaidKind,
+  send: () => Promise<T>
+): Promise<T> {
+  ctx.inFlight({ paid: kind });
+  const answer = await send();
+  ctx.inFlight({});
+  return answer;
 }
 
 async function awaitJob<T>(
@@ -252,6 +267,7 @@ export {
   checkOut,
   DEFAULT_TIMEOUT_S,
   FORMATS,
+  paidCall,
   saveFiles,
   showAccepted,
   showSubmission,

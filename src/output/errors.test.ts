@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SECTION_NAME } from "../api/schemas.ts";
+import { INDUSTRY, PAGE_TYPE, SECTION_NAME } from "../api/schemas.ts";
 import {
   CATALOGUE,
   CliError,
@@ -76,7 +76,7 @@ describe("CliError", () => {
 
   it("says a paid request that failed in flight may have run, and is not to be retried blindly", () => {
     for (const code of ["NETWORK", "TIMEOUT", "INTERRUPTED"] as const) {
-      const report = toErrorReport(new CliError(code, { paid: "yes" }));
+      const report = toErrorReport(new CliError(code, { paid: "job" }));
       expect(report.hint, code).toContain("taste history");
       expect(report.retryable, code).toBe(false);
     }
@@ -111,7 +111,7 @@ describe("CliError", () => {
     }
     for (const code of ["NETWORK", "TIMEOUT", "INTERRUPTED"] as const)
       expect(
-        toErrorReport(new CliError(code, { paid: "yes" })).retryable,
+        toErrorReport(new CliError(code, { paid: "job" })).retryable,
         code
       ).toBe(false);
     expect(toErrorReport(new CliError("NETWORK")).retryable).toBe(true);
@@ -120,6 +120,59 @@ describe("CliError", () => {
   it("lists every section name the API knows in the sections hint", () => {
     const hint = toErrorReport(new CliError("USAGE_INVALID_SECTIONS")).hint;
     for (const name of SECTION_NAME.options) expect(hint).toContain(name);
+  });
+
+  it("lists every page type the API knows, and a few industries, in their hints", () => {
+    const pageTypes = toErrorReport(
+      new CliError("USAGE_INVALID_PAGE_TYPE")
+    ).hint;
+    for (const name of PAGE_TYPE.options) expect(pageTypes).toContain(name);
+    const industries = toErrorReport(
+      new CliError("USAGE_INVALID_INDUSTRY")
+    ).hint;
+    const listed = /^Such as (.+?)\. /.exec(industries)?.[1] ?? "";
+    const named = listed.split(/, | or /);
+    expect(named.length).toBeGreaterThanOrEqual(4);
+    for (const name of named)
+      expect(INDUSTRY.safeParse(name).success, name).toBe(true);
+    expect(industries).toContain("taste search --help");
+  });
+
+  it("names the address to extract when a brand given by address has no usable extraction", () => {
+    const missing = toErrorReport(
+      new CliError("NOT_FOUND", { url: "https://stripe.com/" })
+    );
+    expect(missing.code).toBe("NOT_FOUND");
+    expect(missing.hint).toContain("taste extract https://stripe.com/");
+    expect(missing.retryable).toBe(false);
+    const selective = toErrorReport(
+      new CliError("FULL_EXTRACTION_REQUIRED", { url: "https://linear.app/" })
+    );
+    expect(selective.hint).toContain("taste extract https://linear.app/");
+    expect(selective.hint).toContain("--sections");
+    // An address too long, with a query or credentials, still gives a usable one.
+    const long = `https://example.com/${"a".repeat(30)}/${"b".repeat(30)}/${"c".repeat(30)}`;
+    expect(
+      toErrorReport(new CliError("NOT_FOUND", { url: long })).hint
+    ).toContain("taste extract https://example.com/aaa");
+    const odd = toErrorReport(
+      new CliError("NOT_FOUND", {
+        url: "https://me:secret@example.com/a?token=x#y",
+      })
+    );
+    expect(odd.hint).toBe(
+      "Run taste extract https://example.com/a first. It spends credits."
+    );
+    const cut = toErrorReport(
+      new CliError("NOT_FOUND", {
+        url: `https://example.com/${"d".repeat(300)}`,
+      })
+    ).hint;
+    expect(cut.length).toBeLessThan(200);
+    // Without an address, the id's own words.
+    expect(toErrorReport(new CliError("NOT_FOUND")).hint).toContain(
+      "taste history"
+    );
   });
 
   it("names the real --sections and --map flags when they can't be combined", () => {

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import pkg from "../../package.json" with { type: "json" };
 import { CliError } from "../output/errors.ts";
+import type { PaidKind } from "../output/errors.ts";
 import {
   ADHERENCE_ACCEPTED,
   ADHERENCE_JOB,
@@ -115,8 +116,8 @@ type Exchange = {
   url: URL;
   method: string;
   retry: Retry;
-  // Spends credits: a failure in flight may still have been charged, and the error says so.
-  paid?: boolean;
+  // Spends credits: a failure in flight may still have been charged, and the error says where to look.
+  paid?: PaidKind;
   authenticated: boolean;
   json?: unknown;
   form?: FormData;
@@ -336,7 +337,7 @@ function createTasteApi(deps: Deps): TasteApi {
       try {
         answer = await send(x, credential);
       } catch (error) {
-        const params: ErrorParams = x.paid ? { paid: "yes" } : {};
+        const params: ErrorParams = x.paid ? { paid: x.paid } : {};
         if (deps.signal?.aborted) throw interrupted(error, params);
         // Too large: the same request would only answer the same, so it is never retried.
         if (error instanceof CliError)
@@ -407,7 +408,10 @@ function createTasteApi(deps: Deps): TasteApi {
     authenticated: true,
     json,
   });
-  const paid = (x: Exchange): Exchange => ({ ...x, paid: true });
+  const paid = (x: Exchange, kind: PaidKind = "job"): Exchange => ({
+    ...x,
+    paid: kind,
+  });
   const id = encodeURIComponent;
 
   return {
@@ -439,7 +443,7 @@ function createTasteApi(deps: Deps): TasteApi {
         url: endpoint("/design/submissions/brand-kit"),
         method: "POST",
         retry: "once",
-        paid: true,
+        paid: "job",
         authenticated: true,
         form,
         timeoutMs: LONG_TIMEOUT_MS,
@@ -487,13 +491,16 @@ function createTasteApi(deps: Deps): TasteApi {
 
     enhance: (body) =>
       call(ENHANCE_RESPONSE, {
-        ...paid(write("POST", endpoint("/design/prompts/enhance"), body)),
+        ...paid(
+          write("POST", endpoint("/design/prompts/enhance"), body),
+          "enhance"
+        ),
         timeoutMs: LONG_TIMEOUT_MS,
       }),
 
     search: (body) =>
       call(BRAND_SEARCH_RESULTS, {
-        ...paid(write("POST", endpoint("/search"), body)),
+        ...paid(write("POST", endpoint("/search"), body), "search"),
         retry: "busy",
       }),
 
@@ -508,7 +515,8 @@ function createTasteApi(deps: Deps): TasteApi {
               top_k: topK,
             }),
             "once"
-          )
+          ),
+          "search"
         )
       ),
 

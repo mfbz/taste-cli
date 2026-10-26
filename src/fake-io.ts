@@ -53,6 +53,16 @@ function fakeMe(...accepted: string[]): FakeMe {
   return fake;
 }
 
+// The real client with a key from the environment and a network that is down: what a paid request
+// that fails in flight reports, end to end.
+function offline(): Partial<Io> {
+  return {
+    env: { TASTE_API_KEY: ["taste", "offline", "test"].join("_") },
+    fetch: () => Promise.reject(new TypeError("fetch failed")),
+    sleep: () => Promise.resolve(),
+  };
+}
+
 async function runCli(argv: string[], seams: Partial<Io> = {}) {
   let out = "";
   let err = "";
@@ -64,5 +74,5 @@ async function runCli(argv: string[], seams: Partial<Io> = {}) {
   return { code, out, err, doc: () => JSON.parse(out) as Doc };
 }
 
-export { fakeMe, ME, runCli };
+export { fakeMe, ME, offline, runCli };
 export type { Doc, FakeMe };

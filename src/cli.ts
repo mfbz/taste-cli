@@ -6,13 +6,17 @@ import {
 } from "@commander-js/extra-typings";
 
 import pkg from "../package.json" with { type: "json" };
+import { INDUSTRY, PAGE_TYPE } from "./api/schemas.ts";
 import { extract } from "./commands/extract.ts";
 import { history, HISTORY_LISTS } from "./commands/history.ts";
+import { enhance } from "./commands/enhance.ts";
 import { DEFAULT_TIMEOUT_S, FORMATS } from "./commands/job.ts";
 import { kit } from "./commands/kit.ts";
 import { login } from "./commands/login.ts";
 import { logout } from "./commands/logout.ts";
+import { search } from "./commands/search.ts";
 import { share } from "./commands/share.ts";
+import { similar } from "./commands/similar.ts";
 import { wait } from "./commands/wait.ts";
 import { whoami } from "./commands/whoami.ts";
 import { createContext } from "./context.ts";
@@ -33,6 +37,15 @@ const OUT_HELP = "when it is done, save its files into this folder";
 const OVERWRITE_HELP = "with --out, replace files of the same name";
 const CREDITS_NOTE =
   "\nSpends credits from your Taste account; a failed job is refunded. Ctrl-C stops waiting, not the job: taste wait <id> picks it up for free.";
+// Search, similar and enhance answer at once: there is no job to pick up, and a request that failed
+// on the way may still have been charged.
+const SPENDS = "\nSpends credits from your Taste account.";
+const PAID_NOTE = `${SPENDS} A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.`;
+const LISTED_NOTE = `${PAID_NOTE} A failed request is refunded. If it fails on the way, check taste history searches before you run it again.`;
+const ENHANCE_NOTE = `${SPENDS} It is never retried by itself. If it fails on the way it may still have been charged: enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.`;
+const BRAND_HELP =
+  "an extraction's id, or the address of a site you extracted in full (looked up for free)";
+const SEARCH_FILTERS = `\nIndustries: ${INDUSTRY.options.join(", ")}.\nPage types: ${PAGE_TYPE.options.join(", ")}.`;
 // Commander's own outcomes that aren't failures.
 const CLEAN_EXITS = new Set([
   "commander.helpDisplayed",
@@ -218,6 +231,60 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
     .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
     .action(
       withContext(io, output, (ctx, id, options) => wait(ctx, id, options))
+    );
+  program
+    .command("search")
+    .description(
+      "search Taste's corpus of brands by the look you describe (spends credits)"
+    )
+    .argument("<query>", "the look, 2 to 400 characters, in quotes")
+    .option(
+      "--deep",
+      "a slower, closer search that says why each brand matched (costs more)"
+    )
+    .option(
+      "--top <n>",
+      "how many brands, 1 to 30 (Taste's default is 6)",
+      integer(1, 30)
+    )
+    .option("--industry <industry>", "only brands in this industry")
+    .option("--page-type <type>", "only pages of this type")
+    .addHelpText("after", `${SEARCH_FILTERS}\n${LISTED_NOTE}`)
+    .action(
+      withContext(io, output, (ctx, query, options) =>
+        search(ctx, query, options)
+      )
+    );
+  program
+    .command("similar")
+    .description(
+      "find brands that look like one you extracted (spends credits)"
+    )
+    .argument("<brand>", BRAND_HELP)
+    .option(
+      "--top <n>",
+      "how many brands, 1 to 30 (Taste's default is 18)",
+      integer(1, 30)
+    )
+    .addHelpText("after", LISTED_NOTE)
+    .action(
+      withContext(io, output, (ctx, brand, options) =>
+        similar(ctx, brand, options)
+      )
+    );
+  program
+    .command("enhance")
+    .description("rewrite a prompt in a brand's terms (spends credits)")
+    .argument("<prompt>", "the prompt, in quotes")
+    .requiredOption("--brand <brand>", BRAND_HELP)
+    .addHelpText(
+      "after",
+      `\nThe enhanced prompt alone goes to stdout: taste enhance "a pricing page" --brand stripe.com | pbcopy\n${ENHANCE_NOTE}`
+    )
+    .action(
+      withContext(io, output, (ctx, prompt, options) =>
+        enhance(ctx, prompt, options)
+      )
     );
   program
     .command("history")

@@ -228,7 +228,7 @@ describe("taste extract", () => {
     const seen: Readonly<Record<string, string>>[] = [];
     const { io } = seams({}, { inFlight: (params) => seen.push(params) });
     await runCli(["extract", "stripe.com", "--json"], io);
-    expect(seen.slice(0, 2)).toEqual([{ paid: "yes" }, { id: "sub-1" }]);
+    expect(seen.slice(0, 2)).toEqual([{ paid: "job" }, { id: "sub-1" }]);
   });
 
   it("clears the progress line before the interrupt is reported", async () => {

@@ -137,6 +137,17 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
     return found;
   }
 
+  // similar and enhance refuse a selective extraction, as the recorded 422 does, before any charge.
+  function full(id: string): Submission {
+    const found = submission(id);
+    if (found.sections?.length)
+      throw new TasteApiError(422, {
+        code: "FULL_EXTRACTION_REQUIRED",
+        serverMessage: "This operation requires a full extraction.",
+      });
+    return found;
+  }
+
   function job(id: string): AdherenceJob {
     const found = state.adherence.find((j) => j.job_id === id);
     if (!found) throw notFound();
@@ -262,7 +273,7 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
     enhance: (body) =>
       later(() => {
         enter("enhance", "POST", "/design/prompts/enhance");
-        submission(body.submission_id);
+        full(body.submission_id);
         return state.enhanced;
       }),
 
@@ -283,7 +294,7 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
     similar: (id) =>
       later(() => {
         enter("similar", "GET", "/search/similar");
-        submission(id);
+        full(id);
         charge();
         return state.similarResults;
       }),

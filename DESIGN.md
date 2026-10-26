@@ -109,6 +109,30 @@ Checks add a `SCORE` column (two decimals, empty when there is none yet) before 
 ✓ Private. Only your account can read <id>.
 ```
 
+## Brand cards
+
+`search` and `similar` print numbered cards on stdout, a blank line between them. The number, then the brand's name in bold (its address's host when it has none) and its match tier and badge dimmed; below, indented to the name: the address, why it matched (or its identity paragraph when the search gave no reason) dimmed, the primary colours as swatches and hexes on one line (hexes alone with 16 colours or none, and no line when the card has no palette), and the tags dimmed. In a terminal every line is cut with `…` to the width, at least 40 columns, with the `…` outside the bold; a pipe gets every line whole. A dimmed footer says how to extract one.
+
+```text
+1  driver  strong
+   https://driver.ai/product
+   White-on-deep-black documentation style with hairline-ruled strict grids…
+   ██ #RRGGBB  ██ #RRGGBB  ██ #RRGGBB
+   Angular/Sharp, Authoritative, B2B Decision Maker, Brutalism, Developer/…
+
+Extract one in full with taste extract <url> (spends credits).
+```
+
+No results is one line: `No brands found.`
+
+## Enhance
+
+`enhance` prints the enhanced prompt alone on stdout, as Taste wrote it, so it pipes into a file or the clipboard untouched. The one line for a person goes to stderr:
+
+```text
+✓ Enhanced for Stripe.
+```
+
 ## Errors
 
 ```text

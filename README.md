@@ -4,9 +4,30 @@ An unofficial command line for the [Taste Engine](https://docs.tastelabs.com), T
 
 > taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.
 
+Extract a brand from a website or a guidelines PDF, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
+
+## Contents
+
+- [Status](#status)
+- [Install](#install)
+- [Sign in](#sign-in): `login`, `logout`, `whoami`
+- [Credits](#credits)
+- [Extract a brand](#extract-a-brand): `extract`
+- [Extract a brand kit](#extract-a-brand-kit): `kit`
+- [Pick a job up again](#pick-a-job-up-again): `wait`
+- [Save the files](#save-the-files): `--out`
+- [Search brands](#search-brands): `search`, `similar`
+- [Enhance a prompt](#enhance-a-prompt): `enhance`
+- [History](#history): `history`
+- [Share a result](#share-a-result): `share`
+- [Machine output](#machine-output): `--json`, exit codes, Ctrl-C
+- [Error codes](#error-codes)
+- [Environment and terminal](#environment-and-terminal)
+- [Development](#development)
+
 ## Status
 
-Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, picks up a job started earlier, lists your history and shares a result. The commands being built, and how each one will behave, are specified in [TASTE-CLI.md](TASTE-CLI.md).
+Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. Commands still being built are listed as planned in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Install
 
@@ -20,7 +41,12 @@ npm run build
 npm link        # puts `taste` on your PATH
 ```
 
-## Login
+```sh
+taste --help      # every command; --help after a command for its flags
+taste --version   # the version
+```
+
+## Sign in
 
 ```sh
 taste login                              # sign in with your browser
@@ -30,59 +56,234 @@ taste whoami                             # which account taste is using
 taste logout                             # forget the saved sign in
 ```
 
-A key is checked with Taste before it is saved, and taste never takes one as a command line argument. The sign in is kept in your system keychain (service `taste-cli`), or, where there is none, in a file only you can read in `~/.config/taste-cli` (`%APPDATA%\taste-cli` on Windows). Set `TASTE_API_KEY` to use a key without saving it; it wins over any saved sign in. `TASTE_API_URL` points taste at another Taste Engine address, such as a local mock. Details: [TASTE-CLI.md](TASTE-CLI.md), "Configuration".
+Free: no credits are spent.
+
+| Command        | Prints                                                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `taste login`  | `✓ Signed in as <email>.`, or with a key `✓ Signed in as <email> with an API key.` (`✓ Signed in.` when Taste returns no email)  |
+| `taste whoami` | `Signed in as <email> (browser session).`, `Signed in as <email> (API key).` or `Using an API key from TASTE_API_KEY (<email>).` |
+| `taste logout` | `✓ Signed out.` Signing out twice is not an error. It doesn't sign the browser out of Taste.                                     |
+
+- `taste login` opens the browser and prints the address on stderr too, in case the browser doesn't open. The session refreshes itself.
+- The browser and the hidden prompt need a terminal. Without one, or under `--json`, they fail with `LOGIN_NOT_INTERACTIVE`: pipe a key to `taste login --with-api-key` instead, or set `TASTE_API_KEY`.
+- A key is checked with Taste before it is saved, so a wrong key replaces nothing (`INVALID_API_KEY`). taste never takes a key as a command line argument: one in argv is refused with `KEY_IN_ARGV`.
+- The sign in is kept in your system keychain (service `taste-cli`), or, where there is none, in a file only you can read in `~/.config/taste-cli` (`%APPDATA%\taste-cli` on Windows), with a warning each time.
+- `TASTE_API_KEY` uses a key without saving it, and wins over any saved sign in; `login`, `logout` and `whoami` say so.
+
+`--json` data: `login` gives `{"method":"session"|"key","email","store":"keychain"|"file"}`, `whoami` gives `{"method":"env-key"|"key"|"session","email","store"}` (`store` is `null` for `env-key`), `logout` gives `{"signedOut":true}`.
+
+## Credits
+
+`extract`, `kit`, `search`, `similar` and `enhance` spend credits from your Taste account; everything else is free. Their `--help` says so, and they never ask for confirmation: typing the command is the decision.
+
+- Every flag, address and file is checked before the one request that spends credits, so a mistake costs nothing.
+- A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.
+- A paid request that fails on the way (network, timeout, Ctrl-C) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction or a brand kit, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
+- Once a job (`extract`, `kit`) has started it runs on Taste's side whatever happens to taste: the error names its id, and `taste wait <id>` picks it up for free.
+- Failed jobs, searches and similar-brand requests are refunded by Taste.
 
 ## Extract a brand
 
-`extract` and `kit` spend credits from your Taste account; `wait` is free.
+```sh
+taste extract stripe.com                               # wait with live progress, then a summary
+taste extract stripe.com --sections colors,typography  # only some sections
+taste extract stripe.com --deep                        # slower, deeper analysis
+taste extract stripe.com --force                       # again, even if Taste has a recent result
+taste extract stripe.com --map --max-urls 20           # find the site's pages and extract them too
+taste extract stripe.com --format json > stripe.json   # the whole result, as Taste sent it
+taste extract stripe.com --no-wait                     # print the job's id and return
+taste extract stripe.com --timeout 1200                # wait up to 20 minutes
+```
+
+Spends credits.
+
+- **The address**: a public `http` or `https` address. A bare domain such as `stripe.com` means `https://stripe.com/`. An address on this computer or a private network (`localhost`, `127.0.0.1`, `10.x`, `192.168.x`, `*.local`, `file:`) fails with `PRIVATE_URL`, anything else unusable with `INVALID_URL`, both before any request.
+- `--sections <names>`: only these, separated by commas: `profile`, `layout`, `colors`, `typography`, `surfaces`, `elevation`, `interactions`, `actions`, `navigation`, `data_display`, `structure`, `icons`, `assets`, `sections`, `brand_assets`. An unknown or empty name fails with `USAGE_INVALID_SECTIONS`. `similar` and `enhance` can't use an extraction made with `--sections`.
+- `--deep`: Taste's slower, deeper analysis. Not with `--sections` (`USAGE_CONFLICTING_OPTIONS`).
+- `--force`: extract again even when Taste holds a recent result.
+- `--map`: find the site's pages and extract them too; `--max-urls <n>` (1 to 200) caps how many. Not with `--sections` (`SELECTIVE_MAP_UNSUPPORTED`); `--max-urls` needs `--map` (`USAGE_NEEDS_OPTION`). Map mode has only been run against the local mock so far.
+- `--format <format>`: `summary` (the default) or `json`.
+- `--no-wait`: print the job's id alone on stdout and return at once; stderr says `Started. Run taste wait <id> to pick it up.` Under `--json` the data is `{"id","status"}`.
+- `--timeout <seconds>`: stop waiting after this long (default 600, at most 86400). The job carries on: `WAIT_TIMEOUT` names `taste wait <id>`.
+- `--out <dir>`, `--overwrite`: save the result's files, see [Save the files](#save-the-files).
+
+While it waits, progress goes to stderr (one line redrawn in place in a terminal, one line per step elsewhere, nothing under `--json`), ending with `✓ Extracted <brand> in 48s` or `✓ Extracted <brand> (cached)`. The summary on stdout: the brand and its tagline, style, tone, the palette as swatches with hexes and names, the type families, the source address, the id, and `taste wait <id> --format json` for everything.
+
+`--json` data: the result exactly as Taste returned it.
+
+## Extract a brand kit
 
 ```sh
-taste extract stripe.com                         # wait with live progress, then a summary
-taste extract stripe.com --sections colors,typography
-taste extract stripe.com --format json > stripe.json
-taste kit guidelines.pdf                         # a brand kit from a guidelines PDF
-taste extract stripe.com --no-wait               # print the job's id and return
-taste wait <id>                                  # pick a job up again, for free
-taste extract stripe.com --out stripe            # also save its files into ./stripe
+taste kit guidelines.pdf
+taste kit guidelines.pdf --no-wait
+taste kit guidelines.pdf --out acme --format json
+```
+
+Spends credits. Extracts a brand kit from a brand guidelines PDF. The file is checked before the upload: it must exist and be a file (`FILE_NOT_FOUND`), be at most 50 MB (`FILE_TOO_LARGE`) and be a PDF that isn't empty (`INVALID_FILE`). It takes `--format`, `--no-wait`, `--timeout`, `--out` and `--overwrite` as `extract` does, with the same progress, summary and `--json` shapes.
+
+## Pick a job up again
+
+```sh
+taste wait <id>                      # an extraction, a brand kit or a brand adherence check
+taste wait <id> --format json        # the whole result
+taste wait <id> --timeout 1200
+taste wait <id> --out stripe         # save a finished extraction's files, for free
+```
+
+Free. Picks up a job started with `--no-wait`, or one interrupted or out of time, and ends as the command that started it would. The id may be an extraction, a brand kit or a brand adherence check; one that is neither fails with `NOT_FOUND`. A check ends with `✓ Checked <host> in 4m 01s` on stderr and, on stdout, its score, the candidate and reference addresses, the recommendations and the id. `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED`. `--timeout` and `--format` work as for `extract`.
+
+`--json` data: the result, or for a check the verdict, exactly as Taste returned it.
+
+## Save the files
+
+```sh
+taste extract stripe.com --out stripe            # extract, then save its files into ./stripe
 taste wait <id> --out stripe --overwrite         # save them again, for free
 ```
 
-Every flag and the address are checked before anything is spent, and a paid request is never retried by itself. Ctrl-C stops waiting, not the job: the error names the id, and `taste wait <id>` picks it up. `--out` writes only inside the folder you name, which should be one only you can write to, and refuses one that already has files unless you add `--overwrite`. Details: [TASTE-CLI.md](TASTE-CLI.md), "Credits" and "Saving the files".
+`extract`, `kit` and `wait` take `--out <dir>`: once the job is done, its files (`guidelines.json`, `design_system.md`, the captured HTML, CSS and screenshot, the brand's assets) are saved under `dir`, and a line on stderr says how many and where.
 
-## History and sharing
+- The folder is checked before anything is spent. It may be missing (it is created, readable only by you) or empty. One with files in it fails with `OUTPUT_EXISTS` unless you add `--overwrite`, which replaces files of the same name.
+- Use a folder only you can write to: on macOS and Linux one that others can write to fails with `BUNDLE_PATH_UNSAFE`, so `--out /tmp` is refused before anything is spent.
+- Nothing is ever written outside the folder or through a symlink: a file path from Taste that would leave it fails with `BUNDLE_PATH_UNSAFE`, and nothing is written.
+- An asset that is gone for good (refused at its own address, or over 100 MB) is skipped with a warning; under `--json` the data gains `"skipped":[{"path","status"}]`.
+- Once the job is done, every failure to save keeps its id (`error.details.id`) and says how to save again for free with `taste wait <id> --out`.
 
-Both are free.
-
-```sh
-taste history                          # your extractions and brand kits, newest first
-taste history checks --status failed   # or checks, or searches, filtered
-taste history --limit 50 --offset 50   # the next page
-taste share <id>                       # make a result public and print its address
-taste share <id> --private             # private again
-```
-
-## Usage
+## Search brands
 
 ```sh
-taste --help      # what taste can do
-taste --version   # the version
+taste search "dark brutalist developer tools"                 # 6 brands, fast
+taste search "calm fintech pricing" --deep --top 10           # slower, closer, with a reason per brand
+taste search "playful onboarding" --industry saas --page-type landing_page
+taste similar stripe.com                                      # brands that look like your stripe.com extraction
+taste similar <id> --top 5
+taste search "dark brutalist developer tools" --json | jq -r '.data.results[].url'
 ```
 
-Every command takes `--json` for machine output (exactly one JSON document on stdout, errors included) and `--debug` to add an error's class and stack frames on stderr. Exit codes: 0 ok, 1 failure, 2 usage error, 130 interrupted.
+`search` and `similar` spend credits (a deep search costs more). Both answer at once, with no job to wait for, and print numbered cards: the brand and how well it matched, its address, why it matched (or how it looks), its primary colours and its tags. In a terminal each line is cut to the width; a pipe gets every line whole.
+
+- `search "<query>"`: the look you want, 2 to 400 characters (`USAGE_INVALID_QUERY` otherwise).
+  - `--deep`: a slower, closer search; each brand says why it matched.
+  - `--top <n>`: 1 to 30 brands (Taste's default is 6).
+  - `--industry <industry>`, `--page-type <type>`: only brands of that kind. An unknown value fails with `USAGE_INVALID_INDUSTRY` or `USAGE_INVALID_PAGE_TYPE`; `taste search --help` lists them all.
+- `similar <id|url>`: brands from Taste's corpus that look like one of your full extractions.
+  - Give an extraction's id, or the site's address: taste finds your newest finished full extraction of it with a free lookup, and never starts one. With none it fails with `NOT_FOUND`, with only ones made with `--sections` with `FULL_EXTRACTION_REQUIRED`; both name the `taste extract <url>` to run, and spend nothing. A bare word such as `stripe` fails with `USAGE_INVALID_BRAND`, which suggests `stripe.com`.
+  - `--top <n>`: 1 to 30 brands (Taste's default is 18).
+
+`--json` data: Taste's answer as it came. A search is `{"search_id","depth","results":[…],"query_tags":{…}}`; similar is `{"results":[…]}`. Each result is a card with `url`, `brand_name`, `identity_paragraph`, `match`, `reason`, `badge`, `tags`, `palette`, `typography` and `screenshot_url`.
+
+## Enhance a prompt
+
+```sh
+taste enhance "Design a pricing page" --brand stripe.com
+taste enhance "Design a pricing page" --brand stripe.com | pbcopy    # straight to the clipboard
+taste enhance "An onboarding flow" --brand <id> > prompt.txt
+```
+
+Spends credits. Rewrites a prompt in a brand's terms, from one of your full extractions.
+
+- `"<prompt>"`: sent as you typed it; a blank one is refused with `USAGE_INVALID_PROMPT`.
+- `--brand <id|url>`: required. An extraction's id or a site's address, found as `similar` finds it, with the same errors.
+
+The enhanced prompt alone goes to stdout, ending with one newline, so it pipes cleanly; `✓ Enhanced for <brand>.` goes to stderr. `--json` data: Taste's answer, `{"enhanced_prompt","brand_name","source_url","model_used"}`.
+
+## History
+
+```sh
+taste history                                  # your extractions and brand kits, newest first
+taste history checks --status failed           # brand adherence checks that failed
+taste history searches --search fintech        # searches whose query has "fintech"
+taste history --limit 50 --offset 50           # the next page
+```
+
+Free. Lists one page of a list, newest first: `extractions` (the default, brand kits included), `checks` or `searches` (similar brands included).
+
+- `--status <status>`: extractions take `accepted`, `queued`, `crawling`, `extracting`, `completed`, `failed`; checks take `accepted`, `extracting`, `judging`, `completed`, `failed`; searches take `completed`, `failed`, `in_progress`. Any other fails with `USAGE_INVALID_VALUE`.
+- `--search <text>`: only entries whose address (extractions, checks) or query (searches) contains it.
+- `--limit <n>` (1 to 100, default 20) and `--offset <n>` (default 0): the page.
+
+It prints a table: the id, when it started (UTC, to the minute), the status and the address. Checks show a `SCORE` column (two decimals, empty while there is none) and the candidate address; searches show the query. When there are more, a last line names the `--offset` for the next page.
+
+`--json` data: the list exactly as Taste returned it.
+
+## Share a result
+
+```sh
+taste share <id>             # make it public and print its address
+taste share <id> --private   # private again
+```
+
+Free. Works on an extraction's, a brand kit's or a check's id. Made public, it prints `✓ Public. Anyone with this address can read the result, without signing in:` and the result's address on Taste's API (`https://api.tastelabs.com/design/submissions/<id>/result`, or `/judge/brand-adherence/<id>/result` for a check). Made private, it prints `✓ Private. Only your account can read <id>.` That the public address opens without signing in comes from Taste's API reference; it hasn't been verified live yet.
+
+`--json` data: `{"id","public":true|false,"url":string|null}`; `public` is what Taste's answer says.
+
+## Machine output
+
+Every command takes `--json` for scripts and agents, and `--debug` to add an error's class and stack frames on stderr.
+
+- `--json` prints exactly one JSON document on stdout, errors included, on every path (help, version, usage errors and Ctrl-C too). Progress, notes and warnings never reach stdout.
+- Success: `{"ok":true,"data":…}`, with each command's data in its section above.
+- Failure: `{"ok":false,"error":{"code","message","hint","retryable"}}`, plus `"details":{"id"}` when a job is involved: the id to `taste wait` on. Branch on `code`; `message` and `hint` are for people.
+- `retryable: true` means running the same command again is safe and costs nothing extra. It is `false` whenever the hint is `taste wait <id>` (the job runs on) or a paid request may already have been charged.
+- Exit codes: `0` ok, `1` failure, `2` usage error (nothing was sent), `130` interrupted.
+- Ctrl-C stops what is in flight and exits 130 with one `INTERRUPTED` document. Its hint says to run the command again, or `taste wait <id>` once a job has started, or where to look while a paid request was being sent. A second Ctrl-C ends at once, with the same code and no second document.
+- Without `--json`, results go to stdout and errors, notes, progress and prompts to stderr. An error is one line saying what happened and one saying what to do.
+
+```sh
+taste extract stripe.com --no-wait --json | jq -r '.data.id'
+taste whoami --json | jq -r '.error.code // "ok"'
+```
+
+## Error codes
+
+The codes scripts most often branch on. Every code, with its message and hint, is in `src/output/errors.ts`.
+
+| Code                                                                                                              | Exit | Means                                                                                           |
+| ----------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
+| `USAGE_*`, such as `USAGE_INVALID_VALUE`, `USAGE_MISSING_ARGUMENT`, `USAGE_UNKNOWN_OPTION`, `USAGE_INVALID_BRAND` | 2    | The command line is wrong; nothing was sent                                                     |
+| `INVALID_URL`, `PRIVATE_URL`                                                                                      | 2    | The address can't be used, or points at this computer or a private network                      |
+| `KEY_IN_ARGV`                                                                                                     | 2    | A key or token was on the command line; remove it from your shell history and rotate it         |
+| `INVALID_ENV`                                                                                                     | 2    | `TASTE_API_URL` isn't an address taste accepts                                                  |
+| `NOT_SIGNED_IN`, `SESSION_EXPIRED`, `INVALID_API_KEY`                                                             | 1    | Sign in with `taste login`, or fix the key                                                      |
+| `LOGIN_NOT_INTERACTIVE`                                                                                           | 1    | That way of signing in needs a terminal                                                         |
+| `INSUFFICIENT_CREDITS`                                                                                            | 1    | Not enough credits; the message has your balance and the price                                  |
+| `NOT_FOUND`                                                                                                       | 1    | No such id, or no finished extraction of that address                                           |
+| `FULL_EXTRACTION_REQUIRED`                                                                                        | 1    | `similar` and `enhance` need an extraction made without `--sections`                            |
+| `JOB_FAILED`                                                                                                      | 1    | The job failed, with its reason; Taste refunds it                                               |
+| `WAIT_TIMEOUT`                                                                                                    | 1    | Still running after `--timeout`; `taste wait <id>` picks it up                                  |
+| `SEARCH_BUSY`                                                                                                     | 1    | Taste turned the search away as busy; retryable                                                 |
+| `NETWORK`, `TIMEOUT`                                                                                              | 1    | Taste couldn't be reached or didn't answer; after a paid request, check before running it again |
+| `UPSTREAM`, `RATE_LIMITED`                                                                                        | 1    | A problem on Taste's side, or too many requests; try again in a minute                          |
+| `OUTPUT_EXISTS`, `OUTPUT_UNUSABLE`, `BUNDLE_PATH_UNSAFE`, `BUNDLE_INVALID`, `BUNDLE_INCOMPLETE`, `SAVE_FAILED`    | 1    | `--out` couldn't save; the hint names the free way to save again                                |
+| `INTERRUPTED`                                                                                                     | 130  | Ctrl-C                                                                                          |
+| `INTERNAL`                                                                                                        | 1    | A bug in taste-cli; run again with `--debug` and report it                                      |
+
+## Environment and terminal
+
+taste reads only its flags and these environment variables, never a `.env` or a config file.
+
+| Variable          | Effect                                                                                                                                                                                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TASTE_API_KEY`   | An API key to use instead of any saved sign in, without saving it                                                                                                                                                                             |
+| `TASTE_API_URL`   | The Taste Engine's address (default `https://api.tastelabs.com`): an `https` address, or `http` on `127.0.0.1`, `::1` or `localhost` for a local mock, with no user name or password. Anything else fails with `INVALID_ENV` before a request |
+| `TASTE_NO_MOTION` | Set to anything but `0` or `false`: no animation                                                                                                                                                                                              |
+| `NO_COLOR`        | Set and not empty: no colour and no animation                                                                                                                                                                                                 |
+| `FORCE_COLOR`     | Colour even without a terminal: `2` for 256 colours, `3` for truecolor, anything else for 16; `0` or `false` is ignored                                                                                                                       |
+| `CI`              | Set: no animation                                                                                                                                                                                                                             |
+| `TERM=dumb`       | No colour unless `FORCE_COLOR` is set, and no animation                                                                                                                                                                                       |
+
+A pipe gets plain text unless `FORCE_COLOR` is set, and never animation. Progress redraws one line in place only in a terminal that allows motion; elsewhere each step is one plain line.
 
 ## Development
 
 ```sh
 npm run check          # format:check, lint, typecheck, test
 npm run cli -- --help  # build, then run the CLI from source
+npm run mock           # a local mock Taste Engine on 127.0.0.1:4010, free
 ```
 
 How changes are made, tested and reviewed: [CONTRIBUTING.md](CONTRIBUTING.md). Security reports: [SECURITY.md](SECURITY.md).
 
-## Credits
+## Credits and license
 
-Built on the [Taste Engine API](https://docs.tastelabs.com). Taste, Taste Labs and the Taste Engine are Taste Labs' names; see [NOTICE.md](NOTICE.md).
-
-## License
-
-[MIT](LICENSE).
+Built on the [Taste Engine API](https://docs.tastelabs.com). Taste, Taste Labs and the Taste Engine are Taste Labs' names; see [NOTICE.md](NOTICE.md). Licensed [MIT](LICENSE).
