@@ -19,12 +19,13 @@ type ErrorReport = {
   message: string;
   hint: string;
   retryable: boolean;
-  // Structured data for agents, only where a code carries some: the id of a job to wait for.
-  details?: { id: string };
+  // Structured data for agents, only where a code carries some: the id of a job to wait for, or for
+  // BELOW_THRESHOLD the check's whole verdict.
+  details?: Readonly<Record<string, unknown>>;
 };
 type DebugInfo = { className: string; frames: string[] };
 // What a paid request was, for the hint after it fails in flight.
-type PaidKind = "job" | "search" | "enhance";
+type PaidKind = "job" | "check" | "search" | "enhance";
 type FullReport = ErrorReport & { exitCode: ExitCode; debug?: DebugInfo };
 
 const entry = (
@@ -177,13 +178,14 @@ const CATALOGUE = {
   ),
   ADHERENCE_FAILED: entry(
     1,
-    "Taste could not compare those two.",
-    "Check that both can be read, then try again."
+    "Taste could not compare those two: {reason}",
+    "Check that both addresses are public sites that load, then run it again. Failed checks are refunded."
   ),
+  // The verdict itself rides in details, so a script has the recommendations without another call.
   BELOW_THRESHOLD: entry(
     1,
-    "The score is below the minimum you asked for.",
-    "Look at the findings, or lower --min."
+    "The score {score} is below the minimum {min}.",
+    "Work through the recommendations, or lower --min."
   ),
   SEARCH_BUSY: entry(
     1,
@@ -363,8 +365,8 @@ const SAFE_PARAM = /^[A-Za-z0-9 _.,:/~@+=-]{1,80}$/;
 const NAME_PARAMS = new Set(["command", "option"]);
 const NAME = /^(?:--?)?[a-z][a-z0-9]{0,15}(?:-[a-z0-9]{1,16}){0,3}$/;
 const KEY_PREFIX = /^(?:--?)?(?:sk-|gh[pousr]-|npm-|xox|akia|asia|aiza)/;
-// A job's own error is free text: shortened, with key-shaped tokens redacted one by one so the rest
-// stays readable. The output layer strips control characters before a person sees it.
+// A job's own error is free text: cleaned of control characters (an agent reads the JSON too),
+// shortened, with key-shaped tokens redacted one by one so the rest stays readable.
 const TEXT_PARAMS = new Set(["reason"]);
 const TEXT_LIMIT = 120;
 // A file's path from a download manifest: server text but no secret, so it is shown, cleaned of
@@ -406,6 +408,8 @@ const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
 // first depends on what was sent.
 const PAID_HINTS: Readonly<Record<PaidKind, string>> = {
   job: "It may have reached Taste and started anyway. Check taste history before you run it again, so you don't pay twice.",
+  check:
+    "It may have reached Taste and started anyway. Check taste history checks before you run it again, so you don't pay twice.",
   search:
     "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.",
   enhance:
@@ -459,6 +463,7 @@ const DETAIL_CODES = new Set<ErrorCode>([
   "INTERRUPTED",
   "WAIT_TIMEOUT",
   "JOB_FAILED",
+  "ADHERENCE_FAILED",
   "NETWORK",
   "TIMEOUT",
   "UPSTREAM",
@@ -468,17 +473,23 @@ const DETAIL_CODES = new Set<ErrorCode>([
 class CliError extends Error {
   readonly code: ErrorCode;
   readonly params: Params;
+  // Only BELOW_THRESHOLD carries any: the verdict, which JSON escapes, so it needs no cleaning.
+  readonly details?: Readonly<Record<string, unknown>>;
 
   constructor(
     code: ErrorCode,
     params: Params = {},
-    options?: { cause?: unknown }
+    options?: { cause?: unknown; details?: Readonly<Record<string, unknown>> }
   ) {
     // The message is ours and contains no parameters, so it is safe wherever it ends up.
-    super(CATALOGUE[code].message, options);
+    super(
+      CATALOGUE[code].message,
+      options && "cause" in options ? { cause: options.cause } : undefined
+    );
     this.name = "CliError";
     this.code = code;
     this.params = params;
+    if (options?.details) this.details = options.details;
   }
 }
 
@@ -512,7 +523,11 @@ function fill(template: string, params: Params): string {
     const value = String(params[name] ?? "");
     if (name === "id") return isJobId(value) ? value : "…";
     if (TEXT_PARAMS.has(name)) {
-      const text = value.trim().slice(0, TEXT_LIMIT).replace(KEY_TOKEN, "…");
+      const text = value
+        .replace(CONTROL, "")
+        .trim()
+        .slice(0, TEXT_LIMIT)
+        .replace(KEY_TOKEN, "…");
       return text === "" ? "…" : text;
     }
     if (PATH_PARAMS.has(name)) return cleanPath(value);
@@ -667,7 +682,10 @@ function whileSaving(error: unknown, id: string): unknown {
 }
 
 function toErrorReport(error: unknown): FullReport {
-  if (error instanceof CliError) return report(error.code, error.params);
+  if (error instanceof CliError) {
+    const full = report(error.code, error.params);
+    return error.details ? { ...full, details: error.details } : full;
+  }
   const full = isUpstreamError(error)
     ? upstreamReport(error)
     : report("INTERNAL");

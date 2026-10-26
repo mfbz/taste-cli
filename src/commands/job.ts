@@ -1,4 +1,4 @@
-// What the job commands share (extract and kit start a job, wait picks one up, check will too):
+// What the job commands share (extract, kit and check start a job, wait picks one up):
 // starting a paid job or request so Ctrl-C knows about it, waiting with live progress, and showing
 // the result.
 import { TasteApiError } from "../api/client.ts";
@@ -6,6 +6,7 @@ import type { TasteApi } from "../api/client.ts";
 import { jobCheck, waitForJob } from "../api/poll.ts";
 import type { Check } from "../api/poll.ts";
 import type {
+  AdherenceAccepted,
   AdherenceVerdict,
   SubmissionAccepted,
   SubmissionResult,
@@ -13,7 +14,7 @@ import type {
 import type { Context } from "../context.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
 import type { Saved, Skipped } from "../download/bundle.ts";
-import type { PaidKind } from "../output/errors.ts";
+import type { ErrorCode, PaidKind } from "../output/errors.ts";
 import {
   cleanPath,
   CliError,
@@ -28,6 +29,8 @@ import { renderVerdict } from "../render/verdict.ts";
 type Format = "summary" | "json";
 // Where --out saves an extraction's files, and whether files of the same name may be replaced.
 type OutOptions = { out?: string; overwrite?: true };
+// A job just accepted, whichever kind: extract and kit get a submission, check an adherence job.
+type Started = { id: string; status: string };
 // A job as the API reports it while it runs.
 type JobState = {
   status: string;
@@ -40,6 +43,8 @@ type JobSpec<T> = {
   read: () => Promise<T | "not_ready">;
   // The closing line's words (ours, cleaned) and whether Taste served it from a cache.
   done: (value: T) => { what: string; cached: boolean };
+  // The code a failed job ends with, when JOB_FAILED isn't the right word for it.
+  failed?: ErrorCode;
 };
 
 const FORMATS: readonly Format[] = ["summary", "json"];
@@ -53,6 +58,10 @@ const FINAL_STEPS = new Set(["completed", "failed"]);
 
 function terminalWidth(ctx: Context): number {
   return ctx.terminal?.width || DEFAULT_WIDTH;
+}
+
+function summaryWidth(ctx: Context): number {
+  return Math.max(terminalWidth(ctx), MIN_WIDTH);
 }
 
 function hostOf(url: string): string {
@@ -137,12 +146,13 @@ async function saveFiles(
 // accepted the hard stop names the job to wait on.
 async function startJob(
   ctx: Context,
-  send: () => Promise<SubmissionAccepted>
-): Promise<SubmissionAccepted> {
-  ctx.inFlight({ paid: "job" });
-  const accepted = await send();
-  ctx.inFlight({ id: accepted.submission_id });
-  return accepted;
+  kind: Extract<PaidKind, "job" | "check">,
+  send: () => Promise<Started>
+): Promise<Started> {
+  ctx.inFlight({ paid: kind });
+  const started = await send();
+  ctx.inFlight({ id: started.id });
+  return started;
 }
 
 // A paid request that answers at once (search, similar, enhance): while it is in flight the hard stop
@@ -194,7 +204,11 @@ async function awaitJob<T>(
     progress.done(what, cached);
     return value;
   } catch (error) {
-    throw whileWaiting(error, id);
+    const failed =
+      spec.failed && error instanceof CliError && error.code === "JOB_FAILED"
+        ? new CliError(spec.failed, error.params, { cause: error })
+        : error;
+    throw whileWaiting(failed, id);
   } finally {
     progress.stop();
   }
@@ -214,11 +228,26 @@ function submissionJob(api: TasteApi, id: string): JobSpec<SubmissionResult> {
 function verdictJob(api: TasteApi, id: string): JobSpec<AdherenceVerdict> {
   return {
     poll: () => api.getAdherence(id),
-    read: () => api.getVerdict(id),
+    read: async () => {
+      try {
+        return await api.getVerdict(id);
+      } catch (error) {
+        // 424: the check failed after all; the job holds the reason.
+        if (!(error instanceof TasteApiError && error.status === 424))
+          throw error;
+        const job = await api.getAdherence(id);
+        throw new CliError(
+          "ADHERENCE_FAILED",
+          { id, reason: job.error ?? "" },
+          { cause: error }
+        );
+      }
+    },
     done: (verdict) => ({
       what: `Checked ${hostOf(verdict.candidate_url)}`,
       cached: false,
     }),
+    failed: "ADHERENCE_FAILED",
   };
 }
 
@@ -237,7 +266,7 @@ function showSubmission(
       : renderBrandSummary(result, {
           theme,
           colorLevel: ctx.terminal?.colorLevel ?? 0,
-          width: Math.max(terminalWidth(ctx), MIN_WIDTH),
+          width: summaryWidth(ctx),
         })
   );
 }
@@ -250,14 +279,21 @@ function showVerdict(
   ctx.output.result(verdict, (theme) =>
     format === "json"
       ? JSON.stringify(verdict, null, 2)
-      : renderVerdict(verdict, theme)
+      : renderVerdict(verdict, theme, summaryWidth(ctx))
   );
 }
 
+function startedSubmission(accepted: SubmissionAccepted): Started {
+  return { id: accepted.submission_id, status: accepted.status };
+}
+
+function startedCheck(accepted: AdherenceAccepted): Started {
+  return { id: accepted.job_id, status: accepted.status };
+}
+
 // --no-wait: the id alone on stdout, so a script can keep it, and how to pick it up on stderr.
-function showAccepted(ctx: Context, accepted: SubmissionAccepted): void {
-  const id = accepted.submission_id;
-  ctx.output.result({ id, status: accepted.status }, () => plain(id));
+function showAccepted(ctx: Context, { id, status }: Started): void {
+  ctx.output.result({ id, status }, () => plain(id));
   ctx.output.note(`Started. Run taste wait ${plain(id)} to pick it up.`);
 }
 
@@ -272,8 +308,11 @@ export {
   showAccepted,
   showSubmission,
   showVerdict,
+  startedCheck,
+  startedSubmission,
   startJob,
   submissionJob,
+  summaryWidth,
   verdictJob,
 };
 export type { Format, JobSpec, OutOptions };

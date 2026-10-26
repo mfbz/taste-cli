@@ -11,6 +11,7 @@ import {
   saveFiles,
   showAccepted,
   showSubmission,
+  startedSubmission,
   startJob,
   submissionJob,
 } from "./job.ts";
@@ -40,14 +41,14 @@ async function kit(
   await checkOut(options);
 
   const api = ctx.api();
-  const accepted = await startJob(ctx, () =>
-    api.createBrandKit({ name: basename(file), bytes })
+  const started = await startJob(ctx, "job", () =>
+    api.createBrandKit({ name: basename(file), bytes }).then(startedSubmission)
   );
   if (!options.wait) {
-    showAccepted(ctx, accepted);
+    showAccepted(ctx, started);
     return;
   }
-  const id = accepted.submission_id;
+  const { id } = started;
   const result = await awaitJob(
     ctx,
     id,

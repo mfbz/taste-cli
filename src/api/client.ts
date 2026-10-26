@@ -529,7 +529,7 @@ function createTasteApi(deps: Deps): TasteApi {
     createAdherence: (body) =>
       call(
         ADHERENCE_ACCEPTED,
-        paid(write("POST", endpoint("/judge/brand-adherence"), body))
+        paid(write("POST", endpoint("/judge/brand-adherence"), body), "check")
       ),
 
     listAdherence: ({ limit, offset, q, status }) =>

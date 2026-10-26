@@ -4,7 +4,7 @@ An unofficial command line for the [Taste Engine](https://docs.tastelabs.com), T
 
 > taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.
 
-Extract a brand from a website or a guidelines PDF, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
+Extract a brand from a website or a guidelines PDF, check a site against a brand, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Contents
 
@@ -14,6 +14,8 @@ Extract a brand from a website or a guidelines PDF, search brands, find similar 
 - [Credits](#credits)
 - [Extract a brand](#extract-a-brand): `extract`
 - [Extract a brand kit](#extract-a-brand-kit): `kit`
+- [Check a site against a brand](#check-a-site-against-a-brand): `check`
+- [Brand checks in CI](#brand-checks-in-ci)
 - [Pick a job up again](#pick-a-job-up-again): `wait`
 - [Save the files](#save-the-files): `--out`
 - [Search brands](#search-brands): `search`, `similar`
@@ -27,7 +29,7 @@ Extract a brand from a website or a guidelines PDF, search brands, find similar 
 
 ## Status
 
-Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. Commands still being built are listed as planned in [TASTE-CLI.md](TASTE-CLI.md).
+Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. Commands still being built are listed as planned in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Install
 
@@ -74,12 +76,12 @@ Free: no credits are spent.
 
 ## Credits
 
-`extract`, `kit`, `search`, `similar` and `enhance` spend credits from your Taste account; everything else is free. Their `--help` says so, and they never ask for confirmation: typing the command is the decision.
+`extract`, `kit`, `check`, `search`, `similar` and `enhance` spend credits from your Taste account; everything else is free. Their `--help` says so, and they never ask for confirmation: typing the command is the decision.
 
 - Every flag, address and file is checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.
-- A paid request that fails on the way (network, timeout, Ctrl-C) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction or a brand kit, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
-- Once a job (`extract`, `kit`) has started it runs on Taste's side whatever happens to taste: the error names its id, and `taste wait <id>` picks it up for free.
+- A paid request that fails on the way (network, timeout, Ctrl-C) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
+- Once a job (`extract`, `kit`, `check`) has started it runs on Taste's side whatever happens to taste: the error names its id, and `taste wait <id>` picks it up for free.
 - Failed jobs, searches and similar-brand requests are refunded by Taste.
 
 ## Extract a brand
@@ -121,6 +123,58 @@ taste kit guidelines.pdf --out acme --format json
 
 Spends credits. Extracts a brand kit from a brand guidelines PDF. The file is checked before the upload: it must exist and be a file (`FILE_NOT_FOUND`), be at most 50 MB (`FILE_TOO_LARGE`) and be a PDF that isn't empty (`INVALID_FILE`). It takes `--format`, `--no-wait`, `--timeout`, `--out` and `--overwrite` as `extract` does, with the same progress, summary and `--json` shapes.
 
+## Check a site against a brand
+
+```sh
+taste check https://acme-git-feature.vercel.app --against https://acme.com             # a preview against production
+taste check https://acme-git-feature.vercel.app --against https://acme.com --min 0.8   # exit 1 below 0.8
+taste check https://acme-git-feature.vercel.app --against https://acme.com --json | jq '.data.score'
+taste check https://acme-git-feature.vercel.app --against https://acme.com --no-wait   # print the job's id and return
+```
+
+Spends credits. Judges how closely the first site follows the brand of the one after `--against`. Both addresses are checked as `extract` checks its address (`PRIVATE_URL`, `INVALID_URL`) before anything is spent.
+
+- `--min <score>`: a score from 0 to 1 the check must reach, for CI. Below it (or with no score at all) the command exits 1 with `BELOW_THRESHOLD`. Anything outside 0 to 1 fails with `USAGE_INVALID_VALUE`. Without `--min` a finished check always exits 0. Not with `--no-wait` (`USAGE_CONFLICTING_OPTIONS`).
+- `--no-wait`, `--timeout <seconds>`: as for `extract`.
+
+Progress goes to stderr as for `extract`, ending with `✓ Checked <host> in 4m 01s`. On stdout: the score with two decimals and a 20-cell bar (coloured, with `✓` or `✗` and the minimum, only with `--min`), the two addresses, every recommendation numbered in Taste's order, the fixes counted by action with the first three in full, the id and `taste share <id>`. Below `--min` the verdict is printed, then the error. A check that fails on Taste's side ends with `ADHERENCE_FAILED` and its reason; Taste refunds it.
+
+`--json` data: `{"id","score","passed","min","recommendations","fixes"}`; `passed` and `min` are `null` without `--min`. Below `--min` the document is the `BELOW_THRESHOLD` error, with that same data in `error.details`, so a script has the recommendations without another call.
+
+## Brand checks in CI
+
+Check every Vercel preview against production, and fail the build when it drifts from the brand. Add your Taste API key as the repository secret `TASTE_API_KEY`, then:
+
+```yaml
+# .github/workflows/brand-check.yml
+name: Brand check
+on: deployment_status
+jobs:
+  taste:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment != 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: mfbz/taste-cli
+          path: taste-cli
+          token: ${{ secrets.TASTE_CLI_TOKEN }} # read access, while the repository is private
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci && npm run build && npm link
+        working-directory: taste-cli
+      - run: taste check "$PREVIEW_URL" --against https://acme.com --min 0.8
+        env:
+          TASTE_API_KEY: ${{ secrets.TASTE_API_KEY }}
+          PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
+```
+
+- Each run spends credits, as `taste check` does anywhere.
+- The preview must be readable without signing in: with Vercel's Deployment Protection on, Taste can't open it.
+- taste-cli isn't on npm yet, so this builds it from the repository, as in [Install](#install). While the repository is private, `TASTE_CLI_TOKEN` is a token that can read it.
+- In CI there is no animation and no colour: the verdict prints as plain text in the log, and `BELOW_THRESHOLD` exits 1, which fails the job.
+
 ## Pick a job up again
 
 ```sh
@@ -130,7 +184,7 @@ taste wait <id> --timeout 1200
 taste wait <id> --out stripe         # save a finished extraction's files, for free
 ```
 
-Free. Picks up a job started with `--no-wait`, or one interrupted or out of time, and ends as the command that started it would. The id may be an extraction, a brand kit or a brand adherence check; one that is neither fails with `NOT_FOUND`. A check ends with `✓ Checked <host> in 4m 01s` on stderr and, on stdout, its score, the candidate and reference addresses, the recommendations and the id. `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED`. `--timeout` and `--format` work as for `extract`.
+Free. Picks up a job started with `--no-wait`, or one interrupted or out of time, and ends as the command that started it would. The id may be an extraction, a brand kit or a brand adherence check; one that is neither fails with `NOT_FOUND`. A check ends as `taste check` without `--min` does. `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED`. `--timeout` and `--format` work as for `extract`.
 
 `--json` data: the result, or for a check the verdict, exactly as Taste returned it.
 
@@ -223,9 +277,9 @@ Every command takes `--json` for scripts and agents, and `--debug` to add an err
 
 - `--json` prints exactly one JSON document on stdout, errors included, on every path (help, version, usage errors and Ctrl-C too). Progress, notes and warnings never reach stdout.
 - Success: `{"ok":true,"data":…}`, with each command's data in its section above.
-- Failure: `{"ok":false,"error":{"code","message","hint","retryable"}}`, plus `"details":{"id"}` when a job is involved: the id to `taste wait` on. Branch on `code`; `message` and `hint` are for people.
+- Failure: `{"ok":false,"error":{"code","message","hint","retryable"}}`, plus `"details":{"id"}` when a job is involved: the id to `taste wait` on. For `BELOW_THRESHOLD`, `details` is the check's data instead. Branch on `code`; `message` and `hint` are for people.
 - `retryable: true` means running the same command again is safe and costs nothing extra. It is `false` whenever the hint is `taste wait <id>` (the job runs on) or a paid request may already have been charged.
-- Exit codes: `0` ok, `1` failure, `2` usage error (nothing was sent), `130` interrupted.
+- Exit codes: `0` ok, `1` failure (including a check below `--min`), `2` usage error (nothing was sent), `130` interrupted.
 - Ctrl-C stops what is in flight and exits 130 with one `INTERRUPTED` document. Its hint says to run the command again, or `taste wait <id>` once a job has started, or where to look while a paid request was being sent. A second Ctrl-C ends at once, with the same code and no second document.
 - Without `--json`, results go to stdout and errors, notes, progress and prompts to stderr. An error is one line saying what happened and one saying what to do.
 
@@ -250,6 +304,8 @@ The codes scripts most often branch on. Every code, with its message and hint, i
 | `NOT_FOUND`                                                                                                       | 1    | No such id, or no finished extraction of that address                                           |
 | `FULL_EXTRACTION_REQUIRED`                                                                                        | 1    | `similar` and `enhance` need an extraction made without `--sections`                            |
 | `JOB_FAILED`                                                                                                      | 1    | The job failed, with its reason; Taste refunds it                                               |
+| `ADHERENCE_FAILED`                                                                                                | 1    | Taste couldn't compare the two sites, with its reason; Taste refunds it                         |
+| `BELOW_THRESHOLD`                                                                                                 | 1    | The check scored below `--min`; `error.details` has the verdict                                 |
 | `WAIT_TIMEOUT`                                                                                                    | 1    | Still running after `--timeout`; `taste wait <id>` picks it up                                  |
 | `SEARCH_BUSY`                                                                                                     | 1    | Taste turned the search away as busy; retryable                                                 |
 | `NETWORK`, `TIMEOUT`                                                                                              | 1    | Taste couldn't be reached or didn't answer; after a paid request, check before running it again |

@@ -12,6 +12,7 @@ import {
   saveFiles,
   showAccepted,
   showSubmission,
+  startedSubmission,
   startJob,
   submissionJob,
 } from "./job.ts";
@@ -68,12 +69,14 @@ async function extract(
     : {};
 
   const api = ctx.api();
-  const accepted = await startJob(ctx, () => api.createSubmission(body, query));
+  const started = await startJob(ctx, "job", () =>
+    api.createSubmission(body, query).then(startedSubmission)
+  );
   if (!options.wait) {
-    showAccepted(ctx, accepted);
+    showAccepted(ctx, started);
     return;
   }
-  const id = accepted.submission_id;
+  const { id } = started;
   const result = await awaitJob(
     ctx,
     id,
