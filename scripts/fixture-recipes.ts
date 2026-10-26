@@ -380,15 +380,11 @@ const RECIPES: readonly Recipe[] = [
       "POST /judge/brand-adherence, then free polling of the job and its verdict",
     inputs: {
       reference: "https://www.tastelabs.com/",
-      candidate: "https://www.tastelabs.com/research",
+      candidate: "https://tastelabs.com/",
     },
     resumes: true,
     run: (c) =>
-      check(
-        c,
-        "https://www.tastelabs.com/",
-        "https://www.tastelabs.com/research"
-      ),
+      check(c, "https://www.tastelabs.com/", "https://tastelabs.com/"),
   },
   {
     name: "check-fail",

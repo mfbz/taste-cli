@@ -150,7 +150,7 @@ describe("the fixture recipes", () => {
     const fresh = await recordAgainstMock("check-fail");
     const failJob = (fresh.data.accepted as { job_id: string }).job_id;
     await expect(recordAgainstMock("check-pass", failJob)).rejects.toThrow(
-      /was posted for https:\/\/stripe\.com\/, not https:\/\/www\.tastelabs\.com\/research/
+      /was posted for https:\/\/stripe\.com\/, not https:\/\/tastelabs\.com\//
     );
     const stripe = await recordAgainstMock("extract-full-2");
     const stripeId = (stripe.data.accepted as { submission_id: string })

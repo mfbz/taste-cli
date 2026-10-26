@@ -305,8 +305,9 @@ function createMockHandler(options: MockOptions) {
       const { reference_url: reference, candidate_url: candidate } = body;
       if (!isWebUrl(reference) || !isWebUrl(candidate))
         return library.invalidUrl;
-      const sameSite =
-        URL.parse(reference)?.hostname === URL.parse(candidate)?.hostname;
+      const site = (url: string) =>
+        URL.parse(url)?.hostname.replace(/^www\./, "");
+      const sameSite = site(reference) === site(candidate);
       const template = failing(candidate)
         ? library.failedCheck
         : library.check(sameSite);

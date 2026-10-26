@@ -169,7 +169,7 @@ describe("the mock Taste Engine", () => {
       for (let i = 0; i < 5; i += 1) await api.getAdherence(id);
       return api.getVerdict(id);
     }
-    const pass = await check("https://www.tastelabs.com/research");
+    const pass = await check("https://tastelabs.com/");
     const fail = await check("https://stripe.com/");
     expect(pass !== "not_ready" && pass.score).toBeGreaterThan(0.7);
     expect(fail !== "not_ready" && fail.score).toBeLessThan(0.5);
