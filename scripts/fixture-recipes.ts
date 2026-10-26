@@ -367,8 +367,8 @@ const RECIPES: readonly Recipe[] = [
     name: "kit",
     paid: true,
     calls:
-      "POST /design/submissions/brand-kit (the PDF given with --file), then free polling",
-    inputs: { file: "--file <path>" },
+      "POST /design/submissions/brand-kit (the sample Acme PDF, or --file), then free polling",
+    inputs: { file: "fixtures-input/sample-guidelines.pdf, or --file <path>" },
     resumes: true,
     run: (c) =>
       extraction(c, { kind: "brand_kit" }, () =>

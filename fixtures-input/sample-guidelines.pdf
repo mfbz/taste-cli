@@ -1,0 +1,161 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R 11 0 R 13 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Title (Acme brand guidelines) /Producer (taste-cli) >>
+endobj
+6 0 obj
+<< /Length 402 >>
+stream
+0.106 0.106 0.118 rg 0 0 595 842 re f
+0.843 0.149 0.239 rg 56 422 12 120 re f
+BT 0.969 0.957 0.937 rg /F2 96 Tf 88 442 Td (ACME) Tj ET
+BT 0.969 0.957 0.937 rg /F1 20 Tf 88 394 Td (Tools that work the first time.) Tj ET
+BT 0.361 0.42 0.451 rg /F1 11 Tf 56 72 Td (Brand guidelines, edition 1) Tj ET
+BT 0.361 0.42 0.451 rg /F1 11 Tf 56 56 Td (A sample brand for testing. Acme is not a real company.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3758 >>
+stream
+0.969 0.957 0.937 rg 0 0 595 842 re f
+BT 0.361 0.42 0.451 rg /F2 10 Tf 56 778 Td (ACME  BRAND GUIDELINES) Tj ET
+BT 0.361 0.42 0.451 rg /F1 10 Tf 527 778 Td (2) Tj ET
+BT 0.106 0.106 0.118 rg /F2 32 Tf 56 722 Td (Color) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 56 686 Td (Five colors. Use them in these proportions across a page.) Tj ET
+0.843 0.149 0.239 rg 56 634 48.3 24 re f
+0.106 0.106 0.118 rg 104.3 634 120.75 24 re f
+0.969 0.957 0.937 rg 225.05 634 241.5 24 re f
+0.361 0.42 0.451 rg 466.55 634 48.3 24 re f
+0.957 0.725 0.259 rg 514.85 634 24.15 24 re f
+0.361 0.42 0.451 RG 0.5 w 56 634 483 24 re S
+62 514 m 170 514 l 173.3138 514 176 516.6862 176 520 c 176 588 l 176 591.3138 173.3138 594 170 594 c 62 594 l 58.6862 594 56 591.3138 56 588 c 56 520 l 56 516.6862 58.6862 514 62 514 c 0.843 0.149 0.239 rg f
+62 514 m 170 514 l 173.3138 514 176 516.6862 176 520 c 176 588 l 176 591.3138 173.3138 594 170 594 c 62 594 l 58.6862 594 56 591.3138 56 588 c 56 520 l 56 516.6862 58.6862 514 62 514 c 0.361 0.42 0.451 RG 0.5 w S
+BT 0.106 0.106 0.118 rg /F2 16 Tf 200 572 Td (Acme Red) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 200 550 Td (#D7263D   10% of a page) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 200 530 Td (Primary actions and the wordmark) Tj ET
+62 410 m 170 410 l 173.3138 410 176 412.6862 176 416 c 176 484 l 176 487.3138 173.3138 490 170 490 c 62 490 l 58.6862 490 56 487.3138 56 484 c 56 416 l 56 412.6862 58.6862 410 62 410 c 0.106 0.106 0.118 rg f
+62 410 m 170 410 l 173.3138 410 176 412.6862 176 416 c 176 484 l 176 487.3138 173.3138 490 170 490 c 62 490 l 58.6862 490 56 487.3138 56 484 c 56 416 l 56 412.6862 58.6862 410 62 410 c 0.361 0.42 0.451 RG 0.5 w S
+BT 0.106 0.106 0.118 rg /F2 16 Tf 200 468 Td (Ink) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 200 446 Td (#1B1B1E   25% of a page) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 200 426 Td (Text and dark surfaces) Tj ET
+62 306 m 170 306 l 173.3138 306 176 308.6862 176 312 c 176 380 l 176 383.3138 173.3138 386 170 386 c 62 386 l 58.6862 386 56 383.3138 56 380 c 56 312 l 56 308.6862 58.6862 306 62 306 c 0.969 0.957 0.937 rg f
+62 306 m 170 306 l 173.3138 306 176 308.6862 176 312 c 176 380 l 176 383.3138 173.3138 386 170 386 c 62 386 l 58.6862 386 56 383.3138 56 380 c 56 312 l 56 308.6862 58.6862 306 62 306 c 0.361 0.42 0.451 RG 0.5 w S
+BT 0.106 0.106 0.118 rg /F2 16 Tf 200 364 Td (Paper) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 200 342 Td (#F7F4EF   50% of a page) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 200 322 Td (Page background) Tj ET
+62 202 m 170 202 l 173.3138 202 176 204.6862 176 208 c 176 276 l 176 279.3138 173.3138 282 170 282 c 62 282 l 58.6862 282 56 279.3138 56 276 c 56 208 l 56 204.6862 58.6862 202 62 202 c 0.361 0.42 0.451 rg f
+62 202 m 170 202 l 173.3138 202 176 204.6862 176 208 c 176 276 l 176 279.3138 173.3138 282 170 282 c 62 282 l 58.6862 282 56 279.3138 56 276 c 56 208 l 56 204.6862 58.6862 202 62 202 c 0.361 0.42 0.451 RG 0.5 w S
+BT 0.106 0.106 0.118 rg /F2 16 Tf 200 260 Td (Steel) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 200 238 Td (#5C6B73   10% of a page) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 200 218 Td (Secondary text and borders) Tj ET
+62 98 m 170 98 l 173.3138 98 176 100.6862 176 104 c 176 172 l 176 175.3138 173.3138 178 170 178 c 62 178 l 58.6862 178 56 175.3138 56 172 c 56 104 l 56 100.6862 58.6862 98 62 98 c 0.957 0.725 0.259 rg f
+62 98 m 170 98 l 173.3138 98 176 100.6862 176 104 c 176 172 l 176 175.3138 173.3138 178 170 178 c 62 178 l 58.6862 178 56 175.3138 56 172 c 56 104 l 56 100.6862 58.6862 98 62 98 c 0.361 0.42 0.451 RG 0.5 w S
+BT 0.106 0.106 0.118 rg /F2 16 Tf 200 156 Td (Sun) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 200 134 Td (#F4B942   5% of a page) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 200 114 Td (Highlights, used sparingly) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 2046 >>
+stream
+0.969 0.957 0.937 rg 0 0 595 842 re f
+BT 0.361 0.42 0.451 rg /F2 10 Tf 56 778 Td (ACME  BRAND GUIDELINES) Tj ET
+BT 0.361 0.42 0.451 rg /F1 10 Tf 527 778 Td (3) Tj ET
+BT 0.106 0.106 0.118 rg /F2 32 Tf 56 722 Td (Typography) Tj ET
+BT 0.106 0.106 0.118 rg /F1 14 Tf 56 682 Td (Typeface: Helvetica Neue. Fallbacks: Helvetica, Arial, sans-serif.) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 56 660 Td (Bold for display and headings, Regular for body and captions.) Tj ET
+BT 0.361 0.42 0.451 rg /F2 10 Tf 56 618 Td (ROLE) Tj ET
+BT 0.361 0.42 0.451 rg /F2 10 Tf 166 618 Td (WEIGHT) Tj ET
+BT 0.361 0.42 0.451 rg /F2 10 Tf 246 618 Td (SIZE / LINE HEIGHT) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 582 Td (Display) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 166 582 Td (Bold) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 246 582 Td (48 px / 52 px) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 558 Td (Heading 1) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 166 558 Td (Bold) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 246 558 Td (32 px / 38 px) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 534 Td (Heading 2) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 166 534 Td (Bold) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 246 534 Td (24 px / 30 px) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 510 Td (Body) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 166 510 Td (Regular) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 246 510 Td (16 px / 24 px) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 486 Td (Caption) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 166 486 Td (Regular) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 246 486 Td (12 px / 16 px) Tj ET
+BT 0.106 0.106 0.118 rg /F2 48 Tf 56 386 Td (Display sample) Tj ET
+BT 0.106 0.106 0.118 rg /F2 32 Tf 56 348 Td (Heading 1 sample) Tj ET
+BT 0.106 0.106 0.118 rg /F2 24 Tf 56 318 Td (Heading 2 sample) Tj ET
+BT 0.106 0.106 0.118 rg /F1 16 Tf 56 294 Td (Body sample) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 278 Td (Caption text, 12 px) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 56 230 Td (Body text sets at 16 px on 24 px, left aligned, 60 to 75 characters a line.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 1863 >>
+stream
+0.969 0.957 0.937 rg 0 0 595 842 re f
+BT 0.361 0.42 0.451 rg /F2 10 Tf 56 778 Td (ACME  BRAND GUIDELINES) Tj ET
+BT 0.361 0.42 0.451 rg /F1 10 Tf 527 778 Td (4) Tj ET
+BT 0.106 0.106 0.118 rg /F2 32 Tf 56 722 Td (Buttons and logo) Tj ET
+BT 0.361 0.42 0.451 rg /F1 12 Tf 56 682 Td (Corner radius 6 px. Padding 12 px top and bottom, 24 px left and right. Label 16 px Bold.) Tj ET
+62 614 m 190 614 l 193.3138 614 196 616.6862 196 620 c 196 652 l 196 655.3138 193.3138 658 190 658 c 62 658 l 58.6862 658 56 655.3138 56 652 c 56 620 l 56 616.6862 58.6862 614 62 614 c 0.843 0.149 0.239 rg f
+BT 0.969 0.957 0.937 rg /F2 16 Tf 80 630 Td (Get started) Tj ET
+226 614 m 334 614 l 337.3138 614 340 616.6862 340 620 c 340 652 l 340 655.3138 337.3138 658 334 658 c 226 658 l 222.6862 658 220 655.3138 220 652 c 220 620 l 220 616.6862 222.6862 614 226 614 c 0.106 0.106 0.118 RG 1.5 w S
+BT 0.106 0.106 0.118 rg /F2 16 Tf 244 630 Td (Read more) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 590 Td (Primary: Acme Red fill, Paper label. One per screen.) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 570 Td (Secondary: no fill, 1.5 px Ink border, Ink label.) Tj ET
+BT 0.106 0.106 0.118 rg /F2 20 Tf 56 506 Td (Logo) Tj ET
+0.361 0.42 0.451 RG 0.75 w [4 3] 0 d 56 366 236 112 re S [] 0 d
+BT 0.106 0.106 0.118 rg /F2 56 Tf 84 396 Td (ACME) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 316 458 Td (Clear space: the height of the A in the) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 316 442 Td (wordmark, on every side.) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 316 418 Td (Minimum width: 96 px on screen, 24 mm in print.) Tj ET
+BT 0.106 0.106 0.118 rg /F2 20 Tf 56 318 Td (Misuse) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 286 Td (1. Do not stretch, slant or rotate the wordmark.) Tj ET
+BT 0.106 0.106 0.118 rg /F1 12 Tf 56 264 Td (2. Do not place the wordmark on Acme Red or on a busy photo.) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 12 0 R >>
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000135 00000 n 
+0000000232 00000 n 
+0000000334 00000 n 
+0000000408 00000 n 
+0000000861 00000 n 
+0000000997 00000 n 
+0000004807 00000 n 
+0000004943 00000 n 
+0000007042 00000 n 
+0000007180 00000 n 
+0000009096 00000 n 
+trailer
+<< /Size 14 /Root 1 0 R /Info 5 0 R >>
+startxref
+9234
+%%EOF

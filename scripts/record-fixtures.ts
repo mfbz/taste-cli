@@ -26,6 +26,7 @@ import {
   RECIPES,
 } from "./fixture-recipes.ts";
 import type { Kit, Recipe } from "./fixture-recipes.ts";
+import { OUTPUT as SAMPLE_GUIDELINES } from "./make-sample-guidelines.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const OUT_DIR = join(ROOT, "tmp-fixtures");
@@ -127,8 +128,10 @@ async function main(): Promise<number> {
       throw new Error("Not signed in: run taste login, or set TASTE_API_KEY.");
     const id = dependencyId(recipe, OUT_DIR, values.id);
     let kit: Kit | undefined;
-    if (values.file)
-      kit = { name: basename(values.file), bytes: readFileSync(values.file) };
+    // The kit recipe reads the committed sample unless given another PDF.
+    const file =
+      values.file ?? (recipe.name === "kit" ? SAMPLE_GUIDELINES : undefined);
+    if (file) kit = { name: basename(file), bytes: readFileSync(file) };
     process.stderr.write(
       `${describeRecipe(recipe, apiUrl, id)}\nSigned in with: ${identity.method}\n`
     );
