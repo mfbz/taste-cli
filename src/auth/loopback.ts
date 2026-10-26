@@ -1,7 +1,9 @@
 // The local end of a browser sign in: a server on 127.0.0.1 only, which takes exactly one callback
-// on GET /callback and then closes. The state must match before a code is trusted, and the page it
-// answers with never repeats anything from the request.
+// on GET /callback and then closes. Only a callback carrying our state counts: anything else gets a
+// fixed failure page and the wait goes on, so another page can neither sign us in nor cancel the sign
+// in. No page ever repeats anything from the request.
 import { createServer } from "node:http";
+import { setTimeout as delay } from "node:timers/promises";
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
 
 import { CATALOGUE, CliError } from "../output/errors.ts";
@@ -18,8 +20,11 @@ type Loopback = {
   close(): Promise<void>;
 };
 type Handler = (url: URL, res: ServerResponse) => void;
+type Outcome = { code: string } | { failure: ErrorCode };
 
 const HOST = "127.0.0.1";
+// How long a page being sent may hold up closing the server.
+const SEND_GRACE_MS = 1000;
 // Registered all at once, because the server only accepts a redirect it knows to the exact port. Four,
 // because the first is also rclone's default and something may hold it.
 const LOOPBACK_PORTS: readonly number[] = [53682, 53683, 53684, 53685];
@@ -36,12 +41,8 @@ function bind(port: number): Promise<Server | null> {
   });
 }
 
-// What a callback means, decided from the parameters alone: a code, or the failure to report.
-function outcome(
-  params: URLSearchParams,
-  state: string
-): { code: string } | { failure: ErrorCode } {
-  if (params.get("state") !== state) return { failure: "LOGIN_DENIED" };
+// What a callback with our state means: a code, or the failure to report.
+function outcome(params: URLSearchParams): Outcome {
   const error = params.get("error");
   if (error === "access_denied") return { failure: "LOGIN_DENIED" };
   const code = params.get("code");
@@ -49,12 +50,17 @@ function outcome(
   return { code };
 }
 
-function notFound(res: ServerResponse): void {
-  res.writeHead(404, {
+function plain(res: ServerResponse, status: number, text: string): void {
+  res.writeHead(status, {
     ...PAGE_HEADERS,
     "content-type": "text/plain; charset=utf-8",
   });
-  res.end("Not found.\n");
+  res.end(`${text}\n`);
+}
+
+function failure(res: ServerResponse, code: ErrorCode): void {
+  res.writeHead(400, PAGE_HEADERS);
+  res.end(failurePage(CATALOGUE[code].message));
 }
 
 async function listenLoopback(ports: readonly number[]): Promise<Loopback> {
@@ -70,20 +76,31 @@ async function listenLoopback(ports: readonly number[]): Promise<Loopback> {
   if (!server) throw new CliError("LOGIN_PORTS_BUSY");
   const listening = server;
   let handler: Handler | null = null;
+  // The last page still being sent; settles when it is sent or its socket goes away.
+  let sending: Promise<void> = Promise.resolve();
 
   listening.on("request", (req: IncomingMessage, res: ServerResponse) => {
-    const url = new URL(req.url ?? "/", redirectUri(port));
+    sending = new Promise((resolve) => res.once("close", resolve));
+    const url = URL.parse(req.url ?? "", redirectUri(port));
+    if (!url) return plain(res, 400, "Bad request.");
     if (req.method !== "GET" || url.pathname !== "/callback" || !handler)
-      return notFound(res);
+      return plain(res, 404, "Not found.");
     handler(url, res);
   });
 
-  function close(): Promise<void> {
+  // Stops taking connections at once, lets a page in flight finish (briefly), then drops the rest.
+  async function close(): Promise<void> {
     handler = null;
-    return new Promise((resolve) => {
-      listening.close(() => resolve());
-      listening.closeAllConnections();
-    });
+    const closed = new Promise<void>((resolve) =>
+      listening.close(() => resolve())
+    );
+    listening.closeIdleConnections();
+    await Promise.race([
+      sending,
+      delay(SEND_GRACE_MS, undefined, { ref: false }),
+    ]);
+    listening.closeAllConnections();
+    await closed;
   }
 
   function waitForCallback(
@@ -108,16 +125,16 @@ async function listenLoopback(ports: readonly number[]): Promise<Loopback> {
       if (signal.aborted) return onAbort();
       signal.addEventListener("abort", onAbort, { once: true });
       handler = (url, res) => {
-        const result = outcome(url.searchParams, state);
-        const ok = "code" in result;
-        res.writeHead(ok ? 200 : 400, PAGE_HEADERS);
-        res.end(
-          ok ? successPage() : failurePage(CATALOGUE[result.failure].message),
-          // The page is sent before the server goes away.
-          () => finish(ok ? result.code : new CliError(result.failure))
-        );
-        // No second callback while this one is answered.
-        handler = null;
+        if (url.searchParams.get("state") !== state)
+          return failure(res, "LOGIN_FAILED");
+        const result = outcome(url.searchParams);
+        if ("code" in result) {
+          res.writeHead(200, PAGE_HEADERS);
+          res.end(successPage());
+        } else failure(res, result.failure);
+        // Settled now, not when the page is sent: a browser that drops the connection must not leave
+        // the sign in waiting. close() lets the page finish first.
+        finish("code" in result ? result.code : new CliError(result.failure));
       };
     });
   }

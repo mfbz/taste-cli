@@ -16,8 +16,10 @@ import { requestJson } from "./http.ts";
 import { withLock } from "./lock.ts";
 import { listenLoopback, LOOPBACK_PORTS, redirectUri } from "./loopback.ts";
 import {
+  forgetRegistration,
   readRegistration,
   registerClient,
+  savedTokenEndpoint,
   saveRegistration,
 } from "./registration.ts";
 import type { SecretStore, StoredCredential } from "./store.ts";
@@ -40,14 +42,19 @@ type RefreshDeps = {
   dir: string;
   now: () => number;
   signal?: AbortSignal;
-  // The lock's wait between tries, injectable so a test needn't wait 10 seconds.
+  // The lock's wait between tries, injectable so a test needn't wait for real.
   sleep?: (ms: number) => Promise<void>;
 };
 type Tokens = { accessToken: string; refreshToken: string; expiresAt: number };
-type TokenAnswer = { tokens: Tokens } | { error: string };
+// missing: the endpoint answered 404, so it moved; nothing was spent there.
+type TokenAnswer = { tokens: Tokens } | { error: string } | { missing: true };
+type TokenOptions = { now: () => number; signal?: AbortSignal };
 
 const SCOPE = "openid email offline_access";
 const LOGIN_TIMEOUT_MS = 5 * 60_000;
+// Everything a refresh sends, together, finishes inside this, well under the lock's stale age and the
+// time other processes wait for it (lock.ts).
+const REFRESH_BUDGET_MS = 20_000;
 const TOKENS = z.looseObject({
   access_token: z.string().min(1),
   refresh_token: z.string().min(1),
@@ -64,8 +71,7 @@ async function requestTokens(
   fetch: typeof globalThis.fetch,
   endpoint: string,
   form: Record<string, string>,
-  now: () => number,
-  signal?: AbortSignal
+  { now, signal }: TokenOptions
 ): Promise<TokenAnswer> {
   const { status, body } = await requestJson(fetch, endpoint, {
     method: "POST",
@@ -86,6 +92,7 @@ async function requestTokens(
       },
     };
   }
+  if (status === 404) return { missing: true };
   if (status >= 500) throw new CliError("UPSTREAM");
   const parsed = TOKEN_ERROR.safeParse(body);
   if (!parsed.success) throw new CliError("LOGIN_FAILED");
@@ -146,7 +153,15 @@ async function authorize(
     await Promise.resolve()
       .then(() => deps.openBrowser(url.toString()))
       .catch(() => undefined);
-    code = await waiting;
+    try {
+      code = await waiting;
+    } catch (error) {
+      // No answer, or an error instead of a code: the server may no longer know this client.
+      const code = error instanceof CliError ? error.code : undefined;
+      if (code === "LOGIN_TIMEOUT" || code === "LOGIN_FAILED")
+        await forgetRegistration(deps.dir);
+      throw error;
+    }
   } finally {
     await loopback.close();
   }
@@ -161,8 +176,7 @@ async function authorize(
       code_verifier: verifier,
       resource: meta.resource,
     },
-    deps.now,
-    deps.signal
+    { now: deps.now, signal: deps.signal }
   );
 }
 
@@ -178,7 +192,7 @@ async function loginWithBrowser(deps: LoginDeps): Promise<Session> {
     clientId = await loadOrRegister(deps, meta, true);
     answer = await authorize(deps, meta, clientId);
   }
-  if ("error" in answer) throw new CliError("LOGIN_FAILED");
+  if (!("tokens" in answer)) throw new CliError("LOGIN_FAILED");
   const { tokens } = answer;
   const api = createTasteApi({
     fetch: deps.fetch,
@@ -202,6 +216,43 @@ async function loginWithBrowser(deps: LoginDeps): Promise<Session> {
   return session;
 }
 
+// The saved token endpoint first; the metadata documents only when there is none, or it has moved
+// (404, or unreachable and discovery names another). A refresh token is never sent twice to the same
+// endpoint: a send that failed may still have spent it.
+async function exchangeRefresh(
+  deps: RefreshDeps,
+  session: Session,
+  signal: AbortSignal
+): Promise<TokenAnswer> {
+  const form = {
+    grant_type: "refresh_token",
+    refresh_token: session.refreshToken,
+    client_id: session.clientId,
+  };
+  const options = { now: deps.now, signal };
+  const saved = await savedTokenEndpoint(deps.dir, session.clientId);
+  let failure: CliError | null = null;
+  if (saved) {
+    try {
+      const answer = await requestTokens(deps.fetch, saved, form, options);
+      if (!("missing" in answer)) return answer;
+      failure = new CliError("LOGIN_FAILED");
+    } catch (error) {
+      if (!(error instanceof CliError && error.code === "NETWORK")) throw error;
+      failure = error;
+    }
+  }
+  const meta = await discover(deps.fetch, signal);
+  if (failure && meta.token === saved) throw failure;
+  const answer = await requestTokens(deps.fetch, meta.token, form, options);
+  if ("tokens" in answer)
+    await saveRegistration(deps.dir, meta, {
+      clientId: session.clientId,
+      ports: [...LOOPBACK_PORTS],
+    });
+  return answer;
+}
+
 async function refreshSession(
   deps: RefreshDeps,
   credential: Session
@@ -212,27 +263,25 @@ async function refreshSession(
     if (current?.kind !== "session") throw new CliError("SESSION_EXPIRED");
     // Another process refreshed first; its token is the one that works now.
     if (current.expiresAt > credential.expiresAt) return current;
-    const meta = await discover(deps.fetch, deps.signal);
-    const answer = await requestTokens(
-      deps.fetch,
-      meta.token,
-      {
-        grant_type: "refresh_token",
-        refresh_token: current.refreshToken,
-        client_id: current.clientId,
-      },
-      deps.now,
-      deps.signal
-    );
+    const budget = AbortSignal.timeout(REFRESH_BUDGET_MS);
+    const signal = deps.signal
+      ? AbortSignal.any([deps.signal, budget])
+      : budget;
+    const answer = await exchangeRefresh(deps, current, signal);
+    if ("missing" in answer) throw new CliError("LOGIN_FAILED");
     if ("error" in answer) {
+      if (answer.error !== "invalid_grant" && answer.error !== "invalid_client")
+        throw new CliError("LOGIN_FAILED");
+      // Only end the session we tried to refresh. A process that went ahead without the lock may
+      // have been beaten by the holder, which has stored a newer, working session meanwhile.
+      const latest = await deps.store.read();
       if (
-        answer.error === "invalid_grant" ||
-        answer.error === "invalid_client"
-      ) {
-        await deps.store.clear();
-        throw new CliError("SESSION_EXPIRED");
-      }
-      throw new CliError("LOGIN_FAILED");
+        latest?.kind === "session" &&
+        latest.refreshToken !== current.refreshToken
+      )
+        return latest;
+      await deps.store.clear();
+      throw new CliError("SESSION_EXPIRED");
     }
     const next: Session = { ...current, ...answer.tokens };
     await deps.store.write(next);

@@ -14,7 +14,9 @@ type Grant = {
   challenge: string;
   resource: string | null;
 };
-type BrowserMode = "approve" | "deny" | "wrong-state" | "ignore";
+// forged-first: a callback with another state reaches the loopback before the real one.
+// error: the server redirects with an error other than access_denied (it forgot the client).
+type BrowserMode = "approve" | "deny" | "error" | "forged-first" | "ignore";
 type FakeOAuth = {
   fetch: typeof globalThis.fetch;
   calls: Call[];
@@ -30,7 +32,11 @@ type FakeOAuth = {
   browser(mode?: BrowserMode): {
     open: (url: string) => Promise<void>;
     opened: string[];
+    // Status codes the loopback answered, in order.
+    answers: number[];
   };
+  // What another process's refresh does on the server: spends a refresh token, issues new ones.
+  rotate(refreshToken: string): { accessToken: string; refreshToken: string };
 };
 
 const RESOURCE = "https://mcp.tastelabs.com/mcp";
@@ -79,7 +85,17 @@ function fakeOAuth(): FakeOAuth {
     tokenErrors: [],
     tokenDelayMs: 0,
     browser,
+    rotate,
   };
+
+  function rotate(refreshToken: string) {
+    if (!fake.refreshTokens.delete(refreshToken)) throw new Error("unknown");
+    const accessToken = token("access");
+    const next = token("refresh");
+    fake.accessTokens.push(accessToken);
+    fake.refreshTokens.add(next);
+    return { accessToken, refreshToken: next };
+  }
 
   function issue(): Response {
     const access = token("access");
@@ -167,37 +183,50 @@ function fakeOAuth(): FakeOAuth {
   // to the loopback server with a real request.
   function browser(mode: BrowserMode = "approve") {
     const opened: string[] = [];
+    const answers: number[] = [];
+    async function follow(redirect: URL): Promise<void> {
+      try {
+        const response = await globalThis.fetch(redirect);
+        answers.push(response.status);
+        await response.text();
+      } catch {
+        // The loopback may already be gone.
+      }
+    }
     function open(raw: string): Promise<void> {
       opened.push(raw);
       if (mode === "ignore") return Promise.resolve();
-      const url = new URL(raw);
-      const p = url.searchParams;
+      const p = new URL(raw).searchParams;
+      const state = p.get("state") ?? "";
       const redirect = new URL(p.get("redirect_uri") ?? "");
-      if (mode === "deny") {
-        redirect.searchParams.set("error", "access_denied");
-        redirect.searchParams.set("state", p.get("state") ?? "");
-      } else {
-        const code = token("code");
-        grants.set(code, {
-          clientId: p.get("client_id") ?? "",
-          redirectUri: p.get("redirect_uri") ?? "",
-          challenge: p.get("code_challenge") ?? "",
-          resource: p.get("resource"),
-        });
-        redirect.searchParams.set("code", code);
+      if (mode === "deny" || mode === "error") {
         redirect.searchParams.set(
-          "state",
-          mode === "wrong-state" ? "not-the-state" : (p.get("state") ?? "")
+          "error",
+          mode === "deny" ? "access_denied" : "invalid_client"
         );
+        redirect.searchParams.set("state", state);
+        void follow(redirect);
+        return Promise.resolve();
       }
+      const code = token("code");
+      grants.set(code, {
+        clientId: p.get("client_id") ?? "",
+        redirectUri: p.get("redirect_uri") ?? "",
+        challenge: p.get("code_challenge") ?? "",
+        resource: p.get("resource"),
+      });
+      redirect.searchParams.set("code", code);
+      redirect.searchParams.set("state", state);
+      const forged = new URL(redirect);
+      forged.searchParams.set("code", "forged-code");
+      forged.searchParams.set("state", "not-the-state");
       // Not awaited by the caller in real life: a browser runs on its own.
-      void globalThis.fetch(redirect).then(
-        (r) => r.text(),
-        () => undefined
-      );
+      void (mode === "forged-first"
+        ? follow(forged).then(() => follow(redirect))
+        : follow(redirect));
       return Promise.resolve();
     }
-    return { open, opened };
+    return { open, opened, answers };
   }
 
   return fake;

@@ -1,6 +1,7 @@
 // taste-cli registers itself with the authorization server as a public client (dynamic client
 // registration), once for all its loopback ports, and keeps the client id in client.json. The id is
-// not a secret; it is reused until the ports or the server change, or the server forgets it.
+// not a secret; it is reused until the ports or the server change, or the server forgets it. The
+// token endpoint is kept beside it, so a refresh needn't read the metadata documents every hour.
 import { randomUUID } from "node:crypto";
 import {
   chmod,
@@ -28,6 +29,7 @@ const CLIENT_FILE = z.object({
   clientId: z.string().min(1),
   ports: z.array(z.number().int()),
   registrationEndpoint: z.string(),
+  tokenEndpoint: z.string(),
 });
 
 function samePorts(a: readonly number[], b: readonly number[]): boolean {
@@ -56,20 +58,25 @@ async function registerClient(
   return { clientId: parsed.data.client_id, ports: [...LOOPBACK_PORTS] };
 }
 
+async function readClientFile(
+  dir: string
+): Promise<z.infer<typeof CLIENT_FILE> | null> {
+  try {
+    const json: unknown = JSON.parse(await readFile(clientFile(dir), "utf8"));
+    const parsed = CLIENT_FILE.safeParse(json);
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
 // Anything unreadable, or registered for other ports or another server, means register again.
 async function readRegistration(
   dir: string,
   meta: OAuthEndpoints
 ): Promise<Registration | null> {
-  let json: unknown;
-  try {
-    json = JSON.parse(await readFile(clientFile(dir), "utf8"));
-  } catch {
-    return null;
-  }
-  const parsed = CLIENT_FILE.safeParse(json);
-  if (!parsed.success) return null;
-  const saved = parsed.data;
+  const saved = await readClientFile(dir);
+  if (!saved) return null;
   if (saved.registrationEndpoint !== meta.register) return null;
   if (!samePorts(saved.ports, LOOPBACK_PORTS)) return null;
   return { clientId: saved.clientId, ports: saved.ports };
@@ -90,6 +97,7 @@ async function saveRegistration(
       clientId: registration.clientId,
       ports: registration.ports,
       registrationEndpoint: meta.register,
+      tokenEndpoint: meta.token,
     };
     await writeFile(temp, JSON.stringify(content), { mode: 0o600, flag: "wx" });
     await rename(temp, clientFile(dir));
@@ -98,5 +106,30 @@ async function saveRegistration(
   }
 }
 
-export { readRegistration, registerClient, saveRegistration };
+// The token endpoint saved with this client's registration, if it is still the one on file. Only an
+// https address is trusted, as discovery would require.
+async function savedTokenEndpoint(
+  dir: string,
+  clientId: string
+): Promise<string | null> {
+  const saved = await readClientFile(dir);
+  if (saved?.clientId !== clientId) return null;
+  return URL.parse(saved.tokenEndpoint)?.protocol === "https:"
+    ? saved.tokenEndpoint
+    : null;
+}
+
+// After a sign in that never came back, the server may have forgotten this client: it then shows its
+// own error page instead of redirecting. Registering again next time is the way out.
+async function forgetRegistration(dir: string): Promise<void> {
+  await rm(clientFile(dir), { force: true }).catch(() => undefined);
+}
+
+export {
+  forgetRegistration,
+  readRegistration,
+  registerClient,
+  savedTokenEndpoint,
+  saveRegistration,
+};
 export type { Registration };

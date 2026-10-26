@@ -42,7 +42,11 @@ async function requestJson(
     status = response.status;
     text = await response.text();
   } catch (error) {
-    if (signal?.aborted)
+    // A deadline the caller set (AbortSignal.timeout) is a slow network, not Ctrl-C.
+    const reason: unknown = signal?.reason;
+    const timedOut =
+      reason instanceof DOMException && reason.name === "TimeoutError";
+    if (signal?.aborted && !timedOut)
       throw new CliError("INTERRUPTED", {}, { cause: error });
     throw new CliError("NETWORK", {}, { cause: error });
   }

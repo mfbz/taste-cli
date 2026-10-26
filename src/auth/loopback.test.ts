@@ -1,4 +1,4 @@
-import { createServer } from "node:net";
+import { connect, createServer } from "node:net";
 import type { Server } from "node:net";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -60,6 +60,22 @@ async function errorCode(promise: Promise<unknown>): Promise<string> {
     throw error;
   }
   throw new Error("expected a rejection");
+}
+
+// A request written by hand, for what fetch won't send; resolves with the first answer line.
+function raw(port: number, request: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const socket = connect(port, "127.0.0.1", () => socket.write(request));
+    let text = "";
+    socket.on("data", (chunk: Buffer) => {
+      text += chunk.toString("latin1");
+      if (text.includes("\r\n")) {
+        socket.destroy();
+        resolve(text.split("\r\n")[0] ?? "");
+      }
+    });
+    socket.on("error", reject);
+  });
 }
 
 function callback(port: number, query: string, path = "/callback") {
@@ -131,14 +147,52 @@ describe("waitForCallback", () => {
     ).rejects.toThrow();
   });
 
-  it("rejects a callback with the wrong state as LOGIN_DENIED", async () => {
+  it("answers a callback with another state 400 and keeps waiting for the real one", async () => {
     const loopback = await listen([await freePort()]);
-    const waiting = errorCode(
-      loopback.waitForCallback(STATE, MINUTE, new AbortController().signal)
+    const waiting = loopback.waitForCallback(
+      STATE,
+      MINUTE,
+      new AbortController().signal
     );
-    const response = await callback(loopback.port, "code=abc&state=forged");
-    expect(await waiting).toBe("LOGIN_DENIED");
-    expect(response.status).toBe(400);
+    const forged = await callback(loopback.port, "code=forged&state=other");
+    expect(forged.status).toBe(400);
+    expect(await forged.text()).not.toContain("forged");
+    await callback(loopback.port, "code=forged");
+    await callback(loopback.port, `code=real&state=${STATE}`);
+    await expect(waiting).resolves.toBe("real");
+  });
+
+  it("answers a request target it can't read with 400 and keeps listening", async () => {
+    const loopback = await listen([await freePort()]);
+    const waiting = loopback.waitForCallback(
+      STATE,
+      MINUTE,
+      new AbortController().signal
+    );
+    const head = await raw(
+      loopback.port,
+      "GET http://[ HTTP/1.1\r\nHost: x\r\n\r\n"
+    );
+    expect(head).toMatch(/^HTTP\/1\.1 400/);
+    await callback(loopback.port, `code=abc&state=${STATE}`);
+    await expect(waiting).resolves.toBe("abc");
+  });
+
+  it("settles as soon as the callback is read, even if the browser drops the connection", async () => {
+    const loopback = await listen([await freePort()]);
+    const waiting = loopback.waitForCallback(
+      STATE,
+      MINUTE,
+      new AbortController().signal
+    );
+    const socket = connect(loopback.port, "127.0.0.1");
+    socket.on("error", () => undefined);
+    socket.write(
+      `GET /callback?code=abc&state=${STATE} HTTP/1.1\r\nHost: x\r\n\r\n`,
+      () => socket.resetAndDestroy()
+    );
+    await expect(waiting).resolves.toBe("abc");
+    await loopback.close();
   });
 
   it("reads access_denied as LOGIN_DENIED", async () => {

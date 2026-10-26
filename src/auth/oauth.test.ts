@@ -17,6 +17,7 @@ import { clientFile } from "../config/paths.ts";
 import { CliError } from "../output/errors.ts";
 import { EMAIL, ENDPOINTS, fakeOAuth, memoryStore } from "./fake-oauth.ts";
 import type { FakeOAuth } from "./fake-oauth.ts";
+import { WAIT_MS } from "./lock.ts";
 import { LOOPBACK_PORTS } from "./loopback.ts";
 import { LOGIN_TIMEOUT_MS, loginWithBrowser, refreshSession } from "./oauth.ts";
 import type { StoredCredential } from "./store.ts";
@@ -111,6 +112,7 @@ describe("loginWithBrowser", () => {
       clientId: "client-1",
       ports: [...LOOPBACK_PORTS],
       registrationEndpoint: ENDPOINTS.register,
+      tokenEndpoint: ENDPOINTS.token,
     });
   });
 
@@ -176,15 +178,27 @@ describe("loginWithBrowser", () => {
     );
   });
 
-  it("fails with LOGIN_DENIED on a callback with the wrong state, and stores nothing", async () => {
+  it("turns away a callback with the wrong state and signs in when the real one follows", async () => {
     const fake = fakeOAuth();
     const store = memoryStore();
+    const browser = fake.browser("forged-first");
+    const session = await loginWithBrowser(loginDeps(fake, browser, store));
+    expect(browser.answers[0]).toBe(400);
+    expect(store.value).toEqual(session);
+    // Only the real code was ever exchanged.
+    expect(tokenCalls(fake)).toHaveLength(1);
+    expect(tokenCalls(fake)[0]?.form?.get("code")).not.toBe("forged-code");
+  });
+
+  it("forgets the registration when the server redirects with an error, so the next sign in registers again", async () => {
+    const fake = fakeOAuth();
     const error = await failure(
-      loginWithBrowser(loginDeps(fake, fake.browser("wrong-state"), store))
+      loginWithBrowser(loginDeps(fake, fake.browser("error")))
     );
-    expect(error.code).toBe("LOGIN_DENIED");
-    expect(tokenCalls(fake)).toHaveLength(0);
-    expect(store.value).toBeNull();
+    expect(error.code).toBe("LOGIN_FAILED");
+    expect(existsSync(clientFile(dir))).toBe(false);
+    await loginWithBrowser(loginDeps(fake));
+    expect(fake.registrations).toHaveLength(2);
   });
 
   it("fails with LOGIN_DENIED when the person says no", async () => {
@@ -211,6 +225,8 @@ describe("loginWithBrowser", () => {
     await wasOpened;
     await vi.advanceTimersByTimeAsync(LOGIN_TIMEOUT_MS);
     expect((await login).code).toBe("LOGIN_TIMEOUT");
+    // A server that forgot the client shows its own error page and never redirects.
+    expect(existsSync(clientFile(dir))).toBe(false);
   });
 
   it("fails with LOGIN_PORTS_BUSY when every loopback port is taken", async () => {
@@ -294,6 +310,40 @@ describe("refreshSession", () => {
     expect(existsSync(join(dir, "refresh.lock"))).toBe(false);
   });
 
+  it("uses the saved token endpoint without reading the metadata again", async () => {
+    const fake = fakeOAuth();
+    const { store, expired } = await signedIn(fake);
+    const before = fake.calls.length;
+    await refreshSession(refreshDeps(fake, store), expired);
+    expect(fake.calls.slice(before).map((c) => c.url)).toEqual([
+      ENDPOINTS.token,
+    ]);
+  });
+
+  it("finds the token endpoint again when the saved one has moved", async () => {
+    const fake = fakeOAuth();
+    const { store, expired } = await signedIn(fake);
+    const saved = JSON.parse(readFileSync(clientFile(dir), "utf8")) as Record<
+      string,
+      unknown
+    >;
+    const moved = "https://auth.example.com/old/token";
+    writeFileSync(
+      clientFile(dir),
+      JSON.stringify({ ...saved, tokenEndpoint: moved })
+    );
+    const next = await refreshSession(refreshDeps(fake, store), expired);
+    expect(next.accessToken).toBe(fake.accessTokens.at(-1));
+    expect(
+      (
+        JSON.parse(readFileSync(clientFile(dir), "utf8")) as Record<
+          string,
+          unknown
+        >
+      ).tokenEndpoint
+    ).toBe(ENDPOINTS.token);
+  });
+
   it("ends the session on invalid_grant: clears the store and throws SESSION_EXPIRED", async () => {
     const fake = fakeOAuth();
     const { store, expired } = await signedIn(fake);
@@ -348,29 +398,79 @@ describe("refreshSession", () => {
     expect(existsSync(lock)).toBe(false);
   });
 
-  it("goes ahead after waiting 10 seconds on a lock that stays held, and leaves that lock alone", async () => {
+  // A clock that moves only when the lock waits, so a test needn't wait 25 seconds.
+  function waitingClock() {
+    let clock = Date.now();
+    const waits: number[] = [];
+    return {
+      waits,
+      now: () => clock,
+      sleep: (ms: number) => {
+        waits.push(ms);
+        clock += ms;
+        return Promise.resolve();
+      },
+    };
+  }
+
+  it("goes ahead after waiting as long as a holder can take, keeps the session, and leaves that lock alone", async () => {
     const fake = fakeOAuth();
     const { store, expired } = await signedIn(fake);
     const lock = join(dir, "refresh.lock");
-    writeFileSync(lock, "");
-    let clock = Date.now();
-    const waits: number[] = [];
+    writeFileSync(lock, "someone-else");
+    const clock = waitingClock();
     const next = await refreshSession(
-      {
-        ...refreshDeps(fake, store),
-        now: () => clock,
-        sleep: (ms: number) => {
-          waits.push(ms);
-          clock += ms;
-          return Promise.resolve();
-        },
-      },
+      { ...refreshDeps(fake, store), now: clock.now, sleep: clock.sleep },
       expired
     );
     expect(next.accessToken).toBe(fake.accessTokens.at(-1));
-    expect(waits.every((ms) => ms === 100)).toBe(true);
-    expect(waits.length).toBe(100);
-    expect(existsSync(lock)).toBe(true);
+    expect(store.value).toEqual(next);
+    expect(clock.waits.every((ms) => ms === 100)).toBe(true);
+    expect(clock.waits.length).toBe(WAIT_MS / 100);
+    expect(readFileSync(lock, "utf8")).toBe("someone-else");
+  });
+
+  it("ends with the holder's session when a holder slower than the wait spends the token first", async () => {
+    const fake = fakeOAuth();
+    const { store, expired } = await signedIn(fake);
+    writeFileSync(join(dir, "refresh.lock"), "slow-holder");
+    // The holder's request reached the server long ago; its answer, and its write to the store,
+    // land while ours is in flight.
+    const holder = fake.rotate(expired.refreshToken);
+    const holderSession: Session = {
+      ...expired,
+      ...holder,
+      expiresAt: NOW + 3600_000,
+    };
+    const fetch = (async (input: string | URL, init?: RequestInit) => {
+      if (String(input) === ENDPOINTS.token) await store.write(holderSession);
+      return fake.fetch(input, init);
+    }) as typeof globalThis.fetch;
+    const clock = waitingClock();
+    const result = await refreshSession(
+      {
+        ...refreshDeps(fake, store),
+        fetch,
+        now: clock.now,
+        sleep: clock.sleep,
+      },
+      expired
+    );
+    expect(result).toEqual(holderSession);
+    expect(store.value).toEqual(holderSession);
+  });
+
+  it("releases only its own lock", async () => {
+    const fake = fakeOAuth();
+    const { store, expired } = await signedIn(fake);
+    const lock = join(dir, "refresh.lock");
+    // Another process takes the lock over (as if ours had gone stale) while we work.
+    const fetch = ((input, init) => {
+      writeFileSync(lock, "another-holder");
+      return fake.fetch(input, init);
+    }) as typeof globalThis.fetch;
+    await refreshSession({ ...refreshDeps(fake, store), fetch }, expired);
+    expect(readFileSync(lock, "utf8")).toBe("another-holder");
   });
 
   it("throws SESSION_EXPIRED when another process signed out meanwhile", async () => {

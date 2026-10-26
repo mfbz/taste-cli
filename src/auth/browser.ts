@@ -4,9 +4,6 @@ import { spawn } from "node:child_process";
 
 type Command = { file: string; args: string[] };
 
-// cmd reads these as its own syntax even inside one argument; ^ makes it pass them through.
-const CMD_SPECIAL = /[&|<>^()]/g;
-
 // The address is one argument, never a shell string. Only https is opened, which also keeps an
 // address from being read as an option by open or xdg-open.
 function browserCommand(
@@ -15,10 +12,11 @@ function browserCommand(
 ): Command | null {
   if (!url.startsWith("https://")) return null;
   if (platform === "darwin") return { file: "open", args: [url] };
+  // Not cmd /c start: cmd parses & and %VAR% inside the address. rundll32 hands it over untouched.
   if (platform === "win32")
     return {
-      file: "cmd",
-      args: ["/c", "start", "", url.replace(CMD_SPECIAL, "^$&")],
+      file: "rundll32",
+      args: ["url.dll,FileProtocolHandler", url],
     };
   return { file: "xdg-open", args: [url] };
 }
