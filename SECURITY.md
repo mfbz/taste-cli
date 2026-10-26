@@ -1,6 +1,6 @@
 # Security
 
-taste-cli will hold a user's Taste Engine sign-in and API key, and its calls spend credits, so security reports matter.
+taste-cli holds a user's Taste Engine sign-in and API key, and its calls spend credits, so security reports matter.
 
 ## Reporting
 
@@ -23,7 +23,7 @@ Known limit: asset addresses in a download manifest are checked by name (public 
 
 - No secrets in arguments, logs, `--debug` output or error messages.
 - Errors come from a fixed catalogue with a stable code and a hint; untrusted server text is stripped of control characters before it is shown.
-- No telemetry and no update notifier: taste-cli talks to the Taste Engine and nothing else.
+- No telemetry and no update notifier: taste-cli talks only to Taste's API, its sign-in service, and the asset addresses a download names.
 - No API key, token or personal data in the repository; the guards check every commit.
 
 Details: [TASTE-CLI.md](TASTE-CLI.md).

@@ -5,7 +5,7 @@ import type { BrandSearchCard, BrandSearchRequest } from "../api/schemas.ts";
 import type { Context } from "../context.ts";
 import { CliError } from "../output/errors.ts";
 import { renderCards } from "../render/cards.ts";
-import { paidCall } from "./job.ts";
+import { paidCall, summaryWidth } from "./job.ts";
 
 type SearchOptions = {
   deep?: true;
@@ -17,9 +17,6 @@ type SearchOptions = {
 // The API's own limits on the query (BrandSearchRequest), counted in characters.
 const MIN_QUERY = 2;
 const MAX_QUERY = 400;
-// Cards are laid out at least this wide, as brand summaries are.
-const MIN_WIDTH = 40;
-const DEFAULT_WIDTH = 80;
 
 function parseQuery(text: string): string {
   const query = text.trim();
@@ -70,9 +67,7 @@ function showCards(
       theme,
       colorLevel: ctx.terminal?.colorLevel ?? 0,
       // A pipe gets every line whole, as history's table does.
-      width: ctx.terminal?.tty
-        ? Math.max(ctx.terminal.width || DEFAULT_WIDTH, MIN_WIDTH)
-        : undefined,
+      width: ctx.terminal?.tty ? summaryWidth(ctx) : undefined,
     })
   );
 }

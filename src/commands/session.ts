@@ -2,6 +2,9 @@
 // command's inputs and runs the same command function the direct command does. Anything that spends
 // credits says so in the menu and is confirmed first. Ctrl-C at a prompt goes back to the menu; at the
 // menu it quits. Ctrl-C while a command runs ends the session the way it ends that command.
+import { homedir } from "node:os";
+import { join } from "node:path";
+
 import type { Identity } from "../auth/provider.ts";
 import { normalizeUrl } from "../api/urls.ts";
 import type { Context } from "../context.ts";
@@ -80,7 +83,7 @@ const ACTIONS: Readonly<Record<ActionName, Action>> = {
     async run(ctx, ask) {
       const file = await ask.text("Path to the guidelines PDF", filled);
       if (file === null || !(await spends(ask, "Extract a brand kit"))) return;
-      await kit(ctx, file.trim(), JOB);
+      await kit(ctx, pdfPath(file), JOB);
     },
   },
   enhance: {
@@ -147,6 +150,17 @@ function host(url: string): string {
   return normalizeUrl(url).host;
 }
 
+// A file dragged into a terminal arrives quoted or backslash-escaped, and ~ is the shell's job, so
+// the prompt's answer gets both. Windows paths keep their backslashes.
+function pdfPath(answer: string): string {
+  const text = answer.trim();
+  const quoted = /^(["'])(.+)\1$/s.exec(text)?.[2];
+  const path =
+    quoted ??
+    (process.platform === "win32" ? text : text.replace(/\\(.)/g, "$1"));
+  return path.startsWith("~/") ? join(homedir(), path.slice(2)) : path;
+}
+
 function askUrl(ask: Prompter, message: string): Promise<string | null> {
   return ask.text(message, urlProblem);
 }
@@ -194,6 +208,8 @@ async function session(newContext: () => Context): Promise<number> {
     const choice = await ask.select("What would you like to do?", menu(!!who));
     if (choice === null || choice === "quit") return 0;
     const ctx = newContext();
+    // A finished action's job or paid kind must not name the next one's hard stop.
+    ctx.inFlight({});
     try {
       await ACTIONS[choice].run(ctx, ask);
     } catch (error) {

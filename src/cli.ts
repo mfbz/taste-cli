@@ -156,7 +156,7 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
       },
       writeErr: (text) => {
         if (output.json) captured.text += text;
-        else io.stdout(text);
+        else io.stderr(text);
       },
       // Usage errors come out through output.fail, in our words.
       outputError: () => {},

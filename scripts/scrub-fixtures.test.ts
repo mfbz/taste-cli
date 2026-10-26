@@ -58,7 +58,7 @@ describe("normalise", () => {
   });
 
   it("maps any other UUID too, after the recipe's own ids, the same one to the same fake", () => {
-    const ASSET = "5d76aea7-a0b9-410d-9cf5-dc12cba42bb8";
+    const ASSET = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
     const url = `https://cdn.example/artifacts/${EXTRACTION}/x/${ASSET}.jpg`;
     const docs = normalise({
       "extract-full": {
