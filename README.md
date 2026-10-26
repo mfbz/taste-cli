@@ -108,7 +108,7 @@ Free: no credits are spent.
 
 - Every flag, address and file is checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.
-- A paid request that fails on the way (network, timeout, Ctrl-C) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
+- A paid request that fails on the way (network, timeout, Ctrl-C, a 5xx from Taste) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
 - Once a job (`extract`, `kit`, `check`) has started it runs on Taste's side whatever happens to taste: the error names its id, and `taste wait <id>` picks it up for free.
 - Failed jobs, searches and similar-brand requests are refunded by Taste.
 
@@ -375,7 +375,7 @@ The codes scripts most often branch on. Every code, with its message and hint, i
 | `WAIT_TIMEOUT`                                                                                                    | 1    | Still running after `--timeout`; `taste wait <id>` picks it up                                  |
 | `SEARCH_BUSY`                                                                                                     | 1    | Taste turned the search away as busy; retryable                                                 |
 | `NETWORK`, `TIMEOUT`                                                                                              | 1    | Taste couldn't be reached or didn't answer; after a paid request, check before running it again |
-| `UPSTREAM`, `RATE_LIMITED`                                                                                        | 1    | A problem on Taste's side, or too many requests; try again in a minute                          |
+| `UPSTREAM`, `RATE_LIMITED`                                                                                        | 1    | A problem on Taste's side, or too many requests; try again only when `retryable` is true        |
 | `OUTPUT_EXISTS`, `OUTPUT_UNUSABLE`, `BUNDLE_PATH_UNSAFE`, `BUNDLE_INVALID`, `BUNDLE_INCOMPLETE`, `SAVE_FAILED`    | 1    | `--out` couldn't save; the hint names the free way to get it again                              |
 | `INTERRUPTED`                                                                                                     | 130  | Ctrl-C                                                                                          |
 | `INTERNAL`                                                                                                        | 1    | A bug in taste-cli; run again with `--debug` and report it                                      |

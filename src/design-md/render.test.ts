@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import pkg from "../../package.json" with { type: "json" };
 import { fixtures, recorded } from "../job-seams.ts";
 import { renderDesignMd } from "./render.ts";
 
 const META = {
-  generator: `taste-cli ${pkg.version}`,
+  // Pinned so the goldens don't change when a release stamps the version.
+  generator: "taste-cli 0.0.0",
   extractedAt: "2026-10-26",
 };
 // Golden name to recorded fixture.

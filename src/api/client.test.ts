@@ -223,12 +223,11 @@ describe("createTasteApi paid requests", () => {
       for (const failure of [
         new TypeError("fetch failed"),
         new DOMException("timed out", "TimeoutError"),
-        { status: 500, text: "boom" },
+        { status: 502, text: "bad gateway" },
       ]) {
         const { api, fetch } = setup([failure]);
         const report = toErrorReport(await caught(send(api)));
         expect(fetch, name).toHaveBeenCalledTimes(1);
-        if (report.code === "UPSTREAM") continue;
         expect(report.retryable, name).toBe(false);
         expect(report.hint, name).toContain(hint);
       }

@@ -72,7 +72,7 @@ Credits are real money. These rules hold for every command that spends them (tod
 - The command's `--help` says it spends credits. A command typed directly does not ask for confirmation: typing it is the decision. The interactive menu marks each action that spends credits `(uses credits)` and asks before spending.
 - Every flag, the address and the file are checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds. Not after a network failure, a timeout or any other 5xx; a busy search that stays busy ends with `SEARCH_BUSY`.
-- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says where to look before running it again, never to try again: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, and for an enhancement, which no history lists, the credits in the Taste account. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
+- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, `UPSTREAM` for a 5xx other than search's busy 503, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says where to look before running it again, never to try again: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, and for an enhancement, which no history lists, the credits in the Taste account. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
 - Once a job has started, it runs on Taste's side whatever happens to taste: Ctrl-C, `--timeout`, a network failure or a Taste error while waiting all end with the job's id and the hint `taste wait <id>`, which picks it up for free (`error.details.id` under `--json`).
 - Failed jobs, searches and similar-brand requests are refunded by Taste.
 
@@ -268,7 +268,7 @@ Human output on stdout: numbered cards. Each one: the brand's name in bold (or i
 
 `--json`: `{"ok":true,"data":<the answer exactly as POST /search returned it>}` (`search_id`, `depth`, `results`, `query_tags`).
 
-While the request is in flight, Ctrl-C, a network failure and a timeout end with the hint "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.", never retryable. A 503 is `SEARCH_BUSY` (retryable: Taste turned it away before any work).
+While the request is in flight, Ctrl-C, a network failure, a timeout and a 5xx other than 503 end with the hint "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.", never retryable. A 503 is `SEARCH_BUSY` (retryable: Taste turned it away before any work).
 
 Errors: `USAGE_INVALID_QUERY`, `USAGE_INVALID_INDUSTRY`, `USAGE_INVALID_PAGE_TYPE`, `USAGE_INVALID_VALUE`, `INSUFFICIENT_CREDITS`, `SEARCH_BUSY`, `REQUEST_REJECTED`, `UPSTREAM`, `RATE_LIMITED`, `NETWORK`, `TIMEOUT`, `INTERRUPTED`, and the sign in errors of `taste whoami`.
 
@@ -334,7 +334,7 @@ Human output: the enhanced prompt alone on stdout, exactly as Taste wrote it apa
 
 `--json`: `{"ok":true,"data":<the answer exactly as POST /design/prompts/enhance returned it>}` (`enhanced_prompt`, `brand_name`, `source_url`, `model_used`), and nothing on stderr.
 
-While the request is in flight, Ctrl-C, a network failure and a timeout end with the hint "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.", never retryable.
+While the request is in flight, Ctrl-C, a network failure, a timeout and a 5xx end with the hint "It may have reached Taste and been charged. Enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.", never retryable.
 
 Errors: as `taste similar`, plus `USAGE_INVALID_PROMPT` and `USAGE_MISSING_ARGUMENT`.
 

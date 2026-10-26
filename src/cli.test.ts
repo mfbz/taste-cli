@@ -27,7 +27,6 @@ describe("taste", () => {
   it("prints the version, and help that says it is unofficial, with or without --help", async () => {
     for (const flag of ["--version", "-v"])
       expect((await capture([flag])).out).toBe(`${pkg.version}\n`);
-    expect(pkg.version).toBe("0.0.0");
     for (const argv of [["--help"], []]) {
       const { code, out } = await capture(argv);
       expect(code).toBe(0);

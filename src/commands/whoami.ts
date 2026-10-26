@@ -7,10 +7,9 @@ import { CliError } from "../output/errors.ts";
 import { plain } from "../output/output.ts";
 import type { Theme } from "../output/theme.ts";
 
-const HOW: Readonly<Record<Identity["method"], string>> = {
+const HOW: Readonly<Record<Exclude<Identity["method"], "env-key">, string>> = {
   session: "browser session",
   key: "API key",
-  "env-key": "API key from TASTE_API_KEY",
 };
 
 function renderWhoami(identity: Identity, theme: Theme): string {
