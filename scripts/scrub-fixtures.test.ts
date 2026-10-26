@@ -57,6 +57,13 @@ describe("normalise", () => {
     });
   });
 
+  it("keeps fields named like Object.prototype members", () => {
+    const components = { constructor: "Button", toString: "x", valueOf: 3 };
+    expect(normalise({ "extract-full": { components } })).toEqual({
+      "extract-full": { components },
+    });
+  });
+
   it("sets the account metadata keys to fixed values at any depth", () => {
     const out = normalise({
       "check-pass": {

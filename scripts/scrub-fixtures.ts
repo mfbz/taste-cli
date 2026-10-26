@@ -111,7 +111,7 @@ function normalise(docs: Docs): Docs {
   // One pass over each string: a fake that was just written is never replaced again.
   const real = ids.size ? new RegExp([...ids.keys()].join("|"), "gi") : null;
   const clean: Visit = (_, key, value) => {
-    if (key in ACCOUNT_KEYS) return ACCOUNT_KEYS[key];
+    if (Object.hasOwn(ACCOUNT_KEYS, key)) return ACCOUNT_KEYS[key];
     if (typeof value !== "string") return value;
     const mapped = real
       ? value.replace(real, (id) => ids.get(id.toLowerCase()) ?? id)
