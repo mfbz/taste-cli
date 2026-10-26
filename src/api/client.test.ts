@@ -496,6 +496,16 @@ describe("createTasteApi retries", () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal);
     expect(init?.redirect).toBe("error");
   });
+
+  it("waits up to two minutes for enhance, which writes with a model", async () => {
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+    const { api } = setup([
+      { status: 200, body: { enhanced_prompt: "p", submission_id: "s" } },
+    ]);
+    await api.enhance({ submission_id: "s", prompt: "p" }).catch(() => {});
+    expect(timeout).toHaveBeenCalledWith(120_000);
+    timeout.mockRestore();
+  });
 });
 
 describe("createTasteApi download", () => {
