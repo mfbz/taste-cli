@@ -96,7 +96,7 @@ function fraction(text: string): number {
 
 // How a job command shows its result.
 function formatOption() {
-  return new Option("--format <format>", "summary or json")
+  return new Option("--format <format>", "how to show the result")
     .choices(FORMATS)
     .default("summary" as const);
 }

@@ -5,6 +5,7 @@ import { TasteApiError } from "../api/client.ts";
 import type { TasteApi } from "../api/client.ts";
 import { jobCheck, waitForJob } from "../api/poll.ts";
 import type { Check } from "../api/poll.ts";
+import pkg from "../../package.json" with { type: "json" };
 import type {
   AdherenceAccepted,
   AdherenceVerdict,
@@ -12,6 +13,7 @@ import type {
   SubmissionResult,
 } from "../api/schemas.ts";
 import type { Context } from "../context.ts";
+import { renderDesignMd } from "../design-md/render.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
 import type { Saved, Skipped } from "../download/bundle.ts";
 import type { ErrorCode, PaidKind } from "../output/errors.ts";
@@ -26,7 +28,7 @@ import { startProgress } from "../output/progress.ts";
 import { brandName, renderBrandSummary } from "../render/brand-summary.ts";
 import { renderVerdict } from "../render/verdict.ts";
 
-type Format = "summary" | "json";
+type Format = "summary" | "json" | "design-md";
 // Where --out saves an extraction's files, and whether files of the same name may be replaced.
 type OutOptions = { out?: string; overwrite?: true };
 // A job just accepted, whichever kind: extract and kit get a submission, check an adherence job.
@@ -47,7 +49,9 @@ type JobSpec<T> = {
   failed?: ErrorCode;
 };
 
-const FORMATS: readonly Format[] = ["summary", "json"];
+const FORMATS: readonly Format[] = ["summary", "json", "design-md"];
+// Where --format design-md also lands with --out.
+const DESIGN_MD = "DESIGN.md";
 const DEFAULT_TIMEOUT_S = 600;
 const DEFAULT_WIDTH = 80;
 // Summaries are laid out at least this wide; a narrower terminal wraps them rather than cutting them
@@ -106,12 +110,21 @@ async function saveFiles(
   ctx: Context,
   api: TasteApi,
   id: string,
-  options: OutOptions
+  options: OutOptions,
+  designMd?: string
 ): Promise<Skipped[]> {
   if (options.out === undefined) return [];
   let saved: Saved;
   try {
     const manifest = await api.getManifest(id);
+    // Ours replaces a file of the same name, which the bundle would otherwise refuse as a duplicate.
+    if (designMd !== undefined)
+      manifest.files = [
+        ...manifest.files.filter(
+          (file) => file.path.toLowerCase() !== DESIGN_MD.toLowerCase()
+        ),
+        { path: DESIGN_MD, content: designMd },
+      ];
     saved = await writeBundle({
       api,
       manifest,
@@ -251,24 +264,42 @@ function verdictJob(api: TasteApi, id: string): JobSpec<AdherenceVerdict> {
   };
 }
 
-// The finished result: the --json document, the whole result as JSON, or the summary.
-function showSubmission(
+// The extraction as a DESIGN.md, dated the day Taste finished it (today if it doesn't say).
+function designMdOf(ctx: Context, result: SubmissionResult): string {
+  const completed = result.completed_at;
+  const day =
+    typeof completed === "string" && /^\d{4}-\d{2}-\d{2}/.test(completed)
+      ? completed.slice(0, 10)
+      : new Date(ctx.now()).toISOString().slice(0, 10);
+  return renderDesignMd(result, {
+    generator: `taste-cli ${pkg.version}`,
+    extractedAt: day,
+  });
+}
+
+// The finished result: its files saved with --out, then the --json document, the whole result as
+// JSON, the DESIGN.md, or the summary.
+async function finishSubmission(
   ctx: Context,
+  api: TasteApi,
+  id: string,
   result: SubmissionResult,
-  format: Format,
-  skipped: Skipped[] = []
-): void {
+  options: OutOptions & { format: Format }
+): Promise<void> {
+  const designMd =
+    options.format === "design-md" ? designMdOf(ctx, result) : undefined;
+  const skipped = await saveFiles(ctx, api, id, options, designMd);
   // --json names what --out skipped; the result itself stays as Taste sent it.
   const data = skipped.length ? { ...result, skipped } : result;
-  ctx.output.result(data, (theme) =>
-    format === "json"
-      ? JSON.stringify(result, null, 2)
-      : renderBrandSummary(result, {
-          theme,
-          colorLevel: ctx.terminal?.colorLevel ?? 0,
-          width: summaryWidth(ctx),
-        })
-  );
+  ctx.output.result(data, (theme) => {
+    if (designMd !== undefined) return designMd.trimEnd();
+    if (options.format === "json") return JSON.stringify(result, null, 2);
+    return renderBrandSummary(result, {
+      theme,
+      colorLevel: ctx.terminal?.colorLevel ?? 0,
+      width: summaryWidth(ctx),
+    });
+  });
 }
 
 function showVerdict(
@@ -302,11 +333,10 @@ export {
   byKind,
   checkOut,
   DEFAULT_TIMEOUT_S,
+  finishSubmission,
   FORMATS,
   paidCall,
-  saveFiles,
   showAccepted,
-  showSubmission,
   showVerdict,
   startedCheck,
   startedSubmission,

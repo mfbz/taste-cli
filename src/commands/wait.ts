@@ -6,8 +6,7 @@ import {
   awaitJob,
   byKind,
   checkOut,
-  saveFiles,
-  showSubmission,
+  finishSubmission,
   showVerdict,
   submissionJob,
   verdictJob,
@@ -30,21 +29,23 @@ async function wait(
       return "submission" as const;
     },
     async () => {
-      // Only with --out does the kind decide an error, so only then is it confirmed first: an id that
-      // is neither is NOT_FOUND, not a check.
-      if (options.out !== undefined) await api.getAdherence(id);
+      // Only with --out or --format design-md does the kind decide an error, so only then is it
+      // confirmed first: an id that is neither is NOT_FOUND, not a check.
+      if (options.out !== undefined || options.format === "design-md")
+        await api.getAdherence(id);
       return "check" as const;
     }
   );
   if (kind === "check") {
     if (options.out !== undefined) throw new CliError("USAGE_OUT_UNSUPPORTED");
+    if (options.format === "design-md")
+      throw new CliError("USAGE_FORMAT_UNSUPPORTED");
     const verdict = await awaitJob(ctx, id, timeoutMs, verdictJob(api, id));
     showVerdict(ctx, verdict, options.format);
     return;
   }
   const result = await awaitJob(ctx, id, timeoutMs, submissionJob(api, id));
-  const skipped = await saveFiles(ctx, api, id, options);
-  showSubmission(ctx, result, options.format, skipped);
+  await finishSubmission(ctx, api, id, result, options);
 }
 
 export { wait };
