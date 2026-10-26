@@ -12,16 +12,20 @@ This file is binding for anything a person sees. The opening and the result layo
 
 Placeholders: the colours observed on tastelabs.com, finalized with the brand pass. `src/output/theme.ts` holds them and a test keeps this table in step.
 
-| Name       | Hex       | Used for                   |
-| ---------- | --------- | -------------------------- |
-| `signal`   | `#FF3D00` | accent and errors          |
-| `acid`     | `#F2F04A` | warnings                   |
-| `electric` | `#1E7BFF` | reserved                   |
-| `success`  | `#3DDC84` | success                    |
-| `paper`    | `#F3F3EF` | the site's text (not used) |
-| `field`    | `#1B1B1B` | the site's page (not used) |
+| Name       | Hex       | Used for                  |
+| ---------- | --------- | ------------------------- |
+| `signal`   | `#FF3D00` | accent and errors         |
+| `acid`     | `#F2F04A` | warnings                  |
+| `electric` | `#1E7BFF` | reserved                  |
+| `success`  | `#3DDC84` | success                   |
+| `paper`    | `#F3F3EF` | the sign in page's text   |
+| `field`    | `#1B1B1B` | the sign in page's ground |
 
 In a terminal the user's own foreground and background are kept. Motion is off in CI, with `NO_COLOR`, `TERM=dumb` and `TASTE_NO_MOTION`.
+
+## The sign in page
+
+The page the browser shows when `taste login` finishes: `field` ground, `paper` type in a monospace stack, the TASTE wordmark inline above one line of copy ("You're signed in. You can close this tab and go back to the terminal."). It is self-contained: no fonts, images or scripts are fetched, and a strict content security policy holds it to that. A failed sign in shows the catalogue message and "Go back to the terminal to try again.", never words from the request. The wordmark is Taste Labs' trademark (`assets/brand/NOTICE.md`).
 
 ## Errors
 

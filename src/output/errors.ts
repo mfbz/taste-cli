@@ -107,6 +107,14 @@ const CATALOGUE = {
     "No local port was free to finish the sign in.",
     "Close what is using ports on this computer and run taste login again."
   ),
+  // The sign in service answered in a way taste can't use: a bad document, an error in the redirect,
+  // a refused exchange. Its own words are never shown.
+  LOGIN_FAILED: entry(
+    1,
+    "The sign in couldn't be finished.",
+    "Run taste login again. If it keeps failing, wait a few minutes first.",
+    true
+  ),
   LOGIN_NOT_INTERACTIVE: entry(
     1,
     "Signing in with a browser needs a terminal.",
