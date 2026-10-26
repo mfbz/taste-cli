@@ -16,6 +16,21 @@ import { CliError } from "./output/errors.ts";
 import type { Writer } from "./output/output.ts";
 import type { TerminalInfo } from "./output/terminal.ts";
 
+type Choice<T extends string> = { value: T; label: string };
+// The interactive session's questions on stderr; each answers null when the person cancels it.
+type Prompter = {
+  select<T extends string>(
+    message: string,
+    choices: readonly Choice<T>[]
+  ): Promise<T | null>;
+  // validate returns why the answer can't be used, or undefined when it can.
+  text(
+    message: string,
+    validate: (value: string) => string | undefined
+  ): Promise<string | null>;
+  confirm(message: string): Promise<boolean | null>;
+};
+
 type Io = {
   stdout: Writer;
   stderr: Writer;
@@ -41,6 +56,10 @@ type Io = {
   stdinText?: () => Promise<string>;
   // A hidden prompt on stderr; null when the person cancels it.
   askSecret?: (message: string) => Promise<string | null>;
+  // The menu's prompts; absent, the session can't run.
+  prompter?: Prompter;
+  // Resolves on the next key pressed, which it consumes; stops listening once signal aborts.
+  keypress?: (signal: AbortSignal) => Promise<void>;
   // Aborted by Ctrl-C.
   signal?: AbortSignal;
   // What is in flight, as error params ({ paid: "job" | "search" | "enhance" } or { id }), so a hard stop after Ctrl-C
@@ -110,6 +129,63 @@ async function askSecret(
   return isCancel(answer) ? null : answer;
 }
 
+// Clack is loaded on the first question, so commands that ask none never load it. No signal here:
+// clack never removes its abort listener, so each prompt would print a blank line on a later Ctrl-C.
+// In raw mode Ctrl-C is a key, which clack already reads as cancel.
+function clackPrompter(): Prompter {
+  const common = { output: process.stderr };
+  return {
+    async select(message, choices) {
+      const { isCancel, select } = await import("@clack/prompts");
+      // Typed as strings for clack, whose option type doesn't take a generic union; the answer is one of ours.
+      const answer = await select<string>({
+        ...common,
+        message,
+        options: choices.map(({ value, label }) => ({ value, label })),
+      });
+      return isCancel(answer)
+        ? null
+        : (answer as (typeof choices)[number]["value"]);
+    },
+    async text(message, validate) {
+      const { isCancel, text } = await import("@clack/prompts");
+      const answer = await text({
+        ...common,
+        message,
+        validate: (value) => validate(value ?? ""),
+      });
+      return isCancel(answer) ? null : answer;
+    },
+    async confirm(message) {
+      const { confirm, isCancel } = await import("@clack/prompts");
+      const answer = await confirm({ ...common, message });
+      return isCancel(answer) ? null : answer;
+    },
+  };
+}
+
+function keypress(signal: AbortSignal): Promise<void> {
+  const stdin = process.stdin;
+  return new Promise((resolve) => {
+    if (signal.aborted || !stdin.isTTY) return;
+    const stop = () => {
+      stdin.off("data", pressed);
+      signal.removeEventListener("abort", stop);
+      stdin.setRawMode(false);
+      stdin.pause();
+    };
+    const pressed = () => {
+      stop();
+      resolve();
+    };
+    // Raw, so one key is enough and Ctrl-C arrives as a key, not a signal.
+    stdin.setRawMode(true);
+    stdin.on("data", pressed);
+    stdin.resume();
+    signal.addEventListener("abort", stop, { once: true });
+  });
+}
+
 function processIo(
   base: Pick<Io, "stdout" | "stderr" | "terminal">,
   signal: AbortSignal
@@ -129,9 +205,11 @@ function processIo(
       delay(ms, undefined, sleepSignal ? { signal: sleepSignal } : {}),
     stdinText: () => readStdin(signal),
     askSecret: (message) => askSecret(message, signal),
+    prompter: clackPrompter(),
+    keypress,
     signal,
   };
 }
 
 export { processIo, readLocalFile };
-export type { Io };
+export type { Choice, Io, Prompter };

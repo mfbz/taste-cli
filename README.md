@@ -10,6 +10,7 @@ Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, ch
 
 - [Status](#status)
 - [Install](#install)
+- [Interactive mode](#interactive-mode): `taste` on its own
 - [Sign in](#sign-in): `login`, `logout`, `whoami`
 - [Credits](#credits)
 - [Extract a brand](#extract-a-brand): `extract`
@@ -49,6 +50,18 @@ taste --help      # every command; --help after a command for its flags
 taste --version   # the version
 ```
 
+## Interactive mode
+
+Run `taste` on its own in a terminal for a menu:
+
+```sh
+taste
+```
+
+A short opening draws the TASTE wordmark, a line says who you are signed in as, and a menu offers every action: extract a brand, check brand adherence, search brands, a brand kit from a PDF, enhance a prompt, your history, sign in or out. Each action asks for what it needs, marks what spends credits and asks before spending them, then runs the same code as the command typed directly. Ctrl-C at a prompt goes back to the menu; at the menu it quits.
+
+It never runs in a pipe, in CI (`CI` set), under `TERM=dumb` or under `--json`: there `taste` prints the help, with no animation. Any key skips the opening; `TASTE_NO_MOTION=1` (or `NO_COLOR`) shows only its last frame.
+
 ## Sign in
 
 ```sh
@@ -77,7 +90,7 @@ Free: no credits are spent.
 
 ## Credits
 
-`extract`, `kit`, `check`, `search`, `similar` and `enhance` spend credits from your Taste account; everything else is free. Their `--help` says so, and they never ask for confirmation: typing the command is the decision.
+`extract`, `kit`, `check`, `search`, `similar` and `enhance` spend credits from your Taste account; everything else is free. Their `--help` says so, and typed directly they never ask for confirmation: typing the command is the decision. The [interactive menu](#interactive-mode) asks first.
 
 - Every flag, address and file is checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.

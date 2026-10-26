@@ -10,9 +10,10 @@ type Theme = {
   bold: Style;
 };
 
-// Placeholder values: the colours observed on tastelabs.com, finalized with the brand pass. paper and
-// field are the page's text and background; in a terminal the user's own foreground and background
-// play those parts, so light themes stay readable.
+// The colours of tastelabs.com. signal is the one accent (the opening's wordmark, the spinner, errors
+// with ✗), acid marks warnings; success goes with ✓; electric is reserved. paper and field are the sign in
+// page's text and ground, never painted in a terminal, where the user's own colours keep light themes
+// readable.
 const PALETTE = {
   signal: "#FF3D00",
   acid: "#F2F04A",
