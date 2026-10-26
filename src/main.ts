@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { run } from "./cli.ts";
 import { CliError, toErrorReport } from "./output/errors.ts";
+import type { ColorLevel, TerminalInfo } from "./output/terminal.ts";
+import { detectTerminal } from "./output/terminal.ts";
 
 // A reader that stops early (`taste --help | head -1`) is a normal pipeline, not a crash.
 for (const stream of [process.stdout, process.stderr]) {
@@ -23,7 +25,17 @@ process.once("SIGINT", () => {
   process.exit(130);
 });
 
+// Results go to stdout and failures to stderr, so colour needs both to be a terminal.
+const [out, err] = [process.stdout, process.stderr].map((stream) =>
+  detectTerminal(stream, process.env, { motion: true })
+) as [TerminalInfo, TerminalInfo];
+
 process.exitCode = await run(process.argv.slice(2), {
+  terminal: {
+    ...out,
+    colorLevel: Math.min(out.colorLevel, err.colorLevel) as ColorLevel,
+    motion: out.motion && err.motion,
+  },
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text),
 });

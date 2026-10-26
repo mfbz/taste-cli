@@ -5,11 +5,15 @@ import { CliError } from "./output/errors.ts";
 import type { ErrorCode } from "./output/errors.ts";
 import { createOutput } from "./output/output.ts";
 import type { Output, Writer } from "./output/output.ts";
+import { createTheme } from "./output/theme.ts";
+import type { TerminalInfo } from "./output/terminal.ts";
 
 // Everything taste touches outside itself comes through here, so tests run it without a process.
 type Io = {
   stdout: Writer;
   stderr: Writer;
+  // Absent means plain text and no motion, which is what tests and pipes get.
+  terminal?: TerminalInfo;
 };
 type Captured = { text: string };
 
@@ -93,6 +97,7 @@ async function run(argv: string[], io: Io): Promise<number> {
   const output = createOutput({
     json,
     debug,
+    theme: createTheme(io.terminal?.colorLevel ?? 0),
     stdout: io.stdout,
     stderr: io.stderr,
   });
