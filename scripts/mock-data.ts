@@ -177,6 +177,27 @@ function host(url: unknown): string | undefined {
     : undefined;
 }
 
+// The recorded manifest made hermetic: every file inline, with a small placeholder where Taste sent a
+// signed asset URL, so the mock never sends taste to a real host (the recorded URLs are Taste's own
+// storage, with their signatures stripped).
+function hermetic(
+  manifest: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!manifest || !Array.isArray(manifest.files)) return undefined;
+  const files = manifest.files.map((entry: unknown) => {
+    const file = record(entry) ?? {};
+    return {
+      path: file.path,
+      url: null,
+      content:
+        typeof file.content === "string"
+          ? file.content
+          : `mock placeholder for ${String(file.path)}\n`,
+    };
+  });
+  return { ...manifest, files };
+}
+
 // A recorded job turned into a template; undefined without a final answer to give.
 function recorded(
   fixtures: Fixtures,
@@ -218,7 +239,7 @@ function createLibrary(fixtures: Fixtures): Library {
     },
     kit: recorded(fixtures, "kit", fallback, "result") ?? base.kit,
     check: (isPass) => (isPass ? pass : fail) ?? base.check(isPass),
-    manifest: record(data("manifest", "manifest")) ?? base.manifest,
+    manifest: hermetic(record(data("manifest", "manifest"))) ?? base.manifest,
     search: (depth) =>
       data(depth === "deep" ? "search-deep" : "search-fast", "results") ??
       base.search(depth),

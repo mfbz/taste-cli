@@ -1,4 +1,10 @@
-import { mkdtempSync, rmSync, truncateSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  truncateSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,6 +46,22 @@ describe("taste kit", () => {
     expect(out).toContain("#D7263D");
     expect(err).toContain("✓ Extracted ACME in");
     expect(api.calls[0]).toBe("POST /design/submissions/brand-kit");
+  });
+
+  it("saves the brand kit's files with --out, and refuses a full folder before uploading", async () => {
+    const out = join(dir, "acme");
+    const { api, io } = seams();
+    const { code } = await runCli(["kit", SAMPLE, "--out", out], io);
+    expect(code).toBe(0);
+    expect(readdirSync(out)).toEqual(["guidelines.json"]);
+    const again = seams();
+    const refused = await runCli(
+      ["kit", SAMPLE, "--out", out, "--json"],
+      again.io
+    );
+    expect(refused.doc().error.code).toBe("OUTPUT_EXISTS");
+    expect(again.api.calls).toEqual([]);
+    expect(api.calls).toContain("GET /design/submissions/sub-1/download");
   });
 
   it("gives --json the result as Taste sent it", async () => {

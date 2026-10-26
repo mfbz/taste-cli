@@ -1,4 +1,10 @@
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
+
+import { SUBMISSION_MANIFEST } from "../api/schemas.ts";
 
 import { runCli } from "../fake-io.ts";
 import { fixtures, jobSeams, recorded } from "../job-seams.ts";
@@ -6,6 +12,8 @@ import { fixtures, jobSeams, recorded } from "../job-seams.ts";
 const SUBMISSION = "00000000-0000-4000-8000-000000000200";
 const CHECK = "00000000-0000-4000-8000-000000000900";
 const verdict = fixtures["check-pass"]?.data.verdict;
+const TASTE = "00000000-0000-4000-8000-000000000100";
+const manifest = SUBMISSION_MANIFEST.parse(fixtures.manifest?.data.manifest);
 
 describe("taste wait", () => {
   it("picks up an extraction and shows it as extract would", async () => {
@@ -88,5 +96,50 @@ describe("taste wait", () => {
   it("is free, and says so nowhere as spending", async () => {
     const { out } = await runCli(["wait", "--help"]);
     expect(out).not.toMatch(/spends credits/i);
+  });
+
+  it("saves a finished extraction's recorded files with --out, for free", async () => {
+    const base = await mkdtemp(join(tmpdir(), "taste-wait-"));
+    try {
+      const downloads: Record<string, Uint8Array> = {};
+      for (const file of manifest.files)
+        if (file.url) downloads[file.url] = new Uint8Array([7]);
+      const { api, io } = jobSeams({ downloads });
+      const out = join(base, "taste");
+      const { code, err } = await runCli(["wait", TASTE, "--out", out], io);
+      expect(code).toBe(0);
+      expect(err).toContain(`✓ Saved ${manifest.files.length} files to`);
+      expect(await readFile(join(out, "design_system.md"), "utf8")).toContain(
+        "design system"
+      );
+      expect(await readdir(join(out, "crawl"))).toContain("css.css");
+      expect(api.calls.filter((c) => c.startsWith("POST"))).toEqual([]);
+    } finally {
+      await rm(base, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses --out for a brand adherence check, after one read confirms it", async () => {
+    const { api, io } = jobSeams();
+    const { code, doc } = await runCli(
+      ["wait", CHECK, "--out", join(tmpdir(), "taste-never-made"), "--json"],
+      io
+    );
+    expect(code).toBe(2);
+    expect(doc().error.code).toBe("USAGE_OUT_UNSUPPORTED");
+    expect(api.calls).toEqual([
+      `GET /design/submissions/${CHECK}`,
+      `GET /judge/brand-adherence/${CHECK}`,
+    ]);
+  });
+
+  it("says Taste has nothing with an unknown id, with --out too", async () => {
+    const { io } = jobSeams();
+    const { code, doc } = await runCli(
+      ["wait", "nope-1", "--out", join(tmpdir(), "taste-never-made"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("NOT_FOUND");
   });
 });

@@ -7,14 +7,20 @@ import type { Context } from "../context.ts";
 import { CliError } from "../output/errors.ts";
 import {
   awaitJob,
+  checkOut,
+  saveFiles,
   showAccepted,
   showSubmission,
   startJob,
   submissionJob,
 } from "./job.ts";
-import type { Format } from "./job.ts";
+import type { Format, OutOptions } from "./job.ts";
 
-type KitOptions = { format: Format; wait: boolean; timeout: number };
+type KitOptions = OutOptions & {
+  format: Format;
+  wait: boolean;
+  timeout: number;
+};
 
 // The API's limit. Larger files are refused before they are read.
 const MAX_BYTES = 50 * 1024 * 1024;
@@ -31,6 +37,7 @@ async function kit(
 ): Promise<void> {
   const bytes = await ctx.readFile(file, MAX_BYTES);
   if (bytes.length === 0 || !isPdf(bytes)) throw new CliError("INVALID_FILE");
+  await checkOut(options);
 
   const api = ctx.api();
   const accepted = await startJob(ctx, () =>
@@ -47,7 +54,8 @@ async function kit(
     options.timeout * 1000,
     submissionJob(api, id)
   );
-  showSubmission(ctx, result, options.format);
+  const skipped = await saveFiles(ctx, api, id, options);
+  showSubmission(ctx, result, options.format, skipped);
 }
 
 export { kit };

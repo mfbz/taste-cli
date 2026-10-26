@@ -14,6 +14,8 @@ type Output = {
   live(line: string | null): void;
   /** Something a person must know (a credential ignored or left behind), on stderr in every mode. */
   warn(text: string): void;
+  /** A detail for a bug report, on stderr with --debug only, in every mode. Never a message or value. */
+  debug(text: string): void;
   /** Reports a failure the same way everywhere and returns the exit code. */
   fail(error: unknown): ExitCode;
 };
@@ -66,6 +68,9 @@ function createOutput(options: OutputOptions): Output {
       if (json) return;
       current = line;
       stderr(`${CLEAR_LINE}${line ?? ""}`);
+    },
+    debug(text) {
+      if (debug) aside(`${theme.dim(`debug: ${plain(text)}`)}\n`);
     },
     warn(text) {
       aside(`${theme.warning("warning:")} ${plain(text)}\n`);

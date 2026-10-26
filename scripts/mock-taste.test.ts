@@ -198,6 +198,28 @@ describe("the mock Taste Engine", () => {
     expect((await api.getSubmission(id)).status).toBe("queued");
   });
 
+  it("serves a manifest with every file inline and no URL, so --out never leaves this machine", async () => {
+    const files = createLibrary(loadFixtures()).manifest.files;
+    expect(Array.isArray(files) && files.length > 1).toBe(true);
+    for (const file of files as Record<string, unknown>[]) {
+      expect(file.url ?? null, String(file.path)).toBeNull();
+      expect(typeof file.content).toBe("string");
+    }
+    const { url } = await start({ library: createLibrary(loadFixtures()) });
+    const hosts = new Set<string>();
+    const fetch: typeof globalThis.fetch = (input, init) => {
+      hosts.add(new URL(input instanceof Request ? input.url : input).hostname);
+      return globalThis.fetch(input, init);
+    };
+    dir = mkdtempSync(join(tmpdir(), "taste-mock-out-"));
+    const { code } = await runCli(
+      ["extract", "https://stripe.com", "--out", join(dir, "out"), "--json"],
+      { env: { TASTE_API_URL: url, TASTE_API_KEY: KEY }, fetch, sleep: instant }
+    );
+    expect(code).toBe(0);
+    expect([...hosts]).toEqual(["127.0.0.1"]);
+  });
+
   it("serves the manifest, similar brands, enhance, search and history", async () => {
     const { url } = await start();
     const api = client(url);

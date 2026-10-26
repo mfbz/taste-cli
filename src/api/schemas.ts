@@ -9,6 +9,7 @@ type SubmissionStatus = z.infer<typeof SUBMISSION_STATUS>;
 type SubmissionKind = z.infer<typeof SUBMISSION_KIND>;
 type AdherenceStatus = z.infer<typeof ADHERENCE_STATUS>;
 type SearchDepth = z.infer<typeof SEARCH_DEPTH>;
+type SearchStatus = z.infer<typeof SEARCH_STATUS>;
 type Me = z.infer<typeof ME>;
 type SubmissionAccepted = z.infer<typeof SUBMISSION_ACCEPTED>;
 type Submission = z.infer<typeof SUBMISSION>;
@@ -96,6 +97,8 @@ const ADHERENCE_STATUS = z.enum([
   "failed",
 ]);
 const SEARCH_DEPTH = z.enum(["fast", "deep"]);
+// The outcomes the search history filters by (GET /search/submissions?status=).
+const SEARCH_STATUS = z.enum(["completed", "failed", "in_progress"]);
 const PAGE_TYPE = z.enum([
   "homepage",
   "about",
@@ -413,6 +416,7 @@ export {
   ME,
   PAGE_TYPE,
   SEARCH_DEPTH,
+  SEARCH_STATUS,
   SEARCH_SUBMISSION_LIST,
   SECTION_NAME,
   SIMILAR_BRANDS_RESULTS,
@@ -437,6 +441,7 @@ export type {
   EnhanceResponse,
   Me,
   SearchDepth,
+  SearchStatus,
   SearchSubmission,
   SearchSubmissionList,
   SectionName,

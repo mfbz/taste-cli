@@ -14,6 +14,9 @@ Vulnerabilities in the Taste Engine itself (its API, sign-in or dashboard) belon
 - Error output: messages come only from taste-cli's catalogue, never from a library or the API.
 - Spending credits: nothing paid is ever retried or started without the user asking for it.
 - Files taste-cli writes, such as downloaded bundles: nothing is ever written outside the folder asked for.
+
+Known limit: asset addresses in a download manifest are checked by name (public `https` only, no private or loopback address), without a DNS lookup, so a public name that resolves to a private address is fetched. The request carries no credential, and what comes back is only written into the folder you chose. Details: [TASTE-CLI.md](TASTE-CLI.md), "Saving the files".
+
 - The guards, the Git hooks, CI and the release workflow.
 
 ## Design rules we hold ourselves to

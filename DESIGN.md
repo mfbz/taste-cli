@@ -75,6 +75,40 @@ All of it: taste wait <id> --format json
 
 An adherence verdict (from `wait`) is the score in bold, the candidate and reference addresses, then the recommendations as a dashed list.
 
+With `--out`, one more line on stderr once the files are saved, before the summary:
+
+```text
+✓ Saved 23 files to stripe
+```
+
+When an asset is gone for good (refused at an unsigned address, or too large), the line counts it, and one warning names it by path and status:
+
+```text
+✓ Saved 79 files to taste, skipped 1
+warning: Skipped a file whose download is gone or too large: site-assets/media/image/hero.avif (403)
+```
+
+## History
+
+`taste history` prints a table on stdout: a dimmed header, columns padded to their widest cell and two spaces apart. In a terminal the last column (the address or query) is cut with `…` to one column less than the width, keeping at least 16 columns; a pipe gets it whole. Dates are UTC, to the minute.
+
+```text
+ID                                    WHEN (UTC)        STATUS     ADDRESS
+<id>                                  2026-10-26 10:03  completed  https://stripe.com/
+
+1 of 4. More with --offset 1.
+```
+
+Checks add a `SCORE` column (two decimals, empty when there is none yet) before the candidate address. The last line, dimmed, appears only when there are more. An empty list is one line: `No extractions found.`
+
+## Share
+
+```text
+✓ Public. Anyone with this address can read the result, without signing in:
+  https://api.tastelabs.com/design/submissions/<id>/result
+✓ Private. Only your account can read <id>.
+```
+
 ## Errors
 
 ```text

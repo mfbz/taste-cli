@@ -18,6 +18,8 @@ import type { TerminalInfo } from "./output/terminal.ts";
 type Context = {
   output: Output;
   env: Env;
+  // The Taste Engine's address: TASTE_API_URL, or Taste's own.
+  apiUrl: string;
   interactive: boolean;
   // Absent: plain text, no motion, 80 columns.
   terminal: TerminalInfo | undefined;
@@ -78,6 +80,7 @@ function createContext(io: Io, output: Output): Context {
   return {
     output,
     env,
+    apiUrl,
     interactive: io.interactive ?? false,
     terminal: io.terminal,
     motion: (io.terminal?.motion ?? false) && !env.noMotion,

@@ -12,7 +12,7 @@ description: Use when writing or reviewing code in the taste-cli repo. Covers th
   - `output/`: the `--json` contract, the error catalogue, terminal detection, the theme, and the live progress line (the one place a timer writes to stderr).
   - `api/`: the typed REST client, zod schemas, polling and the fake API.
   - `auth/`: OAuth discovery, browser sign-in, the credential store, refresh.
-  - `commands/`: one file per command, its logic plus its `render*` functions; `job.ts` holds what the job commands share (start, wait with progress, show).
+  - `commands/`: one file per command, its logic plus its `render*` functions; `job.ts` holds what the job commands share (start, wait with progress, show, route an id by kind, save `--out` files).
   - `render/`: terminal pieces shared by several commands (score bars, swatches, progress).
   - `design-md/`, `download/`, `ui/` (the opening, the menu, the cursor), `config/` (environment, paths).
 - Boundaries: `api/` never prints, `commands/` never call `fetch` (they get a `TasteApi`), `render/` is pure (data in, string out).
@@ -31,6 +31,7 @@ description: Use when writing or reviewing code in the taste-cli repo. Covers th
 
 - Validate with zod wherever data enters: environment, files, API responses, CLI arguments. Inside, trust the types.
 - Server text is untrusted: run it through `plain()` (`src/output/output.ts`) before it reaches a terminal.
+- Paths and URLs in a download manifest are untrusted too: files are written only through `writeBundle` (`src/download/bundle.ts`), which checks every path and URL before writing anything and never writes through a symlink. A failure after a job is done goes through `whileSaving`, so it keeps the job's id and the free `taste wait <id> --out` hint. The client caps every answer it reads (8 MB for the API, 100 MB for an asset).
 - No new runtime dependency without the maintainer's OK; a small algorithm is inlined with tests instead.
 
 ## Secrets

@@ -1,4 +1,5 @@
 import {
+  Argument,
   Command,
   InvalidArgumentError,
   Option,
@@ -6,10 +7,12 @@ import {
 
 import pkg from "../package.json" with { type: "json" };
 import { extract } from "./commands/extract.ts";
+import { history, HISTORY_LISTS } from "./commands/history.ts";
 import { DEFAULT_TIMEOUT_S, FORMATS } from "./commands/job.ts";
 import { kit } from "./commands/kit.ts";
 import { login } from "./commands/login.ts";
 import { logout } from "./commands/logout.ts";
+import { share } from "./commands/share.ts";
 import { wait } from "./commands/wait.ts";
 import { whoami } from "./commands/whoami.ts";
 import { createContext } from "./context.ts";
@@ -26,6 +29,8 @@ type Captured = { text: string };
 const FOOTER =
   "\ntaste is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.";
 const TIMEOUT_HELP = "stop waiting after this many seconds; the job carries on";
+const OUT_HELP = "when it is done, save its files into this folder";
+const OVERWRITE_HELP = "with --out, replace files of the same name";
 const CREDITS_NOTE =
   "\nSpends credits from your Taste account; a failed job is refunded. Ctrl-C stops waiting, not the job: taste wait <id> picks it up for free.";
 // Commander's own outcomes that aren't failures.
@@ -180,6 +185,8 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
       integer(1, 200)
     )
     .addOption(formatOption())
+    .option("--out <dir>", OUT_HELP)
+    .option("--overwrite", OVERWRITE_HELP)
     .option("--no-wait", "print the job's id and return at once")
     .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
     .addHelpText("after", CREDITS_NOTE)
@@ -193,6 +200,8 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
     )
     .argument("<file>", "the PDF, at most 50 MB")
     .addOption(formatOption())
+    .option("--out <dir>", OUT_HELP)
+    .option("--overwrite", OVERWRITE_HELP)
     .option("--no-wait", "print the job's id and return at once")
     .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
     .addHelpText("after", CREDITS_NOTE)
@@ -204,9 +213,38 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
     .description("pick up a job started earlier and show its result (free)")
     .argument("<id>", "the id extract or kit printed")
     .addOption(formatOption())
+    .option("--out <dir>", `${OUT_HELP} (an extraction or a brand kit)`)
+    .option("--overwrite", OVERWRITE_HELP)
     .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
     .action(
       withContext(io, output, (ctx, id, options) => wait(ctx, id, options))
+    );
+  program
+    .command("history")
+    .description("list your extractions, checks or searches (free)")
+    .addArgument(
+      new Argument("[list]", "which list")
+        .choices(HISTORY_LISTS)
+        .default("extractions" as const)
+    )
+    .option("--status <status>", "only this status, such as completed")
+    .option("--search <text>", "only entries whose address or query has this")
+    .option("--limit <n>", "how many, 1 to 100", integer(1, 100), 20)
+    .option("--offset <n>", "skip this many first", integer(0, 1_000_000), 0)
+    .action(
+      withContext(io, output, (ctx, list, options) =>
+        history(ctx, list, options)
+      )
+    );
+  program
+    .command("share")
+    .description(
+      "make a result public, readable without signing in, or private again (free)"
+    )
+    .argument("<id>", "an extraction, brand kit or check id")
+    .option("--private", "make it private again")
+    .action(
+      withContext(io, output, (ctx, id, options) => share(ctx, id, options))
     );
   for (const command of program.commands) command.addHelpText("after", FOOTER);
   return program;

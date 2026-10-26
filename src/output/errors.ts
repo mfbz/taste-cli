@@ -242,10 +242,36 @@ const CATALOGUE = {
     "The job keeps running. Run taste wait {id} to pick it up.",
     true
   ),
+  // A manifest path that would leave the folder, or a folder on the way that is a symlink, isn't the
+  // person's own or that others can write to. Raised mid-run too, so it never claims nothing was written.
   BUNDLE_PATH_UNSAFE: entry(
     1,
-    "The download names a file outside the output folder.",
-    "Nothing was written. Try again, and report it if it keeps happening."
+    "taste stopped saving: a file would land outside the output folder, or in a folder someone else can change.",
+    "Use a folder only you can write to. Report it at github.com/mfbz/taste-cli/issues if it keeps happening."
+  ),
+  // Anything else that stops a save after the job is done; the hint names the free way back.
+  SAVE_FAILED: entry(
+    1,
+    "The job is done, but its files couldn't be saved.",
+    "Run the command again with --debug and report it at github.com/mfbz/taste-cli/issues."
+  ),
+  DOWNLOAD_TOO_LARGE: entry(
+    1,
+    "{file} is larger than 100 MB, so taste didn't save it.",
+    "Report it at github.com/mfbz/taste-cli/issues if the file should be there."
+  ),
+  // An API answer past its cap: never read whole, never retried.
+  RESPONSE_TOO_LARGE: entry(
+    1,
+    "The Taste Engine's answer was larger than taste accepts.",
+    "Run again with --debug and report it at github.com/mfbz/taste-cli/issues."
+  ),
+  // share: the API's answer didn't say whether the result is public now. Setting it again is harmless.
+  VISIBILITY_UNKNOWN: entry(
+    1,
+    "Taste didn't say whether that result is public now.",
+    "Run the command again; it is safe to repeat.",
+    true
   ),
   // An asset from a manifest: its host is a CDN, not the Taste Engine, so API codes would mislead.
   DOWNLOAD_FAILED: entry(
@@ -254,10 +280,33 @@ const CATALOGUE = {
     "Run the command again. Each run gets fresh download links.",
     true
   ),
+  // The manifest itself can't be saved as it stands: two entries on one file, an entry with nothing
+  // in it, or an asset address that isn't public https.
+  BUNDLE_INVALID: entry(
+    1,
+    "The download lists files taste won't save.",
+    "Nothing was written. Report it at github.com/mfbz/taste-cli/issues if it keeps happening."
+  ),
+  // The job is finished and paid for, so the way to the files again is wait, which is free.
+  BUNDLE_INCOMPLETE: entry(
+    1,
+    "Saved {written} of {total} files and skipped {skipped}, then {file} couldn't be saved.",
+    "The result is safe on Taste. Run taste wait {id} --out with the same folder and --overwrite to save it all, for free."
+  ),
   OUTPUT_EXISTS: entry(
     1,
     "That output folder already has files in it.",
-    "Choose another folder with --out, or empty this one."
+    "Choose another folder with --out, or add --overwrite to replace files of the same name."
+  ),
+  OUTPUT_UNUSABLE: entry(
+    1,
+    "taste can't save files in that output folder.",
+    "Give --out a folder you can write to, or a new one."
+  ),
+  USAGE_OUT_UNSUPPORTED: entry(
+    2,
+    "--out saves the files of an extraction or a brand kit, and that id is a brand adherence check.",
+    "Leave out --out. With --format json the verdict is printed whole."
   ),
   // Ctrl-C while a paid job runs: the job carries on server side, so say how to pick it up.
   INTERRUPTED: entry(
@@ -288,6 +337,10 @@ const KEY_PREFIX = /^(?:--?)?(?:sk-|gh[pousr]-|npm-|xox|akia|asia|aiza)/;
 // stays readable. The output layer strips control characters before a person sees it.
 const TEXT_PARAMS = new Set(["reason"]);
 const TEXT_LIMIT = 120;
+// A file's path from a download manifest: server text but no secret, so it is shown, cleaned of
+// control characters, cut, with key-shaped tokens redacted. Never a URL: the signed link stays out.
+const PATH_PARAMS = new Set(["file"]);
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/g;
 const KEY_TOKEN =
   /\btaste_\S+|\bsk-[A-Za-z0-9_-]{8,}|\beyJ[\w-]+\.[\w-]+(?:\.[\w-]+)?/g;
 // A job id: a UUID or a short simple id, never something shaped like a key.
@@ -319,9 +372,37 @@ const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
 // charged, so it is never offered as a retry: running it again could pay twice.
 const PAID_HINT =
   "It may have reached Taste and started anyway. Check taste history before you run it again, so you don't pay twice.";
-const PAID_CODES = new Set<ErrorCode>(["NETWORK", "TIMEOUT", "INTERRUPTED"]);
+const PAID_CODES = new Set<ErrorCode>([
+  "NETWORK",
+  "TIMEOUT",
+  "INTERRUPTED",
+  "RESPONSE_TOO_LARGE",
+]);
+// A failed save after a finished job: the result is safe on Taste, and wait --out saves it for free.
+const SAVE_AGAIN =
+  "The result is safe on Taste. Run taste wait {id} --out with a folder only you can write to";
+const SAVE_HINTS: Partial<Record<ErrorCode, string>> = {
+  OUTPUT_EXISTS: `${SAVE_AGAIN}, empty or with --overwrite, to save it for free.`,
+  OUTPUT_UNUSABLE: `${SAVE_AGAIN} to save it for free.`,
+  BUNDLE_PATH_UNSAFE: `${SAVE_AGAIN}, and --overwrite if it has files, to save it for free. Report it at github.com/mfbz/taste-cli/issues if it keeps happening.`,
+  BUNDLE_INVALID:
+    "Nothing was written. The result is safe on Taste: taste wait {id} shows it for free. Report it at github.com/mfbz/taste-cli/issues.",
+  SAVE_FAILED: `${SAVE_AGAIN}, and --overwrite if it has files, to save it for free.`,
+};
+
+// A save stopped by a sign in or credit problem keeps that code and hint, with the job's id added.
+const KEPT_ON_SAVE = new Set<ErrorCode>([
+  "NOT_SIGNED_IN",
+  "SESSION_EXPIRED",
+  "INVALID_API_KEY",
+  "FORBIDDEN",
+  "INSUFFICIENT_CREDITS",
+]);
 
 const DETAIL_CODES = new Set<ErrorCode>([
+  "BUNDLE_INCOMPLETE",
+  ...KEPT_ON_SAVE,
+  ...(Object.keys(SAVE_HINTS) as ErrorCode[]),
   "INTERRUPTED",
   "WAIT_TIMEOUT",
   "JOB_FAILED",
@@ -348,6 +429,18 @@ class CliError extends Error {
   }
 }
 
+// A manifest path made safe to show anywhere: no URL (a signed link stays out), no control
+// characters, key-shaped tokens redacted, at most 120 characters.
+function cleanPath(value: string): string {
+  if (/:\/\/|[?#]/.test(value)) return "…";
+  const path = [...value.replace(CONTROL, "").replace(KEY_TOKEN, "…")];
+  const cut =
+    path.length > TEXT_LIMIT
+      ? `${path.slice(0, TEXT_LIMIT - 1).join("")}…`
+      : path.join("");
+  return cut === "" ? "…" : cut;
+}
+
 function fill(template: string, params: Params): string {
   return template.replace(/\{(\w+)\}/g, (_match, name: string) => {
     const value = String(params[name] ?? "");
@@ -356,6 +449,7 @@ function fill(template: string, params: Params): string {
       const text = value.trim().slice(0, TEXT_LIMIT).replace(KEY_TOKEN, "…");
       return text === "" ? "…" : text;
     }
+    if (PATH_PARAMS.has(name)) return cleanPath(value);
     if (KEY_SHAPED.test(value)) return "…";
     const safe = NAME_PARAMS.has(name)
       ? NAME.test(value) && !KEY_PREFIX.test(value)
@@ -369,7 +463,7 @@ function report(code: ErrorCode, params: Params = {}): FullReport {
   const hasJob = isJobId(String(params.id ?? ""));
   const paid = params.paid === "yes" && PAID_CODES.has(code);
   const hint =
-    (hasJob ? JOB_HINTS[code] : undefined) ??
+    (hasJob ? (JOB_HINTS[code] ?? SAVE_HINTS[code]) : undefined) ??
     (paid ? PAID_HINT : CATALOGUE[code].hint);
   return {
     code,
@@ -465,6 +559,39 @@ function whileWaiting(error: unknown, id: string): unknown {
   return JOB_HINTS[code] ? new CliError(code, { id }, { cause: error }) : error;
 }
 
+// A save that fails after the job is done must never lose the job's id: every failure carries it, with
+// the hint to save again for free. Ctrl-C keeps its own hint (taste wait).
+function whileSaving(error: unknown, id: string): unknown {
+  if (error instanceof CliError) {
+    if (error.code === "INTERRUPTED") return whileWaiting(error, id);
+    if (
+      error.code === "BUNDLE_INCOMPLETE" ||
+      SAVE_HINTS[error.code] ||
+      KEPT_ON_SAVE.has(error.code)
+    )
+      return new CliError(
+        error.code,
+        { ...error.params, id },
+        { cause: error }
+      );
+  }
+  // Sign in and credit problems keep their own words: saving again won't help until they are fixed.
+  if (isUpstreamError(error)) {
+    const code = upstreamReport(error).code as ErrorCode;
+    if (KEPT_ON_SAVE.has(code)) {
+      const credits: Params =
+        code === "INSUFFICIENT_CREDITS"
+          ? {
+              balance: error.balance ?? "unknown",
+              required: error.required ?? "unknown",
+            }
+          : {};
+      return new CliError(code, { ...credits, id }, { cause: error });
+    }
+  }
+  return new CliError("SAVE_FAILED", { id }, { cause: error });
+}
+
 function toErrorReport(error: unknown): FullReport {
   if (error instanceof CliError) return report(error.code, error.params);
   const full = isUpstreamError(error)
@@ -473,5 +600,13 @@ function toErrorReport(error: unknown): FullReport {
   return { ...full, debug: debugInfo(error) };
 }
 
-export { CATALOGUE, CliError, isUpstreamError, toErrorReport, whileWaiting };
+export {
+  CATALOGUE,
+  cleanPath,
+  CliError,
+  isUpstreamError,
+  toErrorReport,
+  whileSaving,
+  whileWaiting,
+};
 export type { DebugInfo, ErrorCode, ErrorReport, ExitCode };

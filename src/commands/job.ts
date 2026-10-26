@@ -1,5 +1,6 @@
 // What the job commands share (extract and kit start a job, wait picks one up, check will too):
 // starting a paid job so Ctrl-C knows about it, waiting with live progress, and showing the result.
+import { TasteApiError } from "../api/client.ts";
 import type { TasteApi } from "../api/client.ts";
 import { jobCheck, waitForJob } from "../api/poll.ts";
 import type { Check } from "../api/poll.ts";
@@ -9,13 +10,22 @@ import type {
   SubmissionResult,
 } from "../api/schemas.ts";
 import type { Context } from "../context.ts";
-import { whileWaiting } from "../output/errors.ts";
+import { checkOutDir, writeBundle } from "../download/bundle.ts";
+import type { Saved, Skipped } from "../download/bundle.ts";
+import {
+  cleanPath,
+  CliError,
+  whileSaving,
+  whileWaiting,
+} from "../output/errors.ts";
 import { plain } from "../output/output.ts";
 import { startProgress } from "../output/progress.ts";
 import { brandName, renderBrandSummary } from "../render/brand-summary.ts";
 import { renderVerdict } from "../render/verdict.ts";
 
 type Format = "summary" | "json";
+// Where --out saves an extraction's files, and whether files of the same name may be replaced.
+type OutOptions = { out?: string; overwrite?: true };
 // A job as the API reports it while it runs.
 type JobState = {
   status: string;
@@ -45,6 +55,80 @@ function terminalWidth(ctx: Context): number {
 
 function hostOf(url: string): string {
   return plain(URL.parse(url)?.hostname || url);
+}
+
+// --out and --overwrite, checked before anything is sent: a folder that can't take the files costs
+// nothing.
+async function checkOut(
+  options: OutOptions & { wait?: boolean }
+): Promise<void> {
+  if (options.overwrite && options.out === undefined)
+    throw new CliError("USAGE_NEEDS_OPTION", {
+      option: "--overwrite",
+      needs: "--out",
+    });
+  if (options.out === undefined) return;
+  if (options.wait === false) throw new CliError("USAGE_CONFLICTING_OPTIONS");
+  await checkOutDir(options.out, options.overwrite === true);
+}
+
+// An id names a submission (an extraction or a brand kit) or an adherence check; Taste answers 404
+// for the kind it isn't, and that changes nothing, so the submission is tried first.
+async function byKind<T>(
+  submission: () => Promise<T>,
+  check: () => Promise<T>
+): Promise<T> {
+  try {
+    return await submission();
+  } catch (error) {
+    if (!(error instanceof TasteApiError && error.status === 404)) throw error;
+    return check();
+  }
+}
+
+// The most skipped files named in the warning; the rest are counted.
+const SKIPPED_SHOWN = 10;
+
+// After the job completes: its files, from the download manifest, into the --out folder. Returns the
+// files skipped because their download is gone for good (see goneForGood in download/bundle.ts).
+async function saveFiles(
+  ctx: Context,
+  api: TasteApi,
+  id: string,
+  options: OutOptions
+): Promise<Skipped[]> {
+  if (options.out === undefined) return [];
+  let saved: Saved;
+  try {
+    const manifest = await api.getManifest(id);
+    saved = await writeBundle({
+      api,
+      manifest,
+      dir: options.out,
+      overwrite: options.overwrite === true,
+      signal: ctx.signal,
+    });
+  } catch (error) {
+    // explain first, so a session's final 401 is SESSION_EXPIRED, as anywhere else.
+    throw whileSaving(ctx.auth.explain(error), id);
+  }
+  const { written, skipped } = saved;
+  const files = written.length === 1 ? "file" : "files";
+  const skipNote = skipped.length ? `, skipped ${skipped.length}` : "";
+  ctx.output.note(
+    `${ctx.output.theme.success("✓")} Saved ${written.length} ${files} to ${plain(options.out)}${skipNote}`
+  );
+  if (skipped.length) {
+    const named = skipped
+      .slice(0, SKIPPED_SHOWN)
+      .map((s) => `${plain(cleanPath(s.path))} (${s.status})`);
+    const more = skipped.length - named.length;
+    if (more > 0) named.push(`and ${more} more`);
+    ctx.output.warn(
+      `Skipped ${skipped.length === 1 ? "a file" : `${skipped.length} files`} whose download is gone or too large: ${named.join(", ")}`
+    );
+  }
+  return skipped;
 }
 
 // The one paid request: Ctrl-C while it is in flight must not invite a second one, and once it is
@@ -127,9 +211,12 @@ function verdictJob(api: TasteApi, id: string): JobSpec<AdherenceVerdict> {
 function showSubmission(
   ctx: Context,
   result: SubmissionResult,
-  format: Format
+  format: Format,
+  skipped: Skipped[] = []
 ): void {
-  ctx.output.result(result, (theme) =>
+  // --json names what --out skipped; the result itself stays as Taste sent it.
+  const data = skipped.length ? { ...result, skipped } : result;
+  ctx.output.result(data, (theme) =>
     format === "json"
       ? JSON.stringify(result, null, 2)
       : renderBrandSummary(result, {
@@ -161,8 +248,11 @@ function showAccepted(ctx: Context, accepted: SubmissionAccepted): void {
 
 export {
   awaitJob,
+  byKind,
+  checkOut,
   DEFAULT_TIMEOUT_S,
   FORMATS,
+  saveFiles,
   showAccepted,
   showSubmission,
   showVerdict,
@@ -170,4 +260,4 @@ export {
   submissionJob,
   verdictJob,
 };
-export type { Format, JobSpec };
+export type { Format, JobSpec, OutOptions };

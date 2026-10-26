@@ -712,3 +712,91 @@ describe("createTasteApi interrupt", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("createTasteApi answer size", () => {
+  const MB = 1024 * 1024;
+
+  function serving(response: () => Response) {
+    let cancelled = false;
+    const api = createTasteApi({
+      fetch: () => Promise.resolve(response()),
+      baseUrl: BASE,
+      auth: keyAuth(),
+      sleep: () => Promise.resolve(),
+    });
+    return {
+      api,
+      cancelled: () => cancelled,
+      cancel: () => (cancelled = true),
+    };
+  }
+
+  // A body that never ends, one chunk at a time, noting when the reader gives up on it.
+  function endless(onCancel: () => void): ReadableStream<Uint8Array> {
+    const chunk = new Uint8Array(MB);
+    return new ReadableStream({
+      pull: (controller) => controller.enqueue(chunk),
+      cancel: onCancel,
+    });
+  }
+
+  it("refuses an asset whose Content-Length is over 100 MB without reading it", async () => {
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull: (controller) => {
+        pulled += 1;
+        controller.enqueue(new Uint8Array(1));
+      },
+    });
+    const { api } = serving(
+      () =>
+        new Response(body, {
+          status: 200,
+          headers: { "content-length": String(101 * MB) },
+        })
+    );
+    const error = (await caught(
+      api.download("https://cdn.test/big.webm")
+    )) as CliError;
+    expect(error.code).toBe("DOWNLOAD_TOO_LARGE");
+    expect(error.params.file).toBe("big.webm");
+    expect(pulled).toBeLessThanOrEqual(1);
+  });
+
+  it("stops reading an endless asset past 100 MB, once, without retrying", async () => {
+    let fetched = 0;
+    const seams = serving(() => {
+      fetched += 1;
+      return new Response(
+        endless(() => seams.cancel()),
+        { status: 200 }
+      );
+    });
+    const error = (await caught(
+      seams.api.download("https://cdn.test/loop.webm")
+    )) as CliError;
+    expect(error.code).toBe("DOWNLOAD_TOO_LARGE");
+    expect(seams.cancelled()).toBe(true);
+    expect(fetched).toBe(1);
+  });
+
+  it("caps an API answer at 8 MB, and says a paid one may have been charged", async () => {
+    const seams = serving(
+      () =>
+        new Response(
+          endless(() => seams.cancel()),
+          { status: 200 }
+        )
+    );
+    const read = (await caught(seams.api.getSubmission("sub-1"))) as CliError;
+    expect(read.code).toBe("RESPONSE_TOO_LARGE");
+    expect(seams.cancelled()).toBe(true);
+    const paid = (await caught(
+      seams.api.createSubmission({ url: "https://stripe.com/" })
+    )) as CliError;
+    expect(paid.code).toBe("RESPONSE_TOO_LARGE");
+    const report = toErrorReport(paid);
+    expect(report.retryable).toBe(false);
+    expect(report.hint).toContain("taste history");
+  });
+});

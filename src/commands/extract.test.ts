@@ -1,4 +1,16 @@
-import { describe, expect, it } from "vitest";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { TasteApiError } from "../api/client.ts";
 import type { SubmissionCreate } from "../api/schemas.ts";
@@ -303,5 +315,345 @@ describe("taste extract", () => {
   it("says in --help that it spends credits", async () => {
     const { out } = await runCli(["extract", "--help"]);
     expect(out).toMatch(/spends credits/i);
+  });
+});
+
+describe("taste extract --out", () => {
+  let base: string;
+
+  beforeEach(async () => {
+    base = await mkdtemp(join(tmpdir(), "taste-extract-"));
+  });
+
+  afterEach(async () => {
+    await rm(base, { recursive: true, force: true });
+  });
+
+  it("saves the finished extraction's files into the folder", async () => {
+    const out = join(base, "stripe");
+    const { api, io } = seams();
+    const { code, err } = await runCli(
+      ["extract", "stripe.com", "--out", out],
+      io
+    );
+    expect(code).toBe(0);
+    expect(await readFile(join(out, "guidelines.json"), "utf8")).toBe("{}");
+    expect(api.calls).toContain("GET /design/submissions/sub-1/download");
+    expect(err).toContain("✓ Saved 1 file to");
+  });
+
+  it("keeps the --json document the result, with the files saved", async () => {
+    const out = join(base, "stripe");
+    const { io } = seams();
+    const { code, doc, err } = await runCli(
+      ["extract", "stripe.com", "--out", out, "--json"],
+      io
+    );
+    expect(code).toBe(0);
+    expect(err).toBe("");
+    expect(doc().data).toEqual(taste);
+    expect(await readdir(out)).toEqual(["guidelines.json"]);
+  });
+
+  it("refuses a folder with files in it before spending anything", async () => {
+    await writeFile(join(base, "old.txt"), "");
+    const { api, io } = seams();
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", base, "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("OUTPUT_EXISTS");
+    expect(doc().error.hint).toContain("--overwrite");
+    expect(api.calls).toEqual([]);
+  });
+
+  it("replaces files of the same name with --overwrite", async () => {
+    await writeFile(join(base, "guidelines.json"), "old");
+    const { io } = seams();
+    const { code } = await runCli(
+      ["extract", "stripe.com", "--out", base, "--overwrite"],
+      io
+    );
+    expect(code).toBe(0);
+    expect(await readFile(join(base, "guidelines.json"), "utf8")).toBe("{}");
+  });
+
+  it("refuses --out with --no-wait, and --overwrite without --out, before any request", async () => {
+    const { api, io } = seams();
+    const noWait = await runCli(
+      ["extract", "stripe.com", "--out", base, "--no-wait", "--json"],
+      io
+    );
+    expect(noWait.code).toBe(2);
+    expect(noWait.doc().error.code).toBe("USAGE_CONFLICTING_OPTIONS");
+    const alone = await runCli(
+      ["extract", "stripe.com", "--overwrite", "--json"],
+      io
+    );
+    expect(alone.code).toBe(2);
+    expect(alone.doc().error.code).toBe("USAGE_NEEDS_OPTION");
+    expect(api.calls).toEqual([]);
+  });
+
+  it("points a failed save at taste wait, never at extracting again", async () => {
+    const { api, io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [{ path: "a.css", url: "https://cdn.example.com/a.css" }],
+        },
+      },
+    });
+    api.download = () => Promise.reject(new CliError("NETWORK"));
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+  });
+
+  it("keeps the job's id when the manifest can't be saved at all", async () => {
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "another-id",
+          files: [{ path: "../escape", content: "x" }],
+        },
+      },
+    });
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_PATH_UNSAFE",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+    const invalid = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [{ path: "a.css", url: "https://10.0.0.1/a.css" }],
+        },
+      },
+    });
+    const second = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "y"), "--json"],
+      invalid.io
+    );
+    expect(second.doc().error).toMatchObject({
+      code: "BUNDLE_INVALID",
+      details: { id: "sub-1" },
+    });
+  });
+
+  it("keeps the job's id when the folder fills up while the job runs", async () => {
+    const out = join(base, "racy");
+    const { api, io } = seams();
+    const racing = {
+      ...api,
+      getManifest: async (id: string) => {
+        await mkdir(out, { recursive: true });
+        await writeFile(join(out, "late.txt"), "");
+        return api.getManifest(id);
+      },
+    };
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", out, "--json"],
+      { ...io, api: racing }
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "OUTPUT_EXISTS",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+  });
+
+  it("keeps the job's id when the manifest can't be read", async () => {
+    const { io } = seams({
+      errors: { getManifest: new TasteApiError(404, { code: "NOT_FOUND" }) },
+    });
+    const { doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "z"), "--json"],
+      io
+    );
+    expect(doc().error).toMatchObject({
+      code: "SAVE_FAILED",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+  });
+
+  it("skips an asset that is gone, warns, and lists it under --json", async () => {
+    const path =
+      "site-assets/media/image/showcase-image-of-syntax-engine-features.avif";
+    const files = {
+      "sub-1": {
+        submission_id: "sub-1",
+        files: [
+          { path: "guidelines.json", content: "{}" },
+          { path, url: "https://brand.example.com/x.avif" },
+        ],
+      },
+    };
+    const human = seams({ manifests: files });
+    const out = join(base, "human");
+    const run = await runCli(["extract", "stripe.com", "--out", out], human.io);
+    expect(run.code).toBe(0);
+    expect(run.err).toContain(
+      `warning: Skipped a file whose download is gone or too large: ${path} (404)`
+    );
+    expect(run.err).toContain("Saved 1 file to");
+    expect(run.err).toContain("skipped 1");
+    expect(await readdir(out)).toEqual(["guidelines.json"]);
+
+    const json = seams({ manifests: files });
+    const doc = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "json"), "--json"],
+      json.io
+    );
+    expect(doc.code).toBe(0);
+    expect(doc.doc().data).toEqual({
+      ...taste,
+      skipped: [{ path, status: 404 }],
+    });
+  });
+
+  it("names the file, not the link, when a download that may pass fails", async () => {
+    const path =
+      "site-assets/media/image/showcase-image-of-syntax-engine-features.avif";
+    const { api, io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [
+            { path: "a.txt", content: "a" },
+            { path, url: "https://cdn.example.com/x.avif?token=signed" },
+          ],
+        },
+      },
+    });
+    api.download = () =>
+      Promise.reject(
+        new CliError("DOWNLOAD_FAILED", { file: "x.avif", status: 503 })
+      );
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      message: `Saved 1 of 2 files and skipped 0, then ${path} couldn't be saved.`,
+      details: { id: "sub-1" },
+    });
+    expect(JSON.stringify(doc())).not.toContain("token=signed");
+  });
+
+  it("never skips a refused signed link, which a fresh run may fix", async () => {
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [
+            { path: "a.txt", content: "a" },
+            {
+              path: "crawl/full.jpg",
+              url: "https://cdn.example.com/full.jpg?token=signed",
+            },
+          ],
+        },
+      },
+    });
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "signed"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.message).toContain("crawl/full.jpg");
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+    expect(JSON.stringify(doc())).not.toContain("token=signed");
+  });
+
+  it("refuses a folder others can write to before spending anything", async () => {
+    if (process.platform === "win32") return;
+    await chmod(base, 0o777);
+    const { api, io } = seams();
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", base, "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("BUNDLE_PATH_UNSAFE");
+    expect(api.calls).toEqual([]);
+  });
+
+  it("keeps a sign in or credit problem under its own code, with the job's id", async () => {
+    for (const [error, code] of [
+      [new TasteApiError(401, {}), "INVALID_API_KEY"],
+      [
+        new TasteApiError(402, { balance: 0, required: 1 }),
+        "INSUFFICIENT_CREDITS",
+      ],
+      [new CliError("NOT_SIGNED_IN"), "NOT_SIGNED_IN"],
+    ] as const) {
+      const { io } = seams({ errors: { getManifest: error } });
+      const { doc } = await runCli(
+        ["extract", "stripe.com", "--out", join(base, code), "--json"],
+        io
+      );
+      expect(doc().error, code).toMatchObject({
+        code,
+        retryable: false,
+        details: { id: "sub-1" },
+      });
+    }
+  });
+
+  it("cleans a skipped path in the warning as it would in an error", async () => {
+    const key = ["taste", "live", "x".repeat(32)].join("_");
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [
+            { path: "a.txt", content: "a" },
+            {
+              path: `assets/${key}.png`,
+              url: "https://brand.example.com/k.png",
+            },
+            {
+              path: `assets/${"long-name-".repeat(20)}.png`,
+              url: "https://brand.example.com/l.png",
+            },
+          ],
+        },
+      },
+    });
+    const { code, err } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "clean")],
+      io
+    );
+    expect(code).toBe(0);
+    expect(err).not.toContain(key);
+    expect(err).toContain("assets/… (404)");
+    expect(err).not.toContain("long-name-".repeat(20));
   });
 });

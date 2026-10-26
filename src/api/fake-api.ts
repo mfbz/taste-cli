@@ -288,12 +288,13 @@ function createFakeApi(overrides: Partial<FakeState> = {}): FakeApi {
         return state.similarResults;
       }),
 
-    listSearches: ({ limit, offset, q, kind }) =>
+    listSearches: ({ limit, offset, q, kind, status }) =>
       later(() => {
         enter("listSearches", "GET", "/search/submissions");
         const matching = state.searches.filter(
           (s) =>
             (kind === undefined || s.kind === kind) &&
+            (status === undefined || s.status === status) &&
             (q === undefined || (s.query ?? "").includes(q))
         );
         const { items, ...rest } = page(matching, limit ?? 20, offset);
