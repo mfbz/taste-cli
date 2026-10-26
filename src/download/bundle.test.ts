@@ -452,6 +452,56 @@ describe("writeBundle", () => {
     });
   });
 
+  it.each([
+    ["https://brand.example/a.css?v=1", "skipped"],
+    ["https://brand.example/_next/image?url=%2Fa.png&w=640", "skipped"],
+    ["https://cdn.example.com/x.jpg?token=abc", "fails"],
+    [
+      "https://bucket.example.com/x.jpg?X-Amz-Signature=abc&X-Amz-Expires=60",
+      "fails",
+    ],
+    [
+      "https://cdn.example.com/x.jpg?Expires=1&Signature=abc&Key-Pair-Id=k",
+      "fails",
+    ],
+  ])("a 403 from %s is %s", async (url, outcome) => {
+    const api = createFakeApi();
+    api.download = () =>
+      Promise.reject(
+        new CliError("DOWNLOAD_FAILED", { file: "x", status: 403 })
+      );
+    const result = await writeBundle({
+      api,
+      manifest: manifest([{ path: "x.bin", url }]),
+      dir,
+      overwrite: false,
+    }).then(
+      (saved) => saved.skipped.map((s) => s.path).join(),
+      (e: unknown) => (e instanceof CliError ? e.code : "other")
+    );
+    expect(result).toBe(outcome === "skipped" ? "x.bin" : "BUNDLE_INCOMPLETE");
+  });
+
+  it("names a skipped file whose older copy can't be removed", async () => {
+    await mkdir(join(dir, "gone.css"), { recursive: true });
+    await writeFile(join(dir, "gone.css", "inner"), "");
+    const api = createFakeApi();
+    api.download = () =>
+      Promise.reject(
+        new CliError("DOWNLOAD_FAILED", { file: "gone.css", status: 404 })
+      );
+    const error = await writeBundle({
+      api,
+      manifest: manifest([{ path: "gone.css", url: `${CDN}gone.css` }]),
+      dir,
+      overwrite: true,
+    }).catch((e: unknown) => e);
+    expect(error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      params: { written: 0, total: 1, file: "gone.css" },
+    });
+  });
+
   it("removes a half-written file when a write fails", async () => {
     const failing: typeof open = async (path, flags, mode) => {
       const handle = await open(path, flags, mode);

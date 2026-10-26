@@ -47,10 +47,28 @@ const BAD_SEGMENT = /[:<>"|?*\u0000-\u001f\u007f-\u009f]|[. ]$/;
 const RESERVED = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\..*)?$/i;
 const NEW_FOLDER_MODE = 0o700;
 
+// Query keys that carry a link's signature or its expiry (Supabase and other token links, S3, GCS,
+// CloudFront). A query without one, such as ?v=123 or a Next.js image URL, is not a signed link.
+const SIGNATURE_KEYS = new Set([
+  "token",
+  "signature",
+  "sig",
+  "x-amz-signature",
+  "x-goog-signature",
+  "expires",
+  "policy",
+  "key-pair-id",
+]);
+
+function isSigned(url: string): boolean {
+  const keys = URL.parse(url)?.searchParams.keys() ?? [];
+  return [...keys].some((key) => SIGNATURE_KEYS.has(key.toLowerCase()));
+}
+
 // The one rule for a download that fails. Skipped, as gone for good: an asset over the size cap (it
 // is as large on every run), and a 4xx other than 408 and 429 from an unsigned address (a brand's own
 // site that no longer serves it). Everything else stops the save, since a later run may succeed: a
-// network failure, a timeout, a 5xx, 408 or 429, and any refusal of a signed link (one with a query),
+// network failure, a timeout, a 5xx, 408 or 429, and any refusal of a signed link (SIGNATURE_KEYS),
 // whose signature may simply have expired; each run gets fresh links. Returns the skip's status.
 function goneForGood(
   error: unknown,
@@ -58,8 +76,7 @@ function goneForGood(
 ): Skipped["status"] | undefined {
   if (!(error instanceof CliError)) return undefined;
   if (error.code === "DOWNLOAD_TOO_LARGE") return "too large";
-  if (error.code !== "DOWNLOAD_FAILED" || URL.parse(url)?.search)
-    return undefined;
+  if (error.code !== "DOWNLOAD_FAILED" || isSigned(url)) return undefined;
   const status = error.params.status;
   if (typeof status !== "number" || status < 400 || status > 499)
     return undefined;
@@ -249,7 +266,11 @@ async function writeBundle(deps: BundleDeps): Promise<Saved> {
       const status = goneForGood(error, file.url ?? "");
       if (status !== undefined) {
         // With --overwrite an older copy would otherwise stay, as if it were this result's.
-        if (overwrite) await removeStale(file);
+        if (overwrite)
+          await removeStale(file).catch((stale: unknown) => {
+            failed ??= file.rel;
+            throw stale;
+          });
         skipped.push({ path: file.rel, status });
         return;
       }
