@@ -1,5 +1,5 @@
 // npm run fixtures:scrub: copies tmp-fixtures/*.json to src/api/fixtures/ after two boring steps.
-// Normalise: the ids the recipes created become fixed fake UUIDs, and URLs off the Taste API lose
+// Normalise: the ids the recipes created, then any other UUID, become fixed fake UUIDs; URLs off the Taste API lose
 // their query and fragment (signed download links). Check: anything that still looks personal or
 // secret fails the run, listed as file:path, and nothing is written; a person fixes it by hand.
 // Recipes record public content only (me and history are hand-written), so nothing else is repaired.
@@ -36,6 +36,8 @@ const ID_KEYS = new Set([
   "id",
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ANY_UUID =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 // Account metadata on recorded submissions and jobs, set to fixed values at any depth.
 const ACCOUNT_KEYS: Readonly<Record<string, string | null>> = {
   api_key_name: "example",
@@ -93,18 +95,24 @@ function unsign(url: string): string {
 
 function normalise(docs: Docs): Docs {
   const ids = new Map<string, string>();
-  // In recipe order, so an id gets the number of the recipe that created it.
+  // In recipe order, so an id gets the number of the recipe that created it. The recipe's own ids
+  // come first, so their numbers stay stable; any other UUID (a storage path) follows.
   for (const { name } of RECIPES) {
     let n = 0;
+    const add = (id: string): void => {
+      const lower = id.toLowerCase();
+      if (lower.startsWith(FAKE) || ids.has(lower)) return;
+      if (n === 100) throw new Error(`${name}: over 100 ids.`);
+      ids.set(lower, fakeId(name, n++));
+    };
     walk(docs[name], "", (_, key, value) => {
-      if (
-        ID_KEYS.has(key) &&
-        typeof value === "string" &&
-        UUID.test(value) &&
-        !value.startsWith(FAKE) &&
-        !ids.has(value.toLowerCase())
-      )
-        ids.set(value.toLowerCase(), fakeId(name, n++));
+      if (ID_KEYS.has(key) && typeof value === "string" && UUID.test(value))
+        add(value);
+      return value;
+    });
+    walk(docs[name], "", (_, __, value) => {
+      if (typeof value === "string")
+        for (const [id] of value.matchAll(ANY_UUID)) add(id);
       return value;
     });
   }
