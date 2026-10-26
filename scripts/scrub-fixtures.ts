@@ -28,7 +28,7 @@ type Raw = z.infer<typeof FIXTURE>;
 // What one scrub run knows from all its recordings: personal values to replace wherever they appear,
 // and the ids and queries the recipes themselves created (the only history worth keeping).
 type Known = {
-  literals: [string, string][];
+  literals: [RegExp, string][];
   ids: Set<string>;
   queries: Set<string>;
 };
@@ -66,9 +66,18 @@ const BY_KEY: Readonly<Record<string, string>> = {
   batch_label: "example batch",
   credit_ref_id: "credit_example",
 };
-// Shorter values (a key named "dev") are replaced by key only: replacing them everywhere would
-// rewrite ordinary words.
-const MIN_LITERAL = 6;
+// Account ids under any name, and anything about an API key, at any depth: the schemas are loose
+// and raw bodies keep fields Taste may add.
+const PERSONAL_ID =
+  /(?:^|_)(?:user|org|organization|account|owner|team|workspace|customer|tenant)_id$/i;
+const KEY_FIELD = /^(?:api_key_.+|key_prefix)$/i;
+// One or two characters say nothing and match everywhere: those are replaced by key only.
+const MIN_LITERAL = 3;
+// A known value is replaced only as a whole token, so "default" never rewrites "defaultColor".
+const TOKEN_CHAR = "[A-Za-z0-9_-]";
+// Query parameters that carry a credential or a signature, on any host.
+const CREDENTIAL_PARAM =
+  /^(?:sig|signature|token|access_token|key|expires|policy|key-pair-id|x-amz-.*|x-goog-.*)$/i;
 const ID_KEYS = new Set(["submission_id", "job_id", "search_id", "id"]);
 const TASTE_API_HOST = "api.tastelabs.com";
 // The same shapes the guards block (tools/checks/guards.ts), JWTs a little more broadly.
@@ -90,16 +99,29 @@ function walk(
     for (const [k, v] of Object.entries(value)) walk(v, visit, k);
 }
 
+function placeholderFor(key: string): string | undefined {
+  if (BY_KEY[key]) return BY_KEY[key];
+  if (PERSONAL_ID.test(key)) return `example_${key.toLowerCase()}`;
+  if (KEY_FIELD.test(key)) return "key_example";
+  return undefined;
+}
+
+function escape(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function knownFrom(docs: readonly Raw[]): Known {
   const literals = new Map<string, string>();
   const ids = new Set<string>();
   const queries = new Set<string>();
   for (const doc of docs) {
     walk(doc, (key, value) => {
+      if (typeof value !== "string" && typeof value !== "number") return;
+      const text = String(value);
+      const placeholder = placeholderFor(key);
+      if (placeholder && text.length >= MIN_LITERAL && text !== placeholder)
+        literals.set(text, placeholder);
       if (typeof value !== "string") return;
-      const placeholder = BY_KEY[key];
-      if (placeholder && value.length >= MIN_LITERAL && value !== placeholder)
-        literals.set(value, placeholder);
       if (doc.recipe !== "history" && ID_KEYS.has(key)) ids.add(value);
     });
     const query = findRecipe(doc.recipe)?.inputs.query;
@@ -107,24 +129,34 @@ function knownFrom(docs: readonly Raw[]): Known {
   }
   // Longest first, so a value inside another is never replaced half way.
   return {
-    literals: [...literals].sort(([a], [b]) => b.length - a.length),
+    literals: [...literals]
+      .sort(([a], [b]) => b.length - a.length)
+      .map(([value, placeholder]) => [
+        new RegExp(`(?<!${TOKEN_CHAR})${escape(value)}(?!${TOKEN_CHAR})`, "g"),
+        placeholder,
+      ]),
     ids,
     queries,
   };
 }
 
 // A pre-signed asset URL carries its signature in the query: anything off the Taste API loses its
-// query and fragment.
+// query and fragment, and a Taste API URL loses any parameter that looks like a credential.
 function unsign(url: string): string {
   const parsed = URL.parse(url);
-  if (!parsed || parsed.hostname === TASTE_API_HOST) return url;
-  return url.replace(/[?#].*$/, "");
+  if (!parsed) return url;
+  if (parsed.hostname !== TASTE_API_HOST) return url.replace(/[?#].*$/, "");
+  const names = [...parsed.searchParams.keys()];
+  if (!names.some((name) => CREDENTIAL_PARAM.test(name))) return url;
+  for (const name of names)
+    if (CREDENTIAL_PARAM.test(name)) parsed.searchParams.delete(name);
+  return parsed.href;
 }
 
 function scrubText(text: string, known: Known, limits: Limits | null): string {
   let clean = text;
-  for (const [value, placeholder] of known.literals)
-    clean = clean.replaceAll(value, placeholder);
+  for (const [pattern, placeholder] of known.literals)
+    clean = clean.replace(pattern, placeholder);
   clean = clean
     .replace(TASTE_KEY, REMOVED)
     .replace(JWT, REMOVED)
@@ -142,8 +174,10 @@ function scrub(
   known: Known,
   limits: Limits | null
 ): unknown {
+  const placeholder = placeholderFor(key);
   if (typeof value === "string")
-    return BY_KEY[key] ?? scrubText(value, known, limits);
+    return placeholder ?? scrubText(value, known, limits);
+  if (typeof value === "number" && placeholder) return placeholder;
   if (Array.isArray(value)) {
     const keep = !limits
       ? value.length

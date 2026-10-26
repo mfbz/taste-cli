@@ -26,6 +26,8 @@ type RunContext = {
   id?: string;
   kit?: Kit;
 };
+// What a job recipe would post, to check a job picked up with --id against.
+type Expected = { url?: string; sections?: string[]; kind?: string };
 type Recorded = { steps: Step[]; data: Record<string, unknown> };
 type Recipe = {
   name: string;
@@ -146,20 +148,49 @@ async function wait<
 }
 
 // A job recipe given --id picks that job up instead of posting a new one: free polling only.
+function sameUrl(a: string, b: string): boolean {
+  return (URL.parse(a)?.href ?? a) === (URL.parse(b)?.href ?? b);
+}
+
+function mismatch(id: string, posted: string, expected: string): Error {
+  return new Error(
+    `Job ${id} was posted for ${posted}, not ${expected}: give --id the job this recipe posted.`
+  );
+}
+
+// A posted job read back for --id, checked against what this recipe would have posted, and kept in
+// the shape the POST answers with, so a resumed recording reads like a fresh one.
+async function resumeExtraction(
+  c: RunContext,
+  id: string,
+  expected: Expected
+): Promise<SubmissionAccepted> {
+  const found = await c.api.getSubmission(id);
+  if (expected.url && !sameUrl(found.source_url, expected.url))
+    throw mismatch(id, found.source_url, expected.url);
+  if (expected.kind && found.kind && found.kind !== expected.kind)
+    throw mismatch(id, `a ${found.kind} job`, `a ${expected.kind} job`);
+  const sections = [...(found.sections ?? [])].sort().join(",");
+  const want = [...(expected.sections ?? [])].sort().join(",");
+  // Absent means the API left it out; null or a list must match (null is a full extraction).
+  if (found.sections !== undefined && sections !== want)
+    throw mismatch(id, `sections "${sections}"`, `sections "${want}"`);
+  return {
+    submission_id: found.submission_id,
+    status: "accepted",
+    source_url: found.source_url,
+    accepted_at: found.accepted_at ?? "",
+  };
+}
+
 async function extraction(
   c: RunContext,
+  expected: Expected,
   post: () => Promise<SubmissionAccepted>
 ): Promise<Recorded> {
-  let accepted: SubmissionAccepted;
-  if (c.id) {
-    const found = await c.api.getSubmission(c.id);
-    accepted = {
-      submission_id: found.submission_id,
-      status: found.status,
-      source_url: found.source_url,
-      accepted_at: found.accepted_at ?? "",
-    };
-  } else accepted = await post();
+  const accepted = c.id
+    ? await resumeExtraction(c, c.id, expected)
+    : await post();
   const id = accepted.submission_id;
   c.log(RESUME(id));
   const { job, steps } = await wait(
@@ -180,13 +211,34 @@ async function extraction(
   };
 }
 
+async function resumeCheck(
+  c: RunContext,
+  id: string,
+  reference: string,
+  candidate: string
+): Promise<AdherenceAccepted> {
+  const found = await c.api.getAdherence(id);
+  if (!sameUrl(found.reference_url, reference))
+    throw mismatch(id, found.reference_url, reference);
+  if (!sameUrl(found.candidate_url, candidate))
+    throw mismatch(id, found.candidate_url, candidate);
+  return {
+    job_id: found.job_id,
+    status: "accepted",
+    reference_url: found.reference_url,
+    candidate_url: found.candidate_url,
+    accepted_at: found.accepted_at,
+    ...(found.is_public === undefined ? {} : { is_public: found.is_public }),
+  };
+}
+
 async function check(
   c: RunContext,
   reference: string,
   candidate: string
 ): Promise<Recorded> {
   const accepted: AdherenceAccepted = c.id
-    ? await c.api.getAdherence(c.id)
+    ? await resumeCheck(c, c.id, reference, candidate)
     : await c.api.createAdherence({
         reference_url: reference,
         candidate_url: candidate,
@@ -274,7 +326,10 @@ const RECIPES: readonly Recipe[] = [
       "POST /design/submissions (full extraction), then free polling of the submission and its result",
     inputs: { url },
     resumes: true,
-    run: (c) => extraction(c, () => c.api.createSubmission({ url })),
+    run: (c) =>
+      extraction(c, { url, kind: "website" }, () =>
+        c.api.createSubmission({ url })
+      ),
   })),
   {
     name: "extract-selective",
@@ -284,11 +339,18 @@ const RECIPES: readonly Recipe[] = [
     inputs: { url: "https://linear.app/", sections: "colors,typography" },
     resumes: true,
     run: (c) =>
-      extraction(c, () =>
-        c.api.createSubmission({
+      extraction(
+        c,
+        {
           url: "https://linear.app/",
           sections: ["colors", "typography"],
-        })
+          kind: "website",
+        },
+        () =>
+          c.api.createSubmission({
+            url: "https://linear.app/",
+            sections: ["colors", "typography"],
+          })
       ),
   },
   {
@@ -309,7 +371,7 @@ const RECIPES: readonly Recipe[] = [
     inputs: { file: "--file <path>" },
     resumes: true,
     run: (c) =>
-      extraction(c, () =>
+      extraction(c, { kind: "brand_kit" }, () =>
         c.api.createBrandKit(need(c.kit, "--file <path> to a PDF"))
       ),
   },

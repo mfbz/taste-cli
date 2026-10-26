@@ -148,6 +148,64 @@ describe("the fixture recipes", () => {
     expect(spends(findRecipe("similar")!, "some-id")).toBe(true);
   });
 
+  it("refuse to pick up a job posted for another recipe's input", async () => {
+    const fresh = await recordAgainstMock("check-fail");
+    const failJob = (fresh.data.accepted as { job_id: string }).job_id;
+    await expect(recordAgainstMock("check-pass", failJob)).rejects.toThrow(
+      /was posted for https:\/\/stripe\.com\/, not https:\/\/www\.tastelabs\.com\/research/
+    );
+    const stripe = await recordAgainstMock("extract-full-2");
+    const stripeId = (stripe.data.accepted as { submission_id: string })
+      .submission_id;
+    await expect(recordAgainstMock("extract-full", stripeId)).rejects.toThrow(
+      /was posted for https:\/\/stripe\.com\//
+    );
+    await expect(recordAgainstMock("kit", stripeId)).rejects.toThrow(
+      /a website job, not a brand_kit job/
+    );
+    const full = await recordAgainstMock("extract-full");
+    const fullId = (full.data.accepted as { submission_id: string })
+      .submission_id;
+    await expect(
+      recordAgainstMock("extract-selective", fullId)
+    ).rejects.toThrow();
+    const api = createTasteApi({
+      fetch: globalThis.fetch,
+      baseUrl: mock.url,
+      auth: {
+        header: () => Promise.resolve({ "x-api-key": KEY }),
+        onUnauthorized: () => Promise.resolve(false),
+      },
+      sleep: () => Promise.resolve(),
+    });
+    const linearFull = await api.createSubmission({
+      url: "https://linear.app/",
+    });
+    await expect(
+      recordAgainstMock("extract-selective", linearFull.submission_id)
+    ).rejects.toThrow(/sections "", not sections "colors,typography"/);
+  });
+
+  it("record a picked-up job in the same shape as a fresh one", async () => {
+    const fresh = await recordAgainstMock("check-fail");
+    const resumed = await recordAgainstMock(
+      "check-fail",
+      (fresh.data.accepted as { job_id: string }).job_id
+    );
+    expect(Object.keys(resumed.data)).toEqual(Object.keys(fresh.data));
+    expect(Object.keys(resumed.data.accepted as object).sort()).toEqual(
+      Object.keys(fresh.data.accepted as object).sort()
+    );
+    const extraction = await recordAgainstMock("extract-full-2");
+    const again = await recordAgainstMock(
+      "extract-full-2",
+      (extraction.data.accepted as { submission_id: string }).submission_id
+    );
+    expect(again.data.accepted).toEqual({
+      ...(extraction.data.accepted as object),
+    });
+  });
+
   it("log a call before it is sent, so one that never answers is still listed", async () => {
     const captured = capture(() => Promise.reject(new Error("network down")));
     await expect(

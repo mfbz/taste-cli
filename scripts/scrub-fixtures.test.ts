@@ -156,6 +156,60 @@ describe("scrubFixture, past the obvious fields", () => {
     );
   });
 
+  it("treats unknown account ids and key fields as personal at any depth, and everywhere", () => {
+    const org = "org_8f2c91d4";
+    const out = JSON.stringify(
+      scrubFixture(
+        raw({
+          partial: {
+            body: {
+              meta: {
+                owner: { org_id: org, team_id: 4821, workspace_id: "ws-5521" },
+              },
+              api_key_prefix: "tk_live_ab",
+              key_prefix: "tk_ab12",
+            },
+          },
+          artifact: `https://cdn.example.com/orgs/${org}/shot.png`,
+          report: "workspace ws-5521, team 4821",
+        })
+      )
+    );
+    for (const gone of [org, "4821", "ws-5521", "tk_live_ab", "tk_ab12"])
+      expect(out).not.toContain(gone);
+    expect(out).toContain("/orgs/example_org_id/shot.png");
+    expect(out).toContain('"key_prefix":"key_example"');
+  });
+
+  it("replaces a known value only as a whole token, short values included", () => {
+    const out = scrubFixture(
+      raw({
+        job: { api_key_name: "default" },
+        css: ".a { color: var(--defaultColor); } .b-default-x {}",
+        used: "made with the default key",
+        team: { team_id: "t7" },
+        word: "t7 and t7x",
+        name: { api_key_name: "mike" },
+        bio: "mike, mikes and mike-laptop",
+      })
+    ) as { data: Record<string, string> };
+    expect(out.data.css).toBe(
+      ".a { color: var(--defaultColor); } .b-default-x {}"
+    );
+    expect(out.data.used).toBe("made with the example key");
+    expect(out.data.word).toBe("t7 and t7x");
+    expect(out.data.bio).toBe("example, mikes and mike-laptop");
+  });
+
+  it("drops credential parameters from Taste API URLs and keeps the others", () => {
+    const url =
+      "https://api.tastelabs.com/files/a.png?sig=abc&Signature=x&token=t&access_token=a&key=k&X-Amz-Date=1&x-goog-expires=2&Expires=3&Policy=p&Key-Pair-Id=kp&sections=colors&limit=5";
+    const out = scrubFixture(raw({ url })) as { data: { url: string } };
+    expect(out.data.url).toBe(
+      "https://api.tastelabs.com/files/a.png?sections=colors&limit=5"
+    );
+  });
+
   it("scrubs a percent-encoded email", () => {
     const encoded = EMAIL.replace("@", "%40");
     const text = JSON.stringify(

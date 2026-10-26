@@ -111,7 +111,7 @@ function createMockHandler(options: MockOptions) {
     sequence += 1;
     const prefix = kind === "submission" ? "1" : "2";
     const id = `${prefix}0000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
-    const view = {
+    const view: Record<string, unknown> = {
       [kind === "submission" ? "submission_id" : "job_id"]: id,
       status: "accepted",
       ...fields,
@@ -132,7 +132,16 @@ function createMockHandler(options: MockOptions) {
       createdAt: now(),
       selective,
     });
-    return view;
+    // The 202 carries only what the spec's accepted shape has.
+    const accepted = [
+      kind === "submission" ? "submission_id" : "job_id",
+      "status",
+      ...(kind === "submission"
+        ? ["source_url"]
+        : ["reference_url", "candidate_url", "is_public"]),
+      "accepted_at",
+    ];
+    return Object.fromEntries(accepted.map((key) => [key, view[key]]));
   }
 
   function advance(job: Job, statusRead: boolean): void {
