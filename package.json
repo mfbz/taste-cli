@@ -49,6 +49,7 @@
     "fixtures:scrub": "node scripts/scrub-fixtures.ts",
     "fixtures:sample-pdf": "node scripts/make-sample-guidelines.ts",
     "smoke:live": "tsdown --log-level warn && node scripts/smoke-live.ts",
+    "demo:record": "scripts/demo/record.sh",
     "prepack": "npm run build"
   },
   "dependencies": {
