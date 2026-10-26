@@ -263,14 +263,21 @@ describe("the fixture recipes", () => {
 describe("approving a paid recipe", () => {
   it("is refused without a terminal, and nothing is asked", async () => {
     const ask = vi.fn(() => Promise.resolve("yes"));
-    expect(await approve(false, ask)).toBe(false);
+    expect(await approve(false, false, ask)).toBe(false);
     expect(ask).not.toHaveBeenCalled();
   });
 
   it("takes yes and nothing else", async () => {
-    expect(await approve(true, () => Promise.resolve("yes\n"))).toBe(true);
-    expect(await approve(true, () => Promise.resolve("y"))).toBe(false);
-    expect(await approve(true, () => Promise.resolve(""))).toBe(false);
+    const yes = () => Promise.resolve("yes\n");
+    expect(await approve(true, false, yes)).toBe(true);
+    expect(await approve(true, false, () => Promise.resolve("y"))).toBe(false);
+    expect(await approve(true, false, () => Promise.resolve(""))).toBe(false);
+  });
+
+  it("takes --yes in the command as the approval, asking nothing", async () => {
+    const ask = vi.fn(() => Promise.resolve("no"));
+    expect(await approve(false, true, ask)).toBe(true);
+    expect(ask).not.toHaveBeenCalled();
   });
 
   it("says what it will call and that it spends credits", () => {

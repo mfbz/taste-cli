@@ -1,8 +1,9 @@
-// npm run fixtures:record -- <recipe> [--file <pdf>] [--id <id>] | --list
+// npm run fixtures:record -- <recipe> [--file <pdf>] [--id <id>] [--yes] | --list
 // Records one recipe against the Taste Engine with the CLI's own client, auth provider and stored
 // sign in (or TASTE_API_KEY), and writes the raw answers to tmp-fixtures/<recipe>.json, never into
 // src/ (npm run fixtures:scrub does that). A paid recipe says what it will call and waits for the
-// maintainer to type yes at a terminal; without a terminal it refuses. One recipe per run, and the
+// maintainer's yes: typed at a terminal, or --yes written by the maintainer in the command (an agent
+// never passes it). Without either it refuses. One recipe per run, and the
 // recorder never repeats a paid call (the client retries only search's 503, which Taste refunds).
 // A job recipe given --id picks up a job already posted, for free.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -57,11 +58,13 @@ function describeRecipe(recipe: Recipe, apiUrl: string, id?: string): string {
   ].join("\n");
 }
 
-// Only a person at a terminal can approve spending; a pipe or CI never can.
+// Only the maintainer approves spending: --yes in their own command, or yes typed at a terminal.
 async function approve(
   interactive: boolean,
+  yes: boolean,
   ask: () => Promise<string>
 ): Promise<boolean> {
+  if (yes) return true;
   if (!interactive) return false;
   return (await ask()).trim() === "yes";
 }
@@ -92,11 +95,12 @@ async function main(): Promise<number> {
       list: { type: "boolean", default: false },
       file: { type: "string" },
       id: { type: "string" },
+      yes: { type: "boolean", default: false },
     },
   });
   if (values.list || positionals.length !== 1) {
     process.stderr.write(
-      `Usage: npm run fixtures:record -- <recipe> [--file <pdf>] [--id <id>]\n\n${listRecipes()}\n`
+      `Usage: npm run fixtures:record -- <recipe> [--file <pdf>] [--id <id>] [--yes]\n\n${listRecipes()}\n`
     );
     return values.list ? 0 : 2;
   }
@@ -137,11 +141,11 @@ async function main(): Promise<number> {
     );
     if (spends(recipe, id)) {
       const interactive = io.interactive === true;
-      if (!interactive)
+      if (!interactive && !values.yes)
         process.stderr.write(
-          "Refused: a paid recipe needs yes typed at a terminal.\n"
+          "Refused: a paid recipe needs yes typed at a terminal, or --yes.\n"
         );
-      const ok = await approve(interactive, async () => {
+      const ok = await approve(interactive, values.yes, async () => {
         const rl = createInterface({
           input: process.stdin,
           output: process.stderr,
