@@ -4,7 +4,7 @@ Taste in your terminal, your scripts, your CI and your agents.
 
 > taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.
 
-![taste opening its menu, extracting stripe.com, checking it against another brand with a minimum score, and printing it as a DESIGN.md](assets/demo.gif)
+![taste opening its menu, extracting stripe.com, saving it as a DESIGN.md, and checking it against another brand with a minimum score](assets/demo.gif)
 
 A command line for the [Taste Engine](https://docs.tastelabs.com), Taste Labs' design API. Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, check a site against a brand, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
 

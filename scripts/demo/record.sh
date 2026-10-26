@@ -45,7 +45,9 @@ printf '#!/bin/sh\nexec node "%s/dist/main.mjs" "$@"\n' "$root" >"$work/bin/tast
 chmod +x "$work/bin/taste"
 printf "PS1='\\$ '\n" >"$work/bashrc"
 
-cd "$root"
+# A scratch folder, so the demo's `> DESIGN.md` never touches the repo's own.
+mkdir "$work/demo"
+cd "$work/demo"
 env -i \
   HOME="$work/home" \
   PATH="$work/bin:$(dirname "$(command -v node)"):$(dirname "$(command -v asciinema)"):/usr/bin:/bin" \
@@ -53,9 +55,11 @@ env -i \
   HISTFILE=/dev/null BASH_SILENCE_DEPRECATION_WARNING=1 \
   TASTE_API_URL="$url" TASTE_API_KEY=taste_mock \
   asciinema rec --quiet --headless --overwrite --window-size 100x36 \
-  --command "expect scripts/demo/demo.exp $work/bashrc" "$cast"
+  --command "expect $root/scripts/demo/demo.exp $work/bashrc" "$cast"
 
-agg --quiet --theme github-dark --font-size 14 --idle-time-limit 2 \
+# Taste's dark field and paper type around a plain ANSI palette, which only clack's menu uses.
+theme="1e1e1e,f3f3ef,2b2b2b,f47067,57ab5a,c69026,539bf5,b083f0,39c5cf,d1d5da,6e7681,ff938a,6bc46d,daaa3f,6cb6ff,dcbdfb,56d4dd,f3f3ef"
+agg --quiet --theme "$theme" --font-size 14 --idle-time-limit 2 \
   --last-frame-duration 4 --fps-cap 15 "$cast" "$gif"
 
 echo "Wrote assets/demo.gif ($(($(wc -c <"$gif") / 1024)) KB)."
