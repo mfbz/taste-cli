@@ -27,6 +27,8 @@ const COMMAND_DEFINITION = /\b([a-z]+)\s*\.command\("([a-z]+)"/g;
 const FENCED = /```[^\n]*\n([\s\S]*?)```/g;
 const FLAG_USE = /(?<![\w-])--[a-z][a-z-]*/g;
 const CODE_SPAN = /`([^`]+)`/g;
+// An error code or an environment variable in a code span: `NOT_FOUND`, `TASTE_API_KEY`.
+const CONSTANT = /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/;
 const BLOCK = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
 function parseFrontmatter(text: string): Frontmatter | null {
@@ -143,9 +145,17 @@ function unknownCommands(text: string, surface: CliSurface): string[] {
   return wrong;
 }
 
+// Inline code spans that look like an error code but aren't one taste has (or a variable it reads).
+function unknownCodes(text: string, known: ReadonlySet<string>): string[] {
+  return [...text.replace(FENCED, "").matchAll(CODE_SPAN)]
+    .map(([, span = ""]) => span)
+    .filter((span) => CONSTANT.test(span) && !known.has(span));
+}
+
 export {
   cliSurface,
   parseFrontmatter,
+  unknownCodes,
   unknownCommands,
   unknownFlags,
   validateSkill,

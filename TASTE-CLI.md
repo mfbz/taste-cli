@@ -6,7 +6,7 @@ taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engi
 
 ## Status
 
-Built: `taste --version`, `taste --help`, the interactive session (bare `taste` in a terminal), the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files and `--format design-md` to export one as a DESIGN.md, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`. Every other command below is planned: its section is filled in by the pull request that builds it.
+Built: `taste --version`, `taste --help`, the interactive session (bare `taste` in a terminal), the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files and `--format design-md` to export one as a DESIGN.md, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`: every command below. Planned: the global flags `--no-motion` and `-y, --yes`.
 
 ## What it is
 

@@ -1,22 +1,24 @@
 # taste-cli
 
-An unofficial command line for the [Taste Engine](https://docs.tastelabs.com), Taste Labs' design API.
+Taste in your terminal, your scripts, your CI and your agents.
 
 > taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.
 
-Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, check a site against a brand, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
+![taste opening its menu, extracting stripe.com, checking it against another brand with a minimum score, and printing it as a DESIGN.md](assets/demo.gif)
+
+A command line for the [Taste Engine](https://docs.tastelabs.com), Taste Labs' design API. Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, check a site against a brand, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Contents
 
 - [Status](#status)
 - [Install](#install)
+- [Quick start](#quick-start)
 - [Interactive mode](#interactive-mode): `taste` on its own
 - [Sign in](#sign-in): `login`, `logout`, `whoami`
 - [Credits](#credits)
 - [Extract a brand](#extract-a-brand): `extract`
 - [Extract a brand kit](#extract-a-brand-kit): `kit`
 - [Check a site against a brand](#check-a-site-against-a-brand): `check`
-- [Brand checks in CI](#brand-checks-in-ci)
 - [Pick a job up again](#pick-a-job-up-again): `wait`
 - [Save the files](#save-the-files): `--out`
 - [Export a DESIGN.md](#export-a-designmd): `--format design-md`
@@ -24,6 +26,8 @@ Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, ch
 - [Enhance a prompt](#enhance-a-prompt): `enhance`
 - [History](#history): `history`
 - [Share a result](#share-a-result): `share`
+- [Brand checks in CI](#brand-checks-in-ci)
+- [Scripts and agents](#scripts-and-agents): pipes, CI gates, the agent skill
 - [Machine output](#machine-output): `--json`, exit codes, Ctrl-C
 - [Error codes](#error-codes)
 - [Environment and terminal](#environment-and-terminal)
@@ -31,7 +35,7 @@ Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, ch
 
 ## Status
 
-Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, exports it as a DESIGN.md, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. Commands still being built are listed as planned in [TASTE-CLI.md](TASTE-CLI.md).
+Every command is built: `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, exports it as a DESIGN.md, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. It isn't released yet: it runs from source (see [Install](#install)), and the few paths that have only run against the local mock say so where they are described.
 
 ## Install
 
@@ -48,6 +52,16 @@ npm link        # puts `taste` on your PATH
 ```sh
 taste --help      # every command; --help after a command for its flags
 taste --version   # the version
+```
+
+## Quick start
+
+```sh
+taste login                                     # sign in with your browser
+taste extract stripe.com                        # a brand from a website (spends credits)
+taste wait <id> --format design-md > DESIGN.md  # that result as a DESIGN.md, for free
+taste check https://preview.acme.com --against acme.com --min 0.8   # exit 1 below 0.8
+taste                                           # or a menu of every action
 ```
 
 ## Interactive mode
@@ -156,40 +170,6 @@ Spends credits. Judges how closely the first site follows the brand of the one a
 Progress goes to stderr as for `extract`, ending with `✓ Checked <host> in 4m 01s`. On stdout: the score with two decimals and a 20-cell bar (coloured, with `✓` or `✗` and the minimum, only with `--min`), the two addresses, every recommendation numbered in Taste's order, the fixes counted by action with the first three in full, the id and `taste share <id>`. Below `--min` the verdict is printed, then the error. A check that fails on Taste's side ends with `ADHERENCE_FAILED` and its reason; Taste refunds it.
 
 `--json` data: `{"id","score","passed","min","recommendations","fixes"}`; `passed` and `min` are `null` without `--min`. Below `--min` the document is the `BELOW_THRESHOLD` error, with that same data in `error.details`, so a script has the recommendations without another call.
-
-## Brand checks in CI
-
-Check every Vercel preview against production, and fail the build when it drifts from the brand. Add your Taste API key as the repository secret `TASTE_API_KEY`, then:
-
-```yaml
-# .github/workflows/brand-check.yml
-name: Brand check
-on: deployment_status
-jobs:
-  taste:
-    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment != 'Production'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          repository: mfbz/taste-cli
-          path: taste-cli
-          token: ${{ secrets.TASTE_CLI_TOKEN }} # read access, while the repository is private
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - run: npm ci && npm run build && npm link
-        working-directory: taste-cli
-      - run: taste check "$PREVIEW_URL" --against https://acme.com --min 0.8
-        env:
-          TASTE_API_KEY: ${{ secrets.TASTE_API_KEY }}
-          PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
-```
-
-- Each run spends credits, as `taste check` does anywhere.
-- The preview must be readable without signing in: with Vercel's Deployment Protection on, Taste can't open it.
-- taste-cli isn't on npm yet, so this builds it from the repository, as in [Install](#install). While the repository is private, `TASTE_CLI_TOKEN` is a token that can read it.
-- In CI there is no animation and no colour: the verdict prints as plain text in the log, and `BELOW_THRESHOLD` exits 1, which fails the job.
 
 ## Pick a job up again
 
@@ -307,6 +287,56 @@ Free. Works on an extraction's, a brand kit's or a check's id. Made public, it p
 
 `--json` data: `{"id","public":true|false,"url":string|null}`; `public` is what Taste's answer says.
 
+## Brand checks in CI
+
+Check every Vercel preview against production, and fail the build when it drifts from the brand. Add your Taste API key as the repository secret `TASTE_API_KEY`, then:
+
+```yaml
+# .github/workflows/brand-check.yml
+name: Brand check
+on: deployment_status
+jobs:
+  taste:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment != 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: mfbz/taste-cli
+          path: taste-cli
+          token: ${{ secrets.TASTE_CLI_TOKEN }} # read access, while the repository is private
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci && npm run build && npm link
+        working-directory: taste-cli
+      - run: taste check "$PREVIEW_URL" --against https://acme.com --min 0.8
+        env:
+          TASTE_API_KEY: ${{ secrets.TASTE_API_KEY }}
+          PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
+```
+
+- Each run spends credits, as `taste check` does anywhere.
+- The preview must be readable without signing in: with Vercel's Deployment Protection on, Taste can't open it.
+- taste-cli isn't on npm yet, so this builds it from the repository, as in [Install](#install). While the repository is private, `TASTE_CLI_TOKEN` is a token that can read it.
+- In CI there is no animation and no colour: the verdict prints as plain text in the log, and `BELOW_THRESHOLD` exits 1, which fails the job.
+
+## Scripts and agents
+
+Every command is a plain process: arguments in, the result on stdout, progress on stderr, an exit code out. So taste fits into a pipe, a script, a CI job or an agent's tool call like any other Unix tool.
+
+```sh
+taste extract stripe.com --format design-md > DESIGN.md                     # a brand, as the file coding agents read
+taste search "calm fintech pricing" --json | jq -r '.data.results[].url'    # design references, one address per line
+taste enhance "Design a pricing page" --brand stripe.com | pbcopy           # a prompt in a brand's terms, on the clipboard
+taste check "$PREVIEW_URL" --against acme.com --min 0.8                     # a gate: exit 1 below 0.8
+taste extract stripe.com --no-wait --json | jq -r '.data.id'                # start a job now, taste wait on it later
+```
+
+- **CI:** `--min` turns `check` into a pass or fail step, as in [Brand checks in CI](#brand-checks-in-ci).
+- **Agents:** `--json` gives one document per run, errors included, with a stable `code` to branch on and `retryable` to say whether running it again is safe ([Machine output](#machine-output), [Error codes](#error-codes)). A key is never taken on the command line, so an agent's transcript never holds one.
+- **The skill:** [`skills/taste/SKILL.md`](skills/taste/SKILL.md) teaches a coding agent to use taste well: always `--json`, ask the person before anything that spends credits, `--format design-md` for a DESIGN.md, `--no-wait` and `taste wait` for long jobs, and what to do on each error code. Once the repository is public, `npx skills add mfbz/taste-cli` installs it; until then, copy `skills/taste/` into your agent's skills folder.
+
 ## Machine output
 
 Every command takes `--json` for scripts and agents, and `--debug` to add an error's class and stack frames on stderr.
@@ -372,6 +402,8 @@ A pipe gets plain text unless `FORCE_COLOR` is set, and never animation. Progres
 npm run check          # format:check, lint, typecheck, test
 npm run cli -- --help  # build, then run the CLI from source
 npm run mock           # a local mock Taste Engine on 127.0.0.1:4010, free
+npm run smoke:live     # the free, read-only commands against the real Taste Engine, with your sign in
+npm run demo:record    # record assets/demo.gif against the mock (asciinema, agg and expect)
 ```
 
 How changes are made, tested and reviewed: [CONTRIBUTING.md](CONTRIBUTING.md). Security reports: [SECURITY.md](SECURITY.md).

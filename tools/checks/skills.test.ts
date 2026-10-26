@@ -4,6 +4,7 @@ import {
   cliSurface,
   parseFrontmatter,
   validateSkill,
+  unknownCodes,
   unknownCommands,
   unknownFlags,
 } from "./skills.ts";
@@ -74,5 +75,17 @@ describe("checking a skill against the CLI", () => {
       "taste extarct",
       "taste history check",
     ]);
+  });
+});
+
+describe("unknownCodes", () => {
+  it("flags a code span shaped like an error code that taste doesn't have", () => {
+    const known = new Set(["NOT_FOUND", "TASTE_API_KEY"]);
+    expect(
+      unknownCodes(
+        "On `NOT_FOUND` or `NOT_FOUNDD`, with `TASTE_API_KEY` set, `USAGE_*` or `--json`.",
+        known
+      )
+    ).toEqual(["NOT_FOUNDD"]);
   });
 });
