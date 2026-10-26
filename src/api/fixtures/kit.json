@@ -1,0 +1,750 @@
+{
+  "recipe": "kit",
+  "paid": true,
+  "calls": [
+    "POST /design/submissions/brand-kit 202",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500 200",
+    "GET /design/submissions/00000000-0000-4000-8000-000000000500/result 200"
+  ],
+  "steps": [
+    { "status": "extracting", "current_step": "rendering" },
+    { "status": "extracting", "current_step": "analyzing" },
+    { "status": "extracting", "current_step": "finalizing" },
+    { "status": "completed", "current_step": "completed" }
+  ],
+  "data": {
+    "accepted": {
+      "submission_id": "00000000-0000-4000-8000-000000000500",
+      "status": "accepted",
+      "source_url": "file://sample-guidelines.pdf",
+      "accepted_at": "2026-10-26T15:07:36.489752Z"
+    },
+    "submission": {
+      "submission_id": "00000000-0000-4000-8000-000000000500",
+      "status": "completed",
+      "source_url": "file://sample-guidelines.pdf",
+      "is_public": false,
+      "kind": "brand_kit",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:08:21.743402Z",
+      "accepted_at": "2026-10-26T15:07:36.489752Z",
+      "completed_at": "2026-10-26T15:08:21.743402Z",
+      "cache_hit": false,
+      "extraction_id": "00000000-0000-4000-8000-000000000501",
+      "error": null,
+      "credits_consumed": 2,
+      "batch_id": null,
+      "batch_label": null,
+      "api_key_name": "example",
+      "sections": null,
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "team_id": null,
+      "credit_ref_id": null
+    },
+    "partial": {
+      "status": 200,
+      "body": {
+        "submission_id": "00000000-0000-4000-8000-000000000500",
+        "sections": null,
+        "extraction_id": "00000000-0000-4000-8000-000000000501",
+        "status": "extracting",
+        "source_url": "file://sample-guidelines.pdf",
+        "current_step": "analyzing",
+        "step_started_at": null,
+        "updated_at": "2026-10-26T15:07:37.940865Z",
+        "result_updated_at": "2026-10-26T15:07:37.940865Z",
+        "cache_hit": false,
+        "accepted_at": "2026-10-26T15:07:36.489752Z",
+        "completed_at": null,
+        "result": {
+          "design_system": {
+            "kind": "brand_kit",
+            "profile": {
+              "brand_name": "",
+              "tagline": "",
+              "industry": "",
+              "copy_tone": [],
+              "audience": [],
+              "values": [],
+              "personality": [],
+              "voice": { "do": [], "dont": [] },
+              "messaging": [],
+              "summary": "",
+              "inferred": []
+            },
+            "colors": { "palette": [], "pairs": [], "proportion_sources": [] },
+            "typography": {
+              "typefaces": [],
+              "hierarchy": [],
+              "font_files": []
+            },
+            "logo": {
+              "concept": null,
+              "variants": [],
+              "construction": { "clear_space": null, "min_size": null },
+              "misuse": []
+            },
+            "photography": { "style": [], "examples": [] },
+            "graphics": { "elements": [], "icons": [], "icon_style": null },
+            "applications": [],
+            "layout": {
+              "grids": [],
+              "spacing": [],
+              "scale_pt": [],
+              "templates": []
+            },
+            "buttons": [],
+            "cards": [],
+            "motion": [],
+            "rules": []
+          },
+          "artifacts": {
+            "brand_kit_original": {
+              "path": "00000000-0000-4000-8000-000000000501/brand_kit/original.pdf",
+              "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/original.pdf",
+              "content_type": "application/pdf"
+            },
+            "brand_kit_pages": [
+              {
+                "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+                "content_type": "image/jpeg"
+              },
+              {
+                "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/2.jpg",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/2.jpg",
+                "content_type": "image/jpeg"
+              },
+              {
+                "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/3.jpg",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/3.jpg",
+                "content_type": "image/jpeg"
+              },
+              {
+                "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/4.jpg",
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/4.jpg",
+                "content_type": "image/jpeg"
+              }
+            ],
+            "screenshot": {
+              "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+              "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+              "content_type": "image/jpeg"
+            }
+          }
+        }
+      }
+    },
+    "result": {
+      "submission_id": "00000000-0000-4000-8000-000000000500",
+      "status": "completed",
+      "source_url": "file://sample-guidelines.pdf",
+      "extraction_id": "00000000-0000-4000-8000-000000000501",
+      "current_step": "completed",
+      "step_started_at": null,
+      "updated_at": "2026-10-26T15:08:21.743402Z",
+      "result_updated_at": "2026-10-26T15:08:21.743402Z",
+      "accepted_at": "2026-10-26T15:07:36.489752Z",
+      "completed_at": "2026-10-26T15:08:21.743402Z",
+      "cache_hit": false,
+      "sections": null,
+      "result": {
+        "design_system": {
+          "kind": "brand_kit",
+          "profile": {
+            "brand_name": "ACME",
+            "tagline": "Tools that work the first time.",
+            "industry": "",
+            "copy_tone": ["Direct", "Plainspoken", "Assured"],
+            "audience": [
+              "Tool users seeking reliable, first-time performance."
+            ],
+            "values": [],
+            "personality": ["Practical", "Confident", "No-nonsense"],
+            "voice": {
+              "do": [
+                "Use short, declarative sentences.",
+                "Lead with the practical product benefit."
+              ],
+              "dont": [
+                "Avoid jargon and ornate language.",
+                "Avoid hedging straightforward benefit claims."
+              ]
+            },
+            "messaging": ["Tools that work the first time."],
+            "summary": "ACME is a sample brand for testing, not a real company. Its tagline is “Tools that work the first time.”",
+            "inferred": ["personality", "copy_tone", "audience", "voice"]
+          },
+          "colors": {
+            "palette": [
+              {
+                "name": "Acme Red",
+                "hex": "#d7263d",
+                "group": "primary",
+                "cmyk": null,
+                "rgb": null,
+                "proportion": { "stated": 0.1, "drawn": 0.1 },
+                "when_to_use": [
+                  "Use for primary actions and the wordmark.",
+                  "Allocate 10% of the page’s color use to Acme Red."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "name": "Ink",
+                "hex": "#1b1b1e",
+                "group": "neutral",
+                "cmyk": null,
+                "rgb": null,
+                "proportion": { "stated": 0.25, "drawn": 0.25 },
+                "when_to_use": [
+                  "Use for text and dark surfaces.",
+                  "Allocate 25% of the page’s color use to Ink."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "name": "Paper",
+                "hex": "#f7f4ef",
+                "group": "neutral",
+                "cmyk": null,
+                "rgb": null,
+                "proportion": { "stated": 0.5, "drawn": 0.5 },
+                "when_to_use": [
+                  "Use for the page background.",
+                  "Allocate 50% of the page’s color use to Paper."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "name": "Steel",
+                "hex": "#5c6b73",
+                "group": "secondary",
+                "cmyk": null,
+                "rgb": null,
+                "proportion": { "stated": 0.1, "drawn": 0.1 },
+                "when_to_use": [
+                  "Use for secondary text and borders.",
+                  "Allocate 10% of the page’s color use to Steel."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "name": "Sun",
+                "hex": "#f4b942",
+                "group": "accent",
+                "cmyk": null,
+                "rgb": null,
+                "proportion": { "stated": 0.05, "drawn": 0.05 },
+                "when_to_use": [
+                  "Use sparingly for highlights.",
+                  "Allocate 5% of the page’s color use to Sun."
+                ],
+                "when_to_use_source": "declared"
+              }
+            ],
+            "pairs": [
+              {
+                "text": "#1b1b1e",
+                "background": "#f7f4ef",
+                "headers": true,
+                "body": true,
+                "cta": true,
+                "contrast": 15.65,
+                "source": "measured"
+              },
+              {
+                "text": "#5c6b73",
+                "background": "#f7f4ef",
+                "headers": true,
+                "body": true,
+                "cta": true,
+                "contrast": 5.03,
+                "source": "measured"
+              },
+              {
+                "text": "#5c6b73",
+                "background": "#1b1b1e",
+                "headers": true,
+                "body": false,
+                "cta": false,
+                "contrast": 3.11,
+                "source": "measured"
+              }
+            ],
+            "proportion_sources": [
+              {
+                "kind": "stated",
+                "page": 2,
+                "boxes": [
+                  [0.3361, 0.3315, 0.5682, 0.3511],
+                  [0.3361, 0.702, 0.5671, 0.7216],
+                  [0.3361, 0.455, 0.5682, 0.4746],
+                  [0.3361, 0.5785, 0.5671, 0.5981],
+                  [0.3361, 0.8255, 0.5536, 0.8451]
+                ],
+                "asset": {
+                  "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/share-stated-p2.png",
+                  "format": "PNG"
+                }
+              },
+              {
+                "kind": "drawn",
+                "page": 2,
+                "boxes": [[0.0941, 0.2185, 0.9059, 0.247]],
+                "asset": {
+                  "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/share-drawn-p2.png",
+                  "format": "PNG"
+                }
+              }
+            ]
+          },
+          "typography": {
+            "typefaces": [
+              {
+                "family": "Helvetica Neue",
+                "roles": ["display, headings, body, captions"],
+                "weights": ["Bold", "Regular"],
+                "licence": "proprietary",
+                "when_to_use": [
+                  "Use Helvetica Neue for display, headings, body text and captions.",
+                  "Use Bold for display and headings; Regular for body text and captions."
+                ],
+                "when_to_use_source": "declared"
+              }
+            ],
+            "hierarchy": [
+              {
+                "role": "Display",
+                "family": "Helvetica Neue",
+                "size": 48,
+                "size_max": null,
+                "line_height": 52,
+                "unit": "px",
+                "weight": 700,
+                "case": null,
+                "source": "declared",
+                "when_to_use": [
+                  "Set display text in Helvetica Neue at 48 px, weight 700."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "role": "Heading 1",
+                "family": "Helvetica Neue",
+                "size": 32,
+                "size_max": null,
+                "line_height": 38,
+                "unit": "px",
+                "weight": 700,
+                "case": null,
+                "source": "declared",
+                "when_to_use": [
+                  "Set Heading 1 text in Helvetica Neue at 32 px, weight 700."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "role": "Heading 2",
+                "family": "Helvetica Neue",
+                "size": 24,
+                "size_max": null,
+                "line_height": 30,
+                "unit": "px",
+                "weight": 700,
+                "case": null,
+                "source": "declared",
+                "when_to_use": [
+                  "Set Heading 2 text in Helvetica Neue at 24 px, weight 700."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "role": "Body",
+                "family": "Helvetica Neue",
+                "size": 16,
+                "size_max": null,
+                "line_height": 24,
+                "unit": "px",
+                "weight": 400,
+                "case": null,
+                "source": "declared",
+                "when_to_use": [
+                  "Set body copy in Helvetica Neue at 16 px, weight 400, with 24 px leading.",
+                  "Left-align body copy.",
+                  "Keep lines between 60 and 75 characters."
+                ],
+                "when_to_use_source": "declared"
+              },
+              {
+                "role": "Caption",
+                "family": "Helvetica Neue",
+                "size": 12,
+                "size_max": null,
+                "line_height": 16,
+                "unit": "px",
+                "weight": 400,
+                "case": null,
+                "source": "declared",
+                "when_to_use": [
+                  "Set captions in Helvetica Neue at 12 px, weight 400."
+                ],
+                "when_to_use_source": "declared"
+              }
+            ],
+            "font_files": []
+          },
+          "logo": {
+            "concept": null,
+            "variants": [
+              {
+                "arrangement": "horizontal",
+                "treatment": "reversed",
+                "color": null,
+                "backgrounds": ["#1b1b1e"],
+                "asset": {
+                  "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/logo-horizontal-reversed.svg",
+                  "format": "SVG"
+                },
+                "when_to_use": [
+                  "Use the reversed horizontal logo on Ink #1b1b1e backgrounds."
+                ],
+                "when_to_use_source": "inferred"
+              },
+              {
+                "arrangement": "wordmark",
+                "treatment": "black",
+                "color": null,
+                "backgrounds": ["#f7f4ef"],
+                "asset": {
+                  "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/logo-wordmark-black.png",
+                  "format": "PNG"
+                },
+                "when_to_use": [
+                  "Use the black wordmark on Paper #f7f4ef backgrounds."
+                ],
+                "when_to_use_source": "inferred"
+              }
+            ],
+            "construction": {
+              "clear_space": "height of the A in the wordmark",
+              "min_size": "96 px on screen / 24 mm in print"
+            },
+            "misuse": [
+              {
+                "reason": "Stretched. Do not stretch, slant or rotate the wordmark.",
+                "asset": {
+                  "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/misuse-drawn-1.png",
+                  "format": "PNG"
+                }
+              },
+              {
+                "reason": "Rotated. Do not stretch, slant or rotate the wordmark.",
+                "asset": {
+                  "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/misuse-drawn-2.png",
+                  "format": "PNG"
+                }
+              }
+            ]
+          },
+          "photography": { "style": [], "examples": [] },
+          "graphics": { "elements": [], "icons": [], "icon_style": null },
+          "applications": [],
+          "layout": {
+            "grids": [],
+            "spacing": [],
+            "scale_pt": [],
+            "templates": []
+          },
+          "buttons": [
+            {
+              "role": "primary",
+              "state": "default",
+              "labels": ["Get started"],
+              "background": "Acme Red #d7263d",
+              "background_opacity": 1,
+              "text_color": "Paper #f7f4ef",
+              "border_color": null,
+              "border_width_pt": 0,
+              "radius_pt": 6,
+              "padding_x_pt": 24,
+              "padding_y_pt": 11,
+              "height_pt": 44,
+              "font_family": "Helvetica",
+              "font_weight": 700,
+              "font_size_pt": 16,
+              "letter_spacing_em": 0.008,
+              "case": "sentence",
+              "icon": null,
+              "shadow": null,
+              "css": {
+                "background": "#d7263d",
+                "color": "#f7f4ef",
+                "border": "none",
+                "border-radius": "6px",
+                "padding": "12px",
+                "font-family": "'Helvetica'",
+                "font-weight": "700",
+                "font-size": "21.3px",
+                "text-transform": "none",
+                "letter-spacing": "0.008em"
+              },
+              "declared": { "border-radius": "6px", "padding": "12px" },
+              "asset": {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/button-p4-1.png",
+                "format": "PNG"
+              }
+            },
+            {
+              "role": "secondary",
+              "state": "default",
+              "labels": ["Read more"],
+              "background": null,
+              "background_opacity": 1,
+              "text_color": "Ink #1b1b1e",
+              "border_color": "Ink #1b1b1e",
+              "border_width_pt": 1.5,
+              "radius_pt": 6.75,
+              "padding_x_pt": 24,
+              "padding_y_pt": 11,
+              "height_pt": 44,
+              "font_family": "Helvetica",
+              "font_weight": 700,
+              "font_size_pt": 16,
+              "letter_spacing_em": 0.001,
+              "case": "sentence",
+              "icon": null,
+              "shadow": null,
+              "css": {
+                "background": "transparent",
+                "color": "#1b1b1e",
+                "border": "2px solid #1b1b1e",
+                "border-radius": "6px",
+                "padding": "12px",
+                "font-family": "'Helvetica'",
+                "font-weight": "700",
+                "font-size": "21.3px",
+                "text-transform": "none",
+                "letter-spacing": "0.001em"
+              },
+              "declared": { "border-radius": "6px", "padding": "12px" },
+              "asset": {
+                "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/assets/button-p4-2.png",
+                "format": "PNG"
+              }
+            }
+          ],
+          "cards": [],
+          "motion": [],
+          "rules": [
+            {
+              "guideline": "Maintain clear space on every side of the wordmark.",
+              "value": "height of the A in the wordmark",
+              "kind": "spec",
+              "section": "logo"
+            },
+            {
+              "guideline": "Minimum width of the wordmark.",
+              "value": "96 px on screen / 24 mm in print",
+              "kind": "spec",
+              "section": "logo"
+            },
+            {
+              "guideline": "Do not stretch, slant or rotate the wordmark.",
+              "value": null,
+              "kind": "dont",
+              "section": "logo"
+            },
+            {
+              "guideline": "Do not place the wordmark on Acme Red or on a busy photo.",
+              "value": null,
+              "kind": "dont",
+              "section": "logo"
+            },
+            {
+              "guideline": "Use the five colors in these proportions across a page: Acme Red 10%, Ink 25%, Paper 50%, Steel 10%, Sun 5%.",
+              "value": "10%, 25%, 50%, 10%, 5%",
+              "kind": "spec",
+              "section": "colors"
+            },
+            {
+              "guideline": "Use for primary actions and the wordmark.",
+              "value": null,
+              "kind": "do",
+              "section": "colors"
+            },
+            {
+              "guideline": "Use for text and dark surfaces.",
+              "value": null,
+              "kind": "do",
+              "section": "colors"
+            },
+            {
+              "guideline": "Use for the page background.",
+              "value": null,
+              "kind": "do",
+              "section": "colors"
+            },
+            {
+              "guideline": "Use for secondary text and borders.",
+              "value": null,
+              "kind": "do",
+              "section": "colors"
+            },
+            {
+              "guideline": "Use sparingly for highlights.",
+              "value": null,
+              "kind": "do",
+              "section": "colors"
+            },
+            {
+              "guideline": "Bold for display and headings, Regular for body and captions.",
+              "value": null,
+              "kind": "spec",
+              "section": "typography"
+            },
+            {
+              "guideline": "Body text sets at 16 px on 24 px.",
+              "value": "16 px / 24 px",
+              "kind": "spec",
+              "section": "typography"
+            },
+            {
+              "guideline": "Body text is left aligned.",
+              "value": "left aligned",
+              "kind": "spec",
+              "section": "typography"
+            },
+            {
+              "guideline": "Body text uses 60 to 75 characters a line.",
+              "value": "60 to 75 characters a line",
+              "kind": "spec",
+              "section": "typography"
+            },
+            {
+              "guideline": "Use a 6 px corner radius.",
+              "value": "6 px",
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use 12 px padding at the top and bottom.",
+              "value": "12 px",
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use 24 px padding at the left and right.",
+              "value": "24 px",
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use 16 px Bold labels.",
+              "value": "16 px",
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use Acme Red fill and a Paper label.",
+              "value": null,
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use one primary button per screen.",
+              "value": "1 per screen",
+              "kind": "do",
+              "section": "components"
+            },
+            {
+              "guideline": "Use no fill.",
+              "value": null,
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use a 1.5 px Ink border.",
+              "value": "1.5 px",
+              "kind": "spec",
+              "section": "components"
+            },
+            {
+              "guideline": "Use an Ink label.",
+              "value": null,
+              "kind": "spec",
+              "section": "components"
+            }
+          ]
+        },
+        "artifacts": {
+          "screenshot": {
+            "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+            "content_type": "image/jpeg"
+          },
+          "brand_kit_original": {
+            "path": "00000000-0000-4000-8000-000000000501/brand_kit/original.pdf",
+            "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/original.pdf",
+            "content_type": "application/pdf"
+          },
+          "brand_kit_pages": [
+            {
+              "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+              "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/1.jpg",
+              "content_type": "image/jpeg"
+            },
+            {
+              "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/2.jpg",
+              "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/2.jpg",
+              "content_type": "image/jpeg"
+            },
+            {
+              "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/3.jpg",
+              "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/3.jpg",
+              "content_type": "image/jpeg"
+            },
+            {
+              "path": "00000000-0000-4000-8000-000000000501/brand_kit/pages/4.jpg",
+              "url": "https://sb.engine.thetaste.ai/storage/v1/object/sign/artifacts/00000000-0000-4000-8000-000000000501/brand_kit/pages/4.jpg",
+              "content_type": "image/jpeg"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
