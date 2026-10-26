@@ -3,6 +3,7 @@
 // then a check. The address is the API's own result endpoint, which Taste serves without
 // authentication once a result is public.
 import type { Context } from "../context.ts";
+import { CliError } from "../output/errors.ts";
 import { plain } from "../output/output.ts";
 import { byKind } from "./job.ts";
 
@@ -26,10 +27,11 @@ async function share(
     }),
     async () => ({
       path: "/judge/brand-adherence",
-      isPublic:
-        (await api.setAdherenceVisibility(id, wanted)).is_public ?? wanted,
+      isPublic: (await api.setAdherenceVisibility(id, wanted)).is_public,
     })
   );
+  // What Taste says, never what was asked for: an answer without it is not taken as success.
+  if (shared.isPublic === undefined) throw new CliError("VISIBILITY_UNKNOWN");
   const url = shared.isPublic ? resultUrl(ctx, shared.path, id) : null;
   ctx.output.result({ id, public: shared.isPublic, url }, (theme) =>
     url === null

@@ -34,6 +34,7 @@ Planned global flags: `--no-motion`, `-y, --yes`.
 - Ctrl-C aborts what is in flight and the command ends through the usual output. A second Ctrl-C, or a command that hasn't stopped two seconds later, ends the process at once, with the same exit code and document.
 - After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up, or, while a paid request is being sent, to check `taste history` first. The hard stop (a second Ctrl-C, or the two seconds running out) uses the same hint from what the command said is in flight, and without `--json` clears any progress line before its message. It never adds a second document: once the command has written its own, it exits without another, and a Ctrl-C after the command finished exits with the command's own code.
 - A request that gets no answer within its deadline fails with `TIMEOUT` ("The Taste Engine didn't answer in time."), a connection that fails with `NETWORK` ("Couldn't reach the Taste Engine.").
+- An API answer is at most 8 MB (the largest recorded result is under 200 KB): a larger one is cut off and fails with `RESPONSE_TOO_LARGE`, never retried, and for a paid request with the hint to check `taste history`.
 
 Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 
@@ -168,18 +169,21 @@ Acceptance (proven by `src/commands/extract.test.ts`, `src/render/brand-summary.
 
 `extract`, `kit` and `wait` (for an extraction or a brand kit) take `--out <dir>`: once the job is done, its files are read from the download manifest (`GET /design/submissions/{id}/download`, free) and saved under `dir`, at the relative paths the manifest names: `guidelines.json`, `design_system.md`, the captured HTML, CSS and screenshot, and the brand's assets. Inline files are written as they are; the rest are downloaded, four at a time, from public `https` addresses only, with no Taste credential and every redirect checked the same way. An entry carrying both is written from its inline content. The `--json` document and the summary are the same as without `--out`; a line on stderr says how many files were saved and where.
 
-- The folder is checked before the paid request: it may be missing (it is created) or empty; one with files in it fails with `OUTPUT_EXISTS` unless `--overwrite` is given, which replaces files of the same name and leaves the others. A path that is a file, or a folder taste can't read, fails with `OUTPUT_UNUSABLE`.
-- Every path and address in the manifest is the server's, so all of them are checked before anything is written. A path that is absolute (`/etc/x`, `C:\x`, `\\server\x`), names a drive or a stream (`:`), has a `..` segment anywhere (even one that would come back down), a segment ending in a dot or a space, or a control character, fails with `BUNDLE_PATH_UNSAFE`. Two entries landing on the same file (compared without case), a file that is also another entry's folder, an entry with nothing to save, or an address that isn't public `https` fail with `BUNDLE_INVALID`. Either way nothing is written.
-- Nothing is written through a symlink: every folder from `dir` down to a file's is checked with `lstat` (an existing symlink there fails with `BUNDLE_PATH_UNSAFE`, nothing written), each file is created with `wx`, which refuses anything already in its place, and `--overwrite` removes a file before creating it rather than writing through it. `dir` itself may be a symlink: it is the person's choice.
-- A download or a write that fails partway ends with `BUNDLE_INCOMPLETE`: how many files were saved, which one failed, and the hint `taste wait <id> --out` with the same folder and `--overwrite`, which saves them again for free (`error.details.id`; not retryable, since running `extract` again would pay again). A file whose write failed is removed, never left half written. Ctrl-C stops before the next file and ends with `taste wait <id>`.
-
-Acceptance (proven by `src/download/bundle.test.ts`, `src/commands/extract.test.ts`, `src/commands/kit.test.ts` and `src/commands/wait.test.ts`):
+- The folder is checked before the paid request: it may be missing (it is created) or empty; one with files in it fails with `OUTPUT_EXISTS` unless `--overwrite` is given, which replaces files of the same name and leaves the others. A path that is a file, or a folder taste can't read, fails with `OUTPUT_UNUSABLE`. **Use a folder only you can write to**: on macOS and Linux a folder that was already there (`dir` itself or one inside it) must be yours and not writable by others, or the save stops with `BUNDLE_PATH_UNSAFE`, so no one else can swap it for a symlink between the check and the write. Folders taste creates are readable only by you (`0700`). Windows has no such bits to read, so this check is skipped there.
+- Every path and address in the manifest is the server's, so all of them are checked before anything is written. A path that is absolute (`/etc/x`, `C:\x`, `\\server\x`), names a drive or a stream (`:`), has a `..` segment anywhere (even one that would come back down; a name that merely starts with `..`, such as `..foo`, is fine), a segment ending in a dot or a space, a character Windows refuses (`<>"|?*`), a control character (C0, DEL or C1), or a Windows device name with any extension (`CON`, `PRN`, `AUX`, `NUL`, `COM0` to `COM9`, `LPT0` to `LPT9`, on every system) fails with `BUNDLE_PATH_UNSAFE`. More than 2000 entries, two entries landing on the same file (compared without case and in one Unicode form, as macOS and Windows compare names), a file that is also another entry's folder, an entry with nothing to save, or an address that isn't public `https` fail with `BUNDLE_INVALID`. Either way nothing is written.
+- Nothing is written through a symlink: every folder from `dir` down to a file's is checked with `lstat`, each file is created with `wx`, which refuses anything already in its place, and `--overwrite` removes a file before creating it rather than writing through it. `dir` itself may be a symlink: it is the person's choice.
+- An asset is at most 100 MB: a larger `Content-Length` is refused before reading, and a body that runs past it is cut off, with `DOWNLOAD_TOO_LARGE`. Known limit: an address is judged by its name, without a DNS lookup, so a public name that resolves to a private address is fetched. The request carries no credential and what comes back only lands in your folder.
+- Once the job is done, every failure to save keeps its id: `error.details.id` and a hint to save again for free with `taste wait <id> --out` (with `--overwrite` where the folder has files), never to run the paid command again, and never retryable. That holds for `OUTPUT_EXISTS` and `OUTPUT_UNUSABLE` (the folder changed while the job ran), `BUNDLE_PATH_UNSAFE`, `BUNDLE_INVALID`, and `SAVE_FAILED` for anything else (the manifest can't be read, for one). A download or a write that fails partway ends with `BUNDLE_INCOMPLETE`: how many files were saved and which one failed. A file whose write failed is removed, never left half written. Ctrl-C stops before the next file and ends with `taste wait <id>`.
+  Acceptance (proven by `src/download/bundle.test.ts`, `src/commands/extract.test.ts`, `src/commands/kit.test.ts` and `src/commands/wait.test.ts`):
 
 - The recorded manifest's files are written at its paths with its inline content, and only its URL entries are downloaded.
-- `../x`, `/etc/x`, `a/../../x`, `C:\x`, `\\server\x` and the other hostile paths fail with `BUNDLE_PATH_UNSAFE` and leave the temporary folder empty; a symlink planted in `dir`, to a folder or a file outside it, fails the same way and nothing outside is touched.
-- An entry whose URL points to a private host (`169.254.169.254`) or is `http` fails with `BUNDLE_INVALID` before any download or write.
+- `../x`, `/etc/x`, `a/../../x`, `C:\x`, `\\server\x`, `CON`, `nul.txt`, `a|b` and the other hostile paths fail with `BUNDLE_PATH_UNSAFE` and leave the temporary folder empty; `..foo` is accepted. A symlink planted in `dir`, to a folder or a file outside it, fails the same way and nothing outside is touched; so does a folder others can write to, `dir` included, and new folders are `0700`.
+- An entry whose URL points to a private host (`169.254.169.254`) or is `http`, more than 2000 entries, and two names equal but for case or Unicode form fail with `BUNDLE_INVALID` before any download or write.
 - A download failing on the second of three files reports 1 of 3 saved; a write failing halfway leaves no partial file.
 - A folder with files fails with `OUTPUT_EXISTS` before any request; `--overwrite` replaces files of the same name.
+- After a paid `extract`, a hostile manifest, an invalid one, a folder filled while the job ran and a manifest that can't be read all end with the job's id in `error.details.id` and `taste wait <id> --out` in the hint.
+- An asset over 100 MB is refused by its `Content-Length`, and an endless one is cut off once past it, read once (`src/api/client.test.ts`).
+- The mock's manifest is all inline, and `extract --out` against it sends nothing off this machine (`scripts/mock-taste.test.ts`).
 - No more than four downloads run at once.
 
 ### `taste kit <file.pdf>`
@@ -216,7 +220,7 @@ Lists one page of your extractions and brand kits (the default), brand adherence
 - `--search <text>`: only entries whose address (extractions, checks) or query (searches) contains this.
 - `--limit <n>` (1 to 100, default 20) and `--offset <n>` (default 0): the page.
 
-Human output on stdout: a table with a dimmed header, one row per entry: the id, when it started (UTC, to the minute), the status and the address, or for a check its score and candidate address, or for a search its query. The list doesn't carry a check's score, so each completed check's verdict is read for it, four at a time; one that can't be read leaves its cell empty. In a terminal the last column is cut with `…` to the width; a pipe gets it whole. When there are more, a dimmed line says how many are shown and the `--offset` for the next page. An empty list says `No extractions found.` (or checks, or searches).
+Human output on stdout: a table with a dimmed header, one row per entry: the id, when it started (UTC, to the minute), the status and the address, or for a check its score and candidate address, or for a search its query. The list doesn't carry a check's score, so each completed check's verdict is read for it, four at a time; one that can't be read leaves its cell empty, and with `--debug` a `debug:` line on stderr names the check and the kind of failure. In a terminal the last column is cut with `…` to the width; a pipe gets it whole. When there are more, a dimmed line says how many are shown and the `--offset` for the next page. An empty list says `No extractions found.` (or checks, or searches).
 
 `--json`: `{"ok":true,"data":<the list exactly as the API returned it>}` (`GET /design/submissions`, `GET /judge/brand-adherence` or `GET /search/submissions`), and no verdict reads.
 
@@ -224,13 +228,13 @@ Acceptance (proven by `src/commands/history.test.ts`):
 
 - `taste history` lists the recorded extractions with their ids, dates, statuses and addresses in one request; a job just started is the first row.
 - `--json` data equals the API's list for checks and searches, with no other request.
-- Checks show their recorded scores (0.90, 0.15); searches show their query.
+- Checks show their recorded scores (0.90, 0.15); a verdict that can't be read leaves the cell empty, silently unless `--debug`; searches show their query.
 - `--status`, `--search`, `--limit` and `--offset` reach the API as `status`, `q`, `limit` and `offset`; an unknown status, a limit out of range and an unknown list exit 2 with no request.
 - A page short of the total names the next `--offset`; control characters from Taste are stripped; a terminal's width cuts the last column, a pipe doesn't.
 
 ### `taste wait <id>`
 
-Picks up a job started earlier, with `--no-wait` or one interrupted or out of time, and ends it as the command that started it would. Free: it only reads. The id may be an extraction or brand kit (`GET /design/submissions/{id}`) or a brand adherence check (on a 404 there, `GET /judge/brand-adherence/{id}`); an id that is neither fails with `NOT_FOUND`. Takes `--format`, `--timeout` and `--out` as `taste extract` does; `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED` (exit 2) before waiting on it. With `--out`, it is the free way to save a finished extraction's files again.
+Picks up a job started earlier, with `--no-wait` or one interrupted or out of time, and ends it as the command that started it would. Free: it only reads. The id may be an extraction or brand kit (`GET /design/submissions/{id}`) or a brand adherence check (on a 404 there, `GET /judge/brand-adherence/{id}`); an id that is neither fails with `NOT_FOUND`. Takes `--format`, `--timeout` and `--out` as `taste extract` does; `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED` (exit 2) before waiting on it, once a read of the check confirms it is one; an id that is neither stays `NOT_FOUND`. With `--out`, it is the free way to save a finished extraction's files again.
 
 An extraction or brand kit ends as `taste extract` does. An adherence check ends with `✓ Checked <candidate host> in 4m 01s` on stderr and, on stdout, the score, the candidate and reference addresses, the recommendations and the id, or with `--format json` the verdict as Taste sent it, indented; `--json` data is the verdict exactly as `GET /judge/brand-adherence/{id}/result` returned it.
 
@@ -239,18 +243,18 @@ Acceptance (proven by `src/commands/wait.test.ts`):
 - A recorded extraction's id shows its summary; `--json` data equals the recorded result.
 - A recorded adherence job's id is routed to its verdict (`GET` the submission, 404, then the job and its result), and `--format json` prints it; a running one is followed to its verdict.
 - An unknown id is `NOT_FOUND`; Ctrl-C ends with the same id to wait on.
-- `--out` with the recorded extraction's id saves the recorded manifest's files and sends no `POST`; with a check's id it exits 2 after one request.
+- `--out` with the recorded extraction's id saves the recorded manifest's files and sends no `POST`; with a check's id it exits 2 after the two reads that confirm it; with an unknown id it is `NOT_FOUND`.
 
 ### `taste share <id>`
 
 Makes a finished result public, so anyone with its address can read it without signing in, or, with `--private`, private again. Free. The id is routed as `taste wait` routes it: `PATCH /design/submissions/{id}/visibility`, and on a 404 there `PATCH /judge/brand-adherence/{id}/visibility`; an id that is neither fails with `NOT_FOUND`. Taste serves a public result from its own result endpoint without authentication (the API reference, "Update visibility"), so that is the address given: `<TASTE_API_URL>/design/submissions/{id}/result` or `<TASTE_API_URL>/judge/brand-adherence/{id}/result`. The API itself returns no address.
 
-`--json`: `{"ok":true,"data":{"id":string,"public":boolean,"url":string|null}}`; `url` is `null` once private. Human: `✓ Public. Anyone with this address can read the result, without signing in:` and the address on the next line, or `✓ Private. Only your account can read <id>.`
+`--json`: `{"ok":true,"data":{"id":string,"public":boolean,"url":string|null}}`; `url` is `null` once private. `public` is what Taste's answer says, never what was asked; an answer that doesn't say fails with `VISIBILITY_UNKNOWN` (retryable: setting it again is harmless). Human: `✓ Public. Anyone with this address can read the result, without signing in:` and the address on the next line, or `✓ Private. Only your account can read <id>.`
 
 Acceptance (proven by `src/commands/share.test.ts`):
 
 - A recorded extraction's id becomes public with one `PATCH` and the result address on `TASTE_API_URL`; `--private` makes it private again with `url` `null`.
-- A check's id is routed to the check after the submission's 404; an unknown id is `NOT_FOUND`.
+- A check's id is routed to the check after the submission's 404; an unknown id is `NOT_FOUND`; an answer without `is_public` is `VISIBILITY_UNKNOWN`.
 
 ## Not in scope
 

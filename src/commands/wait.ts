@@ -29,7 +29,12 @@ async function wait(
       await api.getSubmission(id);
       return "submission" as const;
     },
-    () => Promise.resolve("check" as const)
+    async () => {
+      // Only with --out does the kind decide an error, so only then is it confirmed first: an id that
+      // is neither is NOT_FOUND, not a check.
+      if (options.out !== undefined) await api.getAdherence(id);
+      return "check" as const;
+    }
   );
   if (kind === "check") {
     if (options.out !== undefined) throw new CliError("USAGE_OUT_UNSUPPORTED");

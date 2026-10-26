@@ -121,6 +121,8 @@ type Exchange = {
   json?: unknown;
   form?: FormData;
   timeoutMs?: number;
+  // The most bytes the answer may have; MAX_ANSWER_BYTES unless set.
+  maxBytes?: number;
 };
 type Answer = { status: number; headers: Headers; bytes: Uint8Array };
 type ApiErrorFields = {
@@ -140,6 +142,11 @@ const BACKOFF_MS = 500;
 const MAX_RETRY_AFTER_MS = 30_000;
 const SERVER_MESSAGE_LIMIT = 500;
 const MAX_REDIRECTS = 5;
+// An answer is read whole into memory, so its size is capped: an endless or huge body fails cleanly
+// instead of exhausting the heap. API answers are JSON (the largest recorded result is under 200 KB);
+// assets are screenshots, fonts and short videos.
+const MAX_ANSWER_BYTES = 8 * 1024 * 1024;
+const MAX_ASSET_BYTES = 100 * 1024 * 1024;
 // The three error envelopes Taste sends: an object detail ({error, message, and on a 402 balance and
 // required}), a validation list ([{loc, msg, type}]) and a plain string (search 502/503).
 const ERROR_BODY = z.object({
@@ -214,6 +221,41 @@ function parse<T>(schema: z.ZodType<T>, body: unknown): T {
   return parsed.data;
 }
 
+// The body, counted as it streams; past the cap the read is cancelled. A Content-Length over the cap
+// is refused before reading anything.
+async function readCapped(
+  response: Response,
+  maxBytes: number
+): Promise<Uint8Array> {
+  const declared = Number(response.headers.get("content-length"));
+  if (declared > maxBytes) {
+    await response.body?.cancel().catch(() => {});
+    throw new CliError("RESPONSE_TOO_LARGE");
+  }
+  if (!response.body) return new Uint8Array();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const reader: ReadableStreamDefaultReader<Uint8Array> =
+    response.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxBytes) {
+      await reader.cancel().catch(() => {});
+      throw new CliError("RESPONSE_TOO_LARGE");
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let at = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, at);
+    at += chunk.byteLength;
+  }
+  return bytes;
+}
+
 function assetUrl(raw: string): URL {
   if (!URL.canParse(raw)) throw new CliError("INVALID_URL");
   const url = new URL(raw);
@@ -266,7 +308,7 @@ function createTasteApi(deps: Deps): TasteApi {
         : AbortSignal.timeout(timeoutMs),
     });
     // The timeout covers the body too; a stalled or dropped body is the network's failure.
-    const bytes = new Uint8Array(await response.arrayBuffer());
+    const bytes = await readCapped(response, x.maxBytes ?? MAX_ANSWER_BYTES);
     return { status: response.status, headers: response.headers, bytes };
   }
 
@@ -296,6 +338,9 @@ function createTasteApi(deps: Deps): TasteApi {
       } catch (error) {
         const params: ErrorParams = x.paid ? { paid: "yes" } : {};
         if (deps.signal?.aborted) throw interrupted(error, params);
+        // Too large: the same request would only answer the same, so it is never retried.
+        if (error instanceof CliError)
+          throw new CliError(error.code, params, { cause: error });
         if (x.retry === "read" && attempt < ATTEMPTS) {
           await pause(BACKOFF_MS * 2 ** (attempt - 1));
           continue;
@@ -518,8 +563,15 @@ function createTasteApi(deps: Deps): TasteApi {
             retry: "read",
             authenticated: false,
             timeoutMs: LONG_TIMEOUT_MS,
+            maxBytes: MAX_ASSET_BYTES,
           });
         } catch (error) {
+          if (error instanceof CliError && error.code === "RESPONSE_TOO_LARGE")
+            throw new CliError(
+              "DOWNLOAD_TOO_LARGE",
+              { file },
+              { cause: error }
+            );
           if (
             error instanceof CliError &&
             (error.code === "NETWORK" || error.code === "TIMEOUT")

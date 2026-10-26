@@ -2,9 +2,12 @@
 // path and URL in the manifest is the server's, so all of them are checked before anything is written:
 // a path must stay inside the folder, a URL must be public https. Writing never follows a symlink: each
 // folder inside the output is checked with lstat, and each file is created with "wx", which fails on
-// anything already there, a symlink included.
+// anything already there, a symlink included. On POSIX, a folder taste didn't create in this run must
+// also be the person's own and not writable by others, so no one else can swap it for a symlink
+// between the check and the write.
+import type { Stats } from "node:fs";
 import { lstat, mkdir, open, readdir, realpath, rm } from "node:fs/promises";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 
 import type { TasteApi } from "../api/client.ts";
 import type { SubmissionManifest } from "../api/schemas.ts";
@@ -32,9 +35,15 @@ type Planned = {
 };
 
 const CONCURRENCY = 4;
-// A drive ("C:"), an NTFS stream ("a:b") or a control character. A trailing dot or space is dropped by
-// Windows, so ".. " would become "..".
-const BAD_SEGMENT = /[:\u0000-\u001f\u007f]|[. ]$/;
+// A manifest is one extraction's files; far more than this is not one.
+const MAX_FILES = 2000;
+// A drive ("C:"), an NTFS stream ("a:b"), a character Windows refuses in a name, or a control
+// character (C0, DEL, C1). A trailing dot or space is dropped by Windows, so ".. " would become "..".
+const BAD_SEGMENT = /[:<>"|?*\u0000-\u001f\u007f-\u009f]|[. ]$/;
+// Device names Windows opens instead of a file, with any extension. Refused everywhere, so a bundle
+// saved on one system can be copied to another.
+const RESERVED = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\..*)?$/i;
+const NEW_FOLDER_MODE = 0o700;
 
 function unsafe(): CliError {
   return new CliError("BUNDLE_PATH_UNSAFE");
@@ -53,7 +62,8 @@ function segmentsOf(rel: string): string[] {
   const segments = rel.split(/[\\/]/).filter((s) => s !== "" && s !== ".");
   if (segments.length === 0) throw unsafe();
   for (const segment of segments)
-    if (segment === ".." || BAD_SEGMENT.test(segment)) throw unsafe();
+    if (segment === ".." || BAD_SEGMENT.test(segment) || RESERVED.test(segment))
+      throw unsafe();
   return segments;
 }
 
@@ -62,7 +72,13 @@ function segmentsOf(rel: string): string[] {
 function safeJoin(root: string, rel: string): string {
   const target = resolve(root, ...segmentsOf(rel));
   const back = relative(resolve(root), target);
-  if (back === "" || back.startsWith("..") || isAbsolute(back)) throw unsafe();
+  if (
+    back === "" ||
+    back === ".." ||
+    back.startsWith(`..${sep}`) ||
+    isAbsolute(back)
+  )
+    throw unsafe();
   return target;
 }
 
@@ -74,6 +90,7 @@ function isPublicHttps(raw: string): boolean {
 // Every entry checked before anything is written: a safe path, something to save, a public https
 // URL, and no two entries landing on the same file (compared without case, as macOS and Windows do).
 function plan(manifest: SubmissionManifest): Planned[] {
+  if (manifest.files.length > MAX_FILES) throw new CliError("BUNDLE_INVALID");
   const planned = manifest.files.map((file): Planned => {
     const segments = segmentsOf(file.path);
     const rel = segments.join("/");
@@ -86,12 +103,14 @@ function plan(manifest: SubmissionManifest): Planned[] {
   const files = new Set<string>();
   const folders = new Set<string>();
   for (const { segments } of planned) {
-    const key = segments.join("/").toLowerCase();
+    const key = segments.join("/").normalize("NFC").toLowerCase();
     if (files.has(key) || folders.has(key))
       throw new CliError("BUNDLE_INVALID");
     files.add(key);
     for (let i = 1; i < segments.length; i += 1)
-      folders.add(segments.slice(0, i).join("/").toLowerCase());
+      folders.add(
+        segments.slice(0, i).join("/").normalize("NFC").toLowerCase()
+      );
   }
   for (const folder of folders)
     if (files.has(folder)) throw new CliError("BUNDLE_INVALID");
@@ -107,12 +126,22 @@ async function lstatOrNull(path: string) {
   }
 }
 
-// Each folder from root down to the file's: a real folder, never a symlink. With create, a missing one
-// is made (one level at a time, so a symlink planted meanwhile is still caught by the lstat after).
+// A folder taste may write in: a real folder, never a symlink, and unless taste made it in this run,
+// on POSIX the person's own and not writable by others. Windows has no such mode bits to read.
+function checkFolder(path: string, info: Stats, created: Set<string>): void {
+  if (info.isSymbolicLink() || !info.isDirectory()) throw unsafe();
+  if (process.platform === "win32" || created.has(path)) return;
+  if (info.uid !== process.getuid?.() || (info.mode & 0o002) !== 0)
+    throw unsafe();
+}
+
+// Each folder from root down to the file's, checked. With create, a missing one is made, readable
+// only by the person (one level at a time, so a symlink planted meanwhile is caught by the lstat after).
 async function walk(
   root: string,
   segments: string[],
-  create: boolean
+  create: boolean,
+  created: Set<string>
 ): Promise<void> {
   let path = root;
   for (const segment of segments.slice(0, -1)) {
@@ -121,13 +150,14 @@ async function walk(
     if (info === null) {
       if (!create) return;
       try {
-        await mkdir(path);
+        await mkdir(path, { mode: NEW_FOLDER_MODE });
+        created.add(path);
       } catch (error) {
         if (!isErrno(error, "EEXIST")) throw error;
       }
       info = await lstat(path);
     }
-    if (info.isSymbolicLink() || !info.isDirectory()) throw unsafe();
+    checkFolder(path, info, created);
   }
   const target = await lstatOrNull(join(path, segments.at(-1) ?? ""));
   if (target?.isSymbolicLink()) throw unsafe();
@@ -146,24 +176,36 @@ async function checkOutDir(dir: string, overwrite: boolean): Promise<void> {
   if (entries.length > 0 && !overwrite) throw new CliError("OUTPUT_EXISTS");
 }
 
-async function openRoot(dir: string, overwrite: boolean): Promise<string> {
+async function openRoot(
+  dir: string,
+  overwrite: boolean,
+  created: Set<string>
+): Promise<string> {
   await checkOutDir(dir, overwrite);
+  let root: string;
+  let info: Stats;
   try {
-    await mkdir(dir, { recursive: true });
+    const made = await mkdir(dir, { recursive: true, mode: NEW_FOLDER_MODE });
     // The folder the person named may itself be a symlink (macOS's /tmp is); what is inside may not.
-    return await realpath(dir);
+    root = await realpath(dir);
+    if (made !== undefined) created.add(root);
+    info = await lstat(root);
   } catch (error) {
     throw new CliError("OUTPUT_UNUSABLE", {}, { cause: error });
   }
+  checkFolder(root, info, created);
+  return root;
 }
 
 async function writeBundle(deps: BundleDeps): Promise<string[]> {
   const { api, manifest, overwrite, signal } = deps;
   const openFile = deps.open ?? open;
   const planned = plan(manifest);
-  const root = await openRoot(deps.dir, overwrite);
+  // Folders made in this run: the ownership check is for those that were already there.
+  const created = new Set<string>();
+  const root = await openRoot(deps.dir, overwrite, created);
   try {
-    for (const file of planned) await walk(root, file.segments, false);
+    for (const file of planned) await walk(root, file.segments, false, created);
   } catch (error) {
     if (error instanceof CliError) throw error;
     throw new CliError("OUTPUT_UNUSABLE", {}, { cause: error });
@@ -188,7 +230,7 @@ async function writeBundle(deps: BundleDeps): Promise<string[]> {
         ? await api.download(file.url ?? "")
         : new TextEncoder().encode(file.content);
     const target = safeJoin(root, file.rel);
-    await walk(root, file.segments, true);
+    await walk(root, file.segments, true, created);
     // Removed rather than opened with "w", which would follow a symlink put there since the check.
     if (overwrite) await rm(target, { force: true });
     const handle = await openFile(target, "wx");
@@ -217,7 +259,6 @@ async function writeBundle(deps: BundleDeps): Promise<string[]> {
         written: written.length,
         total: planned.length,
         file: failed ?? "…",
-        id: manifest.submission_id,
       },
       { cause: error }
     );

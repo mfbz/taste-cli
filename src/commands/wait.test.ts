@@ -119,7 +119,7 @@ describe("taste wait", () => {
     }
   });
 
-  it("refuses --out for a brand adherence check, before waiting on it", async () => {
+  it("refuses --out for a brand adherence check, after one read confirms it", async () => {
     const { api, io } = jobSeams();
     const { code, doc } = await runCli(
       ["wait", CHECK, "--out", join(tmpdir(), "taste-never-made"), "--json"],
@@ -127,6 +127,19 @@ describe("taste wait", () => {
     );
     expect(code).toBe(2);
     expect(doc().error.code).toBe("USAGE_OUT_UNSUPPORTED");
-    expect(api.calls).toEqual([`GET /design/submissions/${CHECK}`]);
+    expect(api.calls).toEqual([
+      `GET /design/submissions/${CHECK}`,
+      `GET /judge/brand-adherence/${CHECK}`,
+    ]);
+  });
+
+  it("says Taste has nothing with an unknown id, with --out too", async () => {
+    const { io } = jobSeams();
+    const { code, doc } = await runCli(
+      ["wait", "nope-1", "--out", join(tmpdir(), "taste-never-made"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error.code).toBe("NOT_FOUND");
   });
 });

@@ -3,6 +3,7 @@
 // checks each one's score, which the list doesn't carry, read from its verdict.
 import type { z } from "zod";
 
+import { TasteApiError } from "../api/client.ts";
 import type { TasteApi } from "../api/client.ts";
 import {
   ADHERENCE_STATUS,
@@ -57,6 +58,13 @@ function parseStatus<T extends string>(
   return parsed.data;
 }
 
+// What went wrong, in words safe for --debug: the class and, for the API's errors, the status or code.
+function failure(error: unknown): string {
+  if (error instanceof CliError) return error.code;
+  if (error instanceof TasteApiError) return `${error.name} ${error.status}`;
+  return error instanceof Error ? error.constructor.name : typeof error;
+}
+
 // A score that can't be read leaves its cell empty rather than losing the whole list; Ctrl-C still
 // ends it.
 async function scores(
@@ -73,6 +81,9 @@ async function scores(
         : verdict.score.toFixed(2);
     } catch (error) {
       if (ctx.signal.aborted) throw error;
+      ctx.output.debug(
+        `couldn't read the score of ${job.job_id} (${failure(error)})`
+      );
       return "";
     }
   });

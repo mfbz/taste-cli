@@ -1,4 +1,11 @@
-import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -408,5 +415,82 @@ describe("taste extract --out", () => {
       details: { id: "sub-1" },
     });
     expect(doc().error.hint).toContain("taste wait sub-1 --out");
+  });
+
+  it("keeps the job's id when the manifest can't be saved at all", async () => {
+    const { io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "another-id",
+          files: [{ path: "../escape", content: "x" }],
+        },
+      },
+    });
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_PATH_UNSAFE",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+    const invalid = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [{ path: "a.css", url: "https://10.0.0.1/a.css" }],
+        },
+      },
+    });
+    const second = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "y"), "--json"],
+      invalid.io
+    );
+    expect(second.doc().error).toMatchObject({
+      code: "BUNDLE_INVALID",
+      details: { id: "sub-1" },
+    });
+  });
+
+  it("keeps the job's id when the folder fills up while the job runs", async () => {
+    const out = join(base, "racy");
+    const { api, io } = seams();
+    const racing = {
+      ...api,
+      getManifest: async (id: string) => {
+        await mkdir(out, { recursive: true });
+        await writeFile(join(out, "late.txt"), "");
+        return api.getManifest(id);
+      },
+    };
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", out, "--json"],
+      { ...io, api: racing }
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "OUTPUT_EXISTS",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
+    expect(doc().error.hint).toContain("taste wait sub-1 --out");
+  });
+
+  it("keeps the job's id when the manifest can't be read", async () => {
+    const { io } = seams({
+      errors: { getManifest: new TasteApiError(404, { code: "NOT_FOUND" }) },
+    });
+    const { doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "z"), "--json"],
+      io
+    );
+    expect(doc().error).toMatchObject({
+      code: "SAVE_FAILED",
+      retryable: false,
+      details: { id: "sub-1" },
+    });
   });
 });

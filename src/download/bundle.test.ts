@@ -1,4 +1,5 @@
 import {
+  chmod,
   lstat,
   mkdir,
   mkdtemp,
@@ -39,6 +40,16 @@ const HOSTILE = [
   "a/../b",
   ".. /x",
   "a/b. ",
+  "CON",
+  "nul.txt",
+  "a/com1.log",
+  "LPT¹",
+  "a<b",
+  "a|b",
+  "a?b",
+  "a*b",
+  'a"b',
+  "a\u0085b",
 ];
 
 let base: string;
@@ -76,6 +87,13 @@ describe("safeJoin", () => {
   it.each(HOSTILE)("refuses %j as unsafe", (rel) => {
     expect(() => safeJoin("/root/out", rel)).toThrow(
       expect.objectContaining({ code: "BUNDLE_PATH_UNSAFE" })
+    );
+  });
+
+  it("accepts names that merely start with two dots", () => {
+    expect(safeJoin("/root/out", "..foo")).toBe(resolve("/root/out", "..foo"));
+    expect(safeJoin("/root/out", "a/..b")).toBe(
+      resolve("/root/out", "a", "..b")
     );
   });
 
@@ -212,6 +230,11 @@ describe("writeBundle", () => {
         { path: "a", content: "1" },
         { path: "a/b", content: "2" },
       ],
+      // The same name in composed and decomposed Unicode, which macOS treats as one file.
+      [
+        { path: "caf\u00e9.txt", content: "1" },
+        { path: "cafe\u0301.txt", content: "2" },
+      ],
     ]) {
       const code = await codeOf(
         writeBundle({
@@ -225,6 +248,62 @@ describe("writeBundle", () => {
     }
     expect(await listAll(base)).toEqual([]);
   });
+
+  it("refuses a manifest of more than 2000 files", async () => {
+    const files = Array.from({ length: 2001 }, (_, i) => ({
+      path: `f${i}.txt`,
+      content: "",
+    }));
+    const code = await codeOf(
+      writeBundle({
+        api: createFakeApi(),
+        manifest: manifest(files),
+        dir,
+        overwrite: false,
+      })
+    );
+    expect(code).toBe("BUNDLE_INVALID");
+    expect(await listAll(base)).toEqual([]);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "refuses a folder others can write to, already there, and makes new ones only for the person",
+    async () => {
+      await mkdir(join(dir, "shared"), { recursive: true });
+      await chmod(join(dir, "shared"), 0o777);
+      const code = await codeOf(
+        writeBundle({
+          api: createFakeApi(),
+          manifest: manifest([{ path: "shared/x.css", content: "x" }]),
+          dir,
+          overwrite: true,
+        })
+      );
+      expect(code).toBe("BUNDLE_PATH_UNSAFE");
+      expect(await readdir(join(dir, "shared"))).toEqual([]);
+
+      await chmod(dir, 0o777);
+      const root = await codeOf(
+        writeBundle({
+          api: createFakeApi(),
+          manifest: manifest([{ path: "x.css", content: "x" }]),
+          dir,
+          overwrite: true,
+        })
+      );
+      expect(root).toBe("BUNDLE_PATH_UNSAFE");
+
+      const fresh = join(base, "fresh");
+      await writeBundle({
+        api: createFakeApi(),
+        manifest: manifest([{ path: "a/b/c.txt", content: "c" }]),
+        dir: fresh,
+        overwrite: false,
+      });
+      for (const folder of [fresh, join(fresh, "a"), join(fresh, "a", "b")])
+        expect((await lstat(folder)).mode & 0o077).toBe(0);
+    }
+  );
 
   it("uses inline content when an entry has both content and a url", async () => {
     const api = createFakeApi();
@@ -271,7 +350,7 @@ describe("writeBundle", () => {
     }).catch((e: unknown) => e);
     expect(error).toMatchObject({
       code: "BUNDLE_INCOMPLETE",
-      params: { written: 1, total: 3, file: "b.css", id: ID },
+      params: { written: 1, total: 3, file: "b.css" },
     });
     expect(await listAll(dir)).toEqual(["a.txt"]);
   });

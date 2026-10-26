@@ -31,7 +31,7 @@ description: Use when writing or reviewing code in the taste-cli repo. Covers th
 
 - Validate with zod wherever data enters: environment, files, API responses, CLI arguments. Inside, trust the types.
 - Server text is untrusted: run it through `plain()` (`src/output/output.ts`) before it reaches a terminal.
-- Paths and URLs in a download manifest are untrusted too: files are written only through `writeBundle` (`src/download/bundle.ts`), which checks every path and URL before writing anything and never writes through a symlink.
+- Paths and URLs in a download manifest are untrusted too: files are written only through `writeBundle` (`src/download/bundle.ts`), which checks every path and URL before writing anything and never writes through a symlink. A failure after a job is done goes through `whileSaving`, so it keeps the job's id and the free `taste wait <id> --out` hint. The client caps every answer it reads (8 MB for the API, 100 MB for an asset).
 - No new runtime dependency without the maintainer's OK; a small algorithm is inlined with tests instead.
 
 ## Secrets

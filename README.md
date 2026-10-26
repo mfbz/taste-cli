@@ -47,7 +47,7 @@ taste extract stripe.com --out stripe            # also save its files into ./st
 taste wait <id> --out stripe --overwrite         # save them again, for free
 ```
 
-Every flag and the address are checked before anything is spent, and a paid request is never retried by itself. Ctrl-C stops waiting, not the job: the error names the id, and `taste wait <id>` picks it up. `--out` writes only inside the folder you name and refuses one that already has files unless you add `--overwrite`. Details: [TASTE-CLI.md](TASTE-CLI.md), "Credits" and "Saving the files".
+Every flag and the address are checked before anything is spent, and a paid request is never retried by itself. Ctrl-C stops waiting, not the job: the error names the id, and `taste wait <id>` picks it up. `--out` writes only inside the folder you name, which should be one only you can write to, and refuses one that already has files unless you add `--overwrite`. Details: [TASTE-CLI.md](TASTE-CLI.md), "Credits" and "Saving the files".
 
 ## History and sharing
 

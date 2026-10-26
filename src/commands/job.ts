@@ -11,7 +11,7 @@ import type {
 } from "../api/schemas.ts";
 import type { Context } from "../context.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
-import { CliError, whileWaiting } from "../output/errors.ts";
+import { CliError, whileSaving, whileWaiting } from "../output/errors.ts";
 import { plain } from "../output/output.ts";
 import { startProgress } from "../output/progress.ts";
 import { brandName, renderBrandSummary } from "../render/brand-summary.ts";
@@ -99,7 +99,7 @@ async function saveFiles(
       signal: ctx.signal,
     });
   } catch (error) {
-    throw whileWaiting(error, id);
+    throw whileSaving(error, id);
   }
   const files = saved.length === 1 ? "file" : "files";
   ctx.output.note(

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { TasteApiError } from "../api/client.ts";
 import { createFakeApi } from "../api/fake-api.ts";
 import type { FakeApi } from "../api/fake-api.ts";
 import { fixtureState } from "../api/fixtures.ts";
@@ -56,6 +57,20 @@ describe("taste history", () => {
     expect(line(PASS)).toContain("0.90");
     expect(line(FAIL)).toContain("0.15");
     expect(line(PASS)).toContain("https://tastelabs.com/");
+  });
+
+  it("leaves a score it can't read empty, and says why only under --debug", async () => {
+    const { api, io } = jobSeams({
+      errors: { getVerdict: new TasteApiError(500, {}) },
+    });
+    const quiet = await runCli(["history", "checks"], io);
+    expect(quiet.code).toBe(0);
+    expect(quiet.out).toContain(PASS);
+    expect(quiet.err).toBe("");
+    const loud = await runCli(["history", "checks", "--debug"], io);
+    expect(loud.err).toContain(`debug: couldn't read the score of ${PASS}`);
+    expect(loud.err).toContain("TasteApiError 500");
+    expect(api.calls).toContain(`GET /judge/brand-adherence/${PASS}/result`);
   });
 
   it("lists searches with their query", async () => {

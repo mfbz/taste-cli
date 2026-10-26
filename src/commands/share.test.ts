@@ -60,6 +60,24 @@ describe("taste share", () => {
     );
   });
 
+  it("fails clearly when Taste's answer doesn't say whether it is public", async () => {
+    const { api, io } = jobSeams();
+    const silent = { ...(await api.getAdherence(CHECK)), is_public: undefined };
+    const quiet = {
+      ...api,
+      setAdherenceVisibility: () => Promise.resolve(silent),
+    };
+    const { code, doc } = await runCli(["share", CHECK, "--json"], {
+      ...io,
+      api: quiet,
+    });
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "VISIBILITY_UNKNOWN",
+      retryable: true,
+    });
+  });
+
   it("says Taste has nothing with an id it doesn't know", async () => {
     const { io } = jobSeams();
     const { code, doc } = await runCli(["share", "nope-1", "--json"], io);
