@@ -32,16 +32,16 @@ proc next_scene {} {
 prompt
 sleep 1
 
-# 1. The opening and the menu, then Quit (the last item, one up from the first).
+# 1. The opening and the menu. Leaving it (Quit, one up from the first item) and clearing the screen
+# happen in the same instant, so no frame shows them.
 run "taste"
 expect "What would you like to do?"
-sleep 2
-send "\033\[A"
-sleep 0.8
-send "\r"
+sleep 2.5
+send "\033\[A\r"
 prompt
-sleep 1
-next_scene
+send "\014"
+prompt
+sleep 0.6
 
 # 2. A brand from a website.
 run "taste extract stripe.com"
