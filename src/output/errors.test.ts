@@ -29,6 +29,7 @@ describe("the catalogue", () => {
       PRIVATE_URL: [2, false],
       INVALID_ENV: [2, false],
       NOT_SIGNED_IN: [1, false],
+      CREDENTIALS_STORE_FAILED: [1, false],
       INSUFFICIENT_CREDITS: [1, false],
       SEARCH_BUSY: [1, true],
       UPSTREAM: [1, true],

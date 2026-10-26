@@ -1,5 +1,6 @@
 import {
   chmodSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   rmSync,
@@ -37,22 +38,30 @@ let dir: string;
 let warnings: string[];
 const warn = (line: string) => void warnings.push(line);
 
-function fakeKeychain(fail?: "read" | "write"): KeychainLike & {
+type FakeKeychain = KeychainLike & {
   value: string | null;
-} {
+  reads: number;
+  fail: "read" | "write" | undefined;
+};
+
+// "read": the keychain can't be used at all (every call rejects). "write": only writes reject.
+function fakeKeychain(fail?: "read" | "write"): FakeKeychain {
   return {
     value: null,
+    reads: 0,
+    fail,
     get() {
-      if (fail === "read") return Promise.reject(new Error("no keychain"));
+      this.reads += 1;
+      if (this.fail === "read") return Promise.reject(new Error("no keychain"));
       return Promise.resolve(this.value);
     },
     set(value: string) {
-      if (fail === "write") return Promise.reject(new Error("locked"));
+      if (this.fail) return Promise.reject(new Error("locked"));
       this.value = value;
       return Promise.resolve();
     },
     delete() {
-      if (fail === "read") return Promise.reject(new Error("no keychain"));
+      if (this.fail === "read") return Promise.reject(new Error("no keychain"));
       this.value = null;
       return Promise.resolve();
     },
@@ -110,12 +119,44 @@ describe("openStore with a working keychain", () => {
   it("reads a keychain that locks after opening as signed out, with one warning", async () => {
     const keychain = fakeKeychain();
     const store = await openStore({ dir, keychain, warn });
+    expect(await store.read()).toBeNull();
     keychain.get = () => Promise.reject(new Error("locked"));
     expect(await store.read()).toBeNull();
     expect(warnings).toEqual([
       "The system keychain could not be read. Unlock it and try again.",
     ]);
   });
+
+  it("reads the keychain once for a command that opens the store and reads", async () => {
+    const keychain = fakeKeychain();
+    keychain.value = JSON.stringify(KEY);
+    const store = await openStore({ dir, keychain, warn });
+    expect(await store.read()).toEqual(KEY);
+    expect(keychain.reads).toBe(1);
+    await store.write(SESSION);
+    expect(await store.read()).toEqual(SESSION);
+    expect(keychain.reads).toBe(2);
+  });
+
+  it.skipIf(!posix)(
+    "keeps a saved sign in and warns when an old file can't be removed",
+    async () => {
+      const fallback = await openStore({ dir, keychain: null, warn });
+      await fallback.write(KEY);
+      const keychain = fakeKeychain();
+      const store = await openStore({ dir, keychain, warn });
+      warnings = [];
+      chmodSync(dir, 0o500);
+      try {
+        await store.write(SESSION);
+      } finally {
+        chmodSync(dir, 0o700);
+      }
+      expect(JSON.parse(keychain.value ?? "")).toEqual(SESSION);
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain("Delete it by hand");
+    }
+  );
 
   it("reads a corrupt keychain entry as signed out, with one warning", async () => {
     const keychain = fakeKeychain();
@@ -147,7 +188,6 @@ describe("openStore without a usable keychain", () => {
     expect(store.name).toBe("file");
     await store.write(SESSION);
     expect(await store.read()).toEqual(SESSION);
-    await store.clear();
     expect(warnings).toEqual([
       `No system keychain; credentials are stored in ${join(dir, "credentials.json")} (readable only by you).`,
     ]);
@@ -231,6 +271,41 @@ describe("openStore without a usable keychain", () => {
     chmodSync(dir, 0o755);
     await store.write(KEY);
     expect(statSync(dir).mode & 0o777).toBe(0o700);
+  });
+
+  it("warns on logout when an unreachable keychain may still hold an old sign in", async () => {
+    const keychain = fakeKeychain();
+    keychain.value = JSON.stringify(KEY);
+    keychain.fail = "read";
+    const store = await openStore({ dir, keychain, warn });
+    await store.write(SESSION);
+    warnings = [];
+    await store.clear();
+    expect(readdirSync(dir)).toEqual([]);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain("taste logout");
+    keychain.fail = undefined;
+    const recovered = await openStore({ dir, keychain, warn });
+    await recovered.clear();
+    expect(await recovered.read()).toBeNull();
+  });
+
+  it("logs out cleanly where there is no keychain module at all", async () => {
+    const store = await openStore({ dir, keychain: null, warn });
+    await store.write(KEY);
+    warnings = [];
+    await store.clear();
+    expect(warnings).toEqual([]);
+  });
+
+  it("removes temporary files a killed write left behind", async () => {
+    const store = await openStore({ dir, keychain: null, warn });
+    await store.write(KEY);
+    const leftover = ".credentials-0b5e8a7c-1f2d-4c3b-9a8e-7d6c5b4a3f21.tmp";
+    writeFileSync(join(dir, leftover), JSON.stringify(KEY), { mode: 0o600 });
+    mkdirSync(join(dir, "keep"));
+    await store.clear();
+    expect(readdirSync(dir)).toEqual(["keep"]);
   });
 
   it("clears the file, and clearing twice is fine", async () => {

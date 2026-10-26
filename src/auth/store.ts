@@ -2,7 +2,7 @@
 // owner can read. A credential that can't be read (corrupt, the wrong shape, readable by others) reads
 // as signed out with one warning, never as a crash: the fix is always taste login.
 import { randomUUID } from "node:crypto";
-import { chmod, mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { z } from "zod";
@@ -37,6 +37,7 @@ type Deps = {
   platform?: NodeJS.Platform;
 };
 
+const TEMP = /^\.credentials-[0-9a-f-]+\.tmp$/;
 // A credential is well under 8 KB; anything much bigger isn't one.
 const MAX_FILE_BYTES = 64 * 1024;
 const CREDENTIAL = z.discriminatedUnion("kind", [
@@ -76,14 +77,16 @@ function storeFailed(cause: unknown): CliError {
   return new CliError("CREDENTIALS_STORE_FAILED", {}, { cause });
 }
 
-// Probing reads the entry once: "no entry" is a working keychain, a throw is not one.
-async function usable(keychain: KeychainLike | null): Promise<boolean> {
-  if (!keychain) return false;
+// Probing reads the entry once: "no entry" is a working keychain, a throw is not one. The value is
+// kept for the first read, because each keychain read can mean an access prompt on macOS.
+async function probe(
+  keychain: KeychainLike | null
+): Promise<{ value: string | null } | null> {
+  if (!keychain) return null;
   try {
-    await keychain.get();
-    return true;
+    return { value: await keychain.get() };
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -112,6 +115,7 @@ function fileStore(dir: string, platform: NodeJS.Platform, warn: Deps["warn"]) {
   // disk never leaves half a credential behind.
   async function write(credential: StoredCredential): Promise<void> {
     const temp = join(dir, `.credentials-${randomUUID()}.tmp`);
+    // Matches TEMP, so clear() can find one a killed process left behind.
     try {
       await mkdir(dir, { recursive: true, mode: 0o700 });
       // mkdir's mode only applies to a folder it creates; an older one is tightened too.
@@ -127,8 +131,16 @@ function fileStore(dir: string, platform: NodeJS.Platform, warn: Deps["warn"]) {
     }
   }
 
+  // Also removes temporary files a process killed between write and rename left behind: each holds
+  // a secret.
   async function clear(): Promise<void> {
     try {
+      const names = await readdir(dir).catch((error: unknown) => {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+        throw error;
+      });
+      for (const name of names.filter((n) => TEMP.test(n)))
+        await rm(join(dir, name), { force: true });
       await rm(path, { force: true });
     } catch (error) {
       throw storeFailed(error);
@@ -144,7 +156,8 @@ async function openStore(deps: Deps): Promise<SecretStore> {
   const keychain =
     deps.keychain === undefined ? await loadKeychain() : deps.keychain;
 
-  if (!keychain || !(await usable(keychain))) {
+  const probed = await probe(keychain);
+  if (!keychain || !probed) {
     deps.warn(
       `No system keychain; credentials are stored in ${credentialsFile(deps.dir)} (readable only by you).`
     );
@@ -152,21 +165,33 @@ async function openStore(deps: Deps): Promise<SecretStore> {
       name: "file",
       read: () => Promise.resolve(file.read()),
       write: file.write,
-      // A keychain that failed the probe may still hold an old entry; removing it is best effort.
+      // A keychain that failed the probe may still hold an old sign in that comes back when it
+      // recovers. A warning, not a failure: with no keychain at all the delete always fails, and
+      // logout must still work there.
       clear: async () => {
-        await keychain?.delete().catch(() => undefined);
         await file.clear();
+        if (!keychain) return;
+        try {
+          await keychain.delete();
+        } catch {
+          deps.warn(
+            "The system keychain could not be reached, so a sign in saved there earlier may remain. Unlock it and run taste logout again."
+          );
+        }
       },
     };
   }
 
   const where = "in the system keychain";
+  // The probe's value serves the first read; a write or clear makes it stale.
+  let cached: { value: string | null } | null = probed;
   return {
     name: "keychain",
     async read() {
       let text: string | null;
       try {
-        text = await keychain.get();
+        text = cached ? cached.value : await keychain.get();
+        cached = null;
       } catch {
         deps.warn(
           "The system keychain could not be read. Unlock it and try again."
@@ -176,15 +201,24 @@ async function openStore(deps: Deps): Promise<SecretStore> {
       return text === null ? null : parse(text, where, deps.warn);
     },
     async write(credential) {
+      cached = null;
       try {
         await keychain.set(JSON.stringify(credential));
       } catch (error) {
         throw storeFailed(error);
       }
-      // A file left from an earlier fallback would be a second, stale copy of a secret.
-      await file.clear();
+      // A file left from an earlier fallback would be a second, stale copy of a secret. The sign in is
+      // saved by now, so failing to remove it is a warning, not a failed write.
+      try {
+        await file.clear();
+      } catch {
+        deps.warn(
+          `Couldn't remove an old credentials file at ${credentialsFile(deps.dir)}. Delete it by hand.`
+        );
+      }
     },
     async clear() {
+      cached = null;
       try {
         await keychain.delete();
       } catch (error) {
