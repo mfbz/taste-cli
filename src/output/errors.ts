@@ -25,7 +25,7 @@ type ErrorReport = {
 };
 type DebugInfo = { className: string; frames: string[] };
 // What a paid request was, for the hint after it fails in flight.
-type PaidKind = "job" | "search" | "enhance";
+type PaidKind = "job" | "check" | "search" | "enhance";
 type FullReport = ErrorReport & { exitCode: ExitCode; debug?: DebugInfo };
 
 const entry = (
@@ -408,6 +408,8 @@ const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
 // first depends on what was sent.
 const PAID_HINTS: Readonly<Record<PaidKind, string>> = {
   job: "It may have reached Taste and started anyway. Check taste history before you run it again, so you don't pay twice.",
+  check:
+    "It may have reached Taste and started anyway. Check taste history checks before you run it again, so you don't pay twice.",
   search:
     "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.",
   enhance:
@@ -480,7 +482,10 @@ class CliError extends Error {
     options?: { cause?: unknown; details?: Readonly<Record<string, unknown>> }
   ) {
     // The message is ours and contains no parameters, so it is safe wherever it ends up.
-    super(CATALOGUE[code].message, options && { cause: options.cause });
+    super(
+      CATALOGUE[code].message,
+      options && "cause" in options ? { cause: options.cause } : undefined
+    );
     this.name = "CliError";
     this.code = code;
     this.params = params;

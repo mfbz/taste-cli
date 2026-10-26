@@ -61,7 +61,7 @@ async function check(
   const referenceUrl = normalizeUrl(options.against);
 
   const api = ctx.api();
-  const started = await startJob(ctx, () =>
+  const started = await startJob(ctx, "check", () =>
     api
       .createAdherence({
         candidate_url: candidateUrl.href,
@@ -80,10 +80,11 @@ async function check(
     options.timeout * 1000,
     verdictJob(api, id)
   );
-  const document = checkDocument(verdict, options.min);
+  const { min } = options;
+  const document = checkDocument(verdict, min);
   const human = (theme: Theme) =>
-    renderVerdict(verdict, theme, summaryWidth(ctx), options.min);
-  if (document.passed !== false) {
+    renderVerdict(verdict, theme, summaryWidth(ctx), min);
+  if (min === undefined || document.passed) {
     ctx.output.result(document, human);
     return;
   }
@@ -93,7 +94,7 @@ async function check(
     "BELOW_THRESHOLD",
     {
       score: verdict.score === null ? "none" : verdict.score.toFixed(2),
-      min: (options.min ?? 0).toFixed(2),
+      min: min.toFixed(2),
     },
     { details: document }
   );

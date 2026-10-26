@@ -41,7 +41,7 @@ async function kit(
   await checkOut(options);
 
   const api = ctx.api();
-  const started = await startJob(ctx, () =>
+  const started = await startJob(ctx, "job", () =>
     api.createBrandKit({ name: basename(file), bytes }).then(startedSubmission)
   );
   if (!options.wait) {

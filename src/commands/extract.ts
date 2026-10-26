@@ -69,7 +69,7 @@ async function extract(
     : {};
 
   const api = ctx.api();
-  const started = await startJob(ctx, () =>
+  const started = await startJob(ctx, "job", () =>
     api.createSubmission(body, query).then(startedSubmission)
   );
   if (!options.wait) {

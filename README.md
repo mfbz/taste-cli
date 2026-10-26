@@ -80,7 +80,7 @@ Free: no credits are spent.
 
 - Every flag, address and file is checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.
-- A paid request that fails on the way (network, timeout, Ctrl-C) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction, a brand kit or a check, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
+- A paid request that fails on the way (network, timeout, Ctrl-C) may still have been charged. Its error is not retryable and says where to look first: `taste history` for an extraction or a brand kit, `taste history checks` for a check, `taste history searches` for a search or similar brands, your credits in your Taste account for an enhancement.
 - Once a job (`extract`, `kit`, `check`) has started it runs on Taste's side whatever happens to taste: the error names its id, and `taste wait <id>` picks it up for free.
 - Failed jobs, searches and similar-brand requests are refunded by Taste.
 
@@ -137,7 +137,7 @@ Spends credits. Judges how closely the first site follows the brand of the one a
 - `--min <score>`: a score from 0 to 1 the check must reach, for CI. Below it (or with no score at all) the command exits 1 with `BELOW_THRESHOLD`. Anything outside 0 to 1 fails with `USAGE_INVALID_VALUE`. Without `--min` a finished check always exits 0. Not with `--no-wait` (`USAGE_CONFLICTING_OPTIONS`).
 - `--no-wait`, `--timeout <seconds>`: as for `extract`.
 
-Progress goes to stderr as for `extract`, ending with `✓ Checked <host> in 4m 01s`. On stdout: the score with two decimals and a 20-cell bar (coloured, with `✓` or `✗` and the minimum, only with `--min`), the two addresses, every recommendation numbered, the fixes counted by action with the first three in full, the id and `taste share <id>`. Below `--min` the verdict is printed, then the error. A check that fails on Taste's side ends with `ADHERENCE_FAILED` and its reason; Taste refunds it.
+Progress goes to stderr as for `extract`, ending with `✓ Checked <host> in 4m 01s`. On stdout: the score with two decimals and a 20-cell bar (coloured, with `✓` or `✗` and the minimum, only with `--min`), the two addresses, every recommendation numbered in Taste's order, the fixes counted by action with the first three in full, the id and `taste share <id>`. Below `--min` the verdict is printed, then the error. A check that fails on Taste's side ends with `ADHERENCE_FAILED` and its reason; Taste refunds it.
 
 `--json` data: `{"id","score","passed","min","recommendations","fixes"}`; `passed` and `min` are `null` without `--min`. Below `--min` the document is the `BELOW_THRESHOLD` error, with that same data in `error.details`, so a script has the recommendations without another call.
 
@@ -154,10 +154,16 @@ jobs:
     if: github.event.deployment_status.state == 'success' && github.event.deployment.environment != 'Production'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: mfbz/taste-cli
+          path: taste-cli
+          token: ${{ secrets.TASTE_CLI_TOKEN }} # read access, while the repository is private
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - run: npm install -g github:mfbz/taste-cli
+      - run: npm ci && npm run build && npm link
+        working-directory: taste-cli
       - run: taste check "$PREVIEW_URL" --against https://acme.com --min 0.8
         env:
           TASTE_API_KEY: ${{ secrets.TASTE_API_KEY }}
@@ -166,7 +172,7 @@ jobs:
 
 - Each run spends credits, as `taste check` does anywhere.
 - The preview must be readable without signing in: with Vercel's Deployment Protection on, Taste can't open it.
-- taste-cli isn't on npm yet, so this installs it from the repository; while the repository is private the runner needs read access to it.
+- taste-cli isn't on npm yet, so this builds it from the repository, as in [Install](#install). While the repository is private, `TASTE_CLI_TOKEN` is a token that can read it.
 - In CI there is no animation and no colour: the verdict prints as plain text in the log, and `BELOW_THRESHOLD` exits 1, which fails the job.
 
 ## Pick a job up again

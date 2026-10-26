@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ADHERENCE_VERDICT } from "../api/schemas.ts";
 import type { AdherenceVerdict } from "../api/schemas.ts";
-import { runCli } from "../fake-io.ts";
+import { offline, runCli } from "../fake-io.ts";
 import { fixtures, jobSeams } from "../job-seams.ts";
 
 const failed = ADHERENCE_VERDICT.parse(fixtures["check-fail"]?.data.verdict);
@@ -52,5 +52,13 @@ describe("taste check", () => {
   it("refuses --min outside 0 to 1 as a usage error", async () => {
     const { code } = await check(passed, "--min", "2", "--json");
     expect(code).toBe(2);
+  });
+
+  it("points a network failure during the paid request at taste history checks", async () => {
+    const { doc } = await runCli(
+      ["check", "a.com", "--against", "b.com", "--json"],
+      offline()
+    );
+    expect(doc().error.hint).toContain("taste history checks");
   });
 });

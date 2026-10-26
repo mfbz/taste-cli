@@ -146,9 +146,10 @@ async function saveFiles(
 // accepted the hard stop names the job to wait on.
 async function startJob(
   ctx: Context,
+  kind: Extract<PaidKind, "job" | "check">,
   send: () => Promise<Started>
 ): Promise<Started> {
-  ctx.inFlight({ paid: "job" });
+  ctx.inFlight({ paid: kind });
   const started = await send();
   ctx.inFlight({ id: started.id });
   return started;
