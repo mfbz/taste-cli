@@ -33,12 +33,19 @@ describe("formatElapsed", () => {
 
 describe("renderProgressLine", () => {
   it("is a spinner frame, the step and the elapsed time", () => {
-    expect(renderProgressLine(0, "crawling", 12_000, plain)).toBe(
+    expect(renderProgressLine(0, "crawling", 12_000, plain, 80)).toBe(
       "⠋ Crawling · 12s"
     );
-    expect(renderProgressLine(11, "crawling", 0, plain)).toBe(
+    expect(renderProgressLine(11, "crawling", 0, plain, 80)).toBe(
       "⠙ Crawling · 0s"
     );
+  });
+
+  it("never reaches the last column, so it can't wrap", () => {
+    const step = "analyzing_the_brand_guidelines_in_great_detail";
+    const line = renderProgressLine(0, step, 125_000, plain, 30);
+    expect([...line].length).toBe(29);
+    expect(line).toMatch(/^⠋ Analyzing.*… · 2m 05s$/);
   });
 });
 

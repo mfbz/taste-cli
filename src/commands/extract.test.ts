@@ -4,7 +4,7 @@ import { TasteApiError } from "../api/client.ts";
 import type { SubmissionCreate } from "../api/schemas.ts";
 import { runCli } from "../fake-io.ts";
 import { CliError } from "../output/errors.ts";
-import { jobSeams, recorded } from "./job-seams.ts";
+import { jobSeams, recorded } from "../job-seams.ts";
 
 const ANSI = /\u001b\[/;
 const taste = recorded("extract-full");
@@ -210,6 +210,13 @@ describe("taste extract", () => {
       hint: expect.stringContaining("taste wait sub-1") as string,
       details: { id: "sub-1" },
     });
+  });
+
+  it("tells the hard stop a paid request is in flight, then the job's id", async () => {
+    const seen: Readonly<Record<string, string>>[] = [];
+    const { io } = seams({}, { inFlight: (params) => seen.push(params) });
+    await runCli(["extract", "stripe.com", "--json"], io);
+    expect(seen.slice(0, 2)).toEqual([{ paid: "yes" }, { id: "sub-1" }]);
   });
 
   it("clears the progress line before the interrupt is reported", async () => {

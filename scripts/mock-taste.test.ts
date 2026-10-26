@@ -29,7 +29,11 @@ afterEach(async () => {
   dir = undefined;
 });
 
-async function start(options: Partial<MockOptions> = {}) {
+async function start(
+  options: Partial<MockOptions> & {
+    onRequest?: (request: string) => void;
+  } = {}
+) {
   mock = await startMock({
     library: createLibrary({}),
     fast: true,
@@ -116,8 +120,16 @@ describe("the mock Taste Engine", () => {
   });
 
   it("ends a real taste extract on Ctrl-C with 130 and one document naming taste wait", async () => {
-    // Not fast: the job takes seconds per step, so the interrupt lands mid-wait.
-    const { url } = await start({ fast: false });
+    // Not fast: the job takes seconds per step, so the interrupt lands mid-wait. Ctrl-C goes in once
+    // the mock has answered the first poll, so the job exists and the wait is underway.
+    let interruptChild = () => {};
+    const { url } = await start({
+      fast: false,
+      onRequest: (request) => {
+        if (/^GET \/design\/submissions\/[^/]+$/.test(request))
+          interruptChild();
+      },
+    });
     const child = spawn(
       process.execPath,
       [MAIN, "extract", "https://stripe.com", "--json"],
@@ -126,9 +138,12 @@ describe("the mock Taste Engine", () => {
         stdio: ["ignore", "pipe", "pipe"],
       }
     );
+    interruptChild = () => {
+      interruptChild = () => {};
+      child.kill("SIGINT");
+    };
     let stdout = "";
     child.stdout.on("data", (chunk: Buffer) => (stdout += chunk.toString()));
-    setTimeout(() => child.kill("SIGINT"), 1_500);
     const code = await new Promise<number | null>((resolve) =>
       child.on("close", resolve)
     );

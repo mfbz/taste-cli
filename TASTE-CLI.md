@@ -29,9 +29,10 @@ Planned global flags: `--no-motion`, `-y, --yes`.
 - Without `--json`, results go to stdout and errors, notes, progress and prompts to stderr. A pipe gets no ANSI.
 - Exit codes: 0 ok, 1 failure, 2 usage, 130 interrupted.
 - Errors come only from a catalogue (`src/output/errors.ts`): code, message, hint, retryable. Untrusted server text is stripped of control characters before display.
+- `retryable: true` means running the same command again is safe and costs nothing extra. It is `false` whenever the hint is `taste wait <id>` (a started job runs on; running the command again would start and pay for another) or the paid in-flight hint (the request may already have been charged).
 - Warnings a person must see (a saved sign in ignored, a keychain that may still hold one) go to stderr in both modes, prefixed `warning:`; under `--json` stdout still carries only the one document.
 - Ctrl-C aborts what is in flight and the command ends through the usual output. A second Ctrl-C, or a command that hasn't stopped two seconds later, ends the process at once, with the same exit code and document.
-- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up. The hard stop never adds a second document: once the command has written its own, it exits without another, and a Ctrl-C after the command finished exits with the command's own code.
+- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up, or, while a paid request is being sent, to check `taste history` first. The hard stop (a second Ctrl-C, or the two seconds running out) uses the same hint from what the command said is in flight, and without `--json` clears any progress line before its message. It never adds a second document: once the command has written its own, it exits without another, and a Ctrl-C after the command finished exits with the command's own code.
 - A request that gets no answer within its deadline fails with `TIMEOUT` ("The Taste Engine didn't answer in time."), a connection that fails with `NETWORK` ("Couldn't reach the Taste Engine.").
 
 Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
@@ -43,7 +44,8 @@ Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 - A Taste key (`taste_` followed by long random text) or a token (a JWT) anywhere in argv, as a whole argument or a whole option value, is refused with `KEY_IN_ARGV` (exit 2) before any command runs, and is never echoed. File names and words that only start with `taste_`, such as `taste_logo_final.pdf` or `taste_engine_reviews`, go through (`src/cli.test.ts`).
 - `--debug` adds only the error's class name and stack frames; an error's message and its cause never reach output, in either mode (`src/cli.test.ts`).
 - Ctrl-C ends a running command with exit 130 and, under `--json`, one `INTERRUPTED` document (`src/main.test.ts`); without a job the hint is "Run the command again." (`src/output/output.test.ts`).
-- A second Ctrl-C, or one after the command wrote its document, never writes a second document (`src/interrupt.test.ts`, `src/output/output.test.ts`).
+- A second Ctrl-C, or one after the command wrote its document, never writes a second document; the hard stop's hint names the job or the paid request in flight (`src/interrupt.test.ts`, `src/output/output.test.ts`).
+- `retryable` is false on every `taste wait <id>` and paid in-flight hint (`src/output/errors.test.ts`).
 - A timed out request is `TIMEOUT`, distinct from `NETWORK` (`src/api/client.test.ts`).
 - Store warnings reach stderr under `--json` too, with exactly one document on stdout (`src/output/output.test.ts`, `src/commands/whoami.test.ts`).
 
@@ -194,12 +196,12 @@ Planned.
 
 Picks up a job started earlier, with `--no-wait` or one interrupted or out of time, and ends it as the command that started it would. Free: it only reads. The id may be an extraction or brand kit (`GET /design/submissions/{id}`) or a brand adherence check (on a 404 there, `GET /judge/brand-adherence/{id}`); an id that is neither fails with `NOT_FOUND`. Takes `--format` and `--timeout` as `taste extract` does.
 
-An extraction or brand kit ends as `taste extract` does. An adherence check ends with `✓ Checked <candidate host> in 4m 01s` on stderr and, on stdout, the score, the candidate and reference addresses, the recommendations and the id; `--json` data is the verdict exactly as `GET /judge/brand-adherence/{id}/result` returned it.
+An extraction or brand kit ends as `taste extract` does. An adherence check ends with `✓ Checked <candidate host> in 4m 01s` on stderr and, on stdout, the score, the candidate and reference addresses, the recommendations and the id, or with `--format json` the verdict as Taste sent it, indented; `--json` data is the verdict exactly as `GET /judge/brand-adherence/{id}/result` returned it.
 
 Acceptance (proven by `src/commands/wait.test.ts`):
 
 - A recorded extraction's id shows its summary; `--json` data equals the recorded result.
-- A recorded adherence job's id is routed to its verdict (`GET` the submission, 404, then the job and its result); a running one is followed to its verdict.
+- A recorded adherence job's id is routed to its verdict (`GET` the submission, 404, then the job and its result), and `--format json` prints it; a running one is followed to its verdict.
 - An unknown id is `NOT_FOUND`; Ctrl-C ends with the same id to wait on.
 
 ### `taste share <id>`

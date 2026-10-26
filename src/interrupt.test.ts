@@ -11,12 +11,15 @@ class Exit extends Error {
   }
 }
 
-function harness(json: boolean) {
+function harness(json: boolean, clearLine = false) {
   let written = "";
+  let errors = "";
   const timers: (() => void)[] = [];
   const interrupt = createInterrupt({
     json,
     write: (text) => (written += text),
+    writeErr: (text) => (errors += text),
+    clearLine,
     exit: (code) => {
       throw new Exit(code);
     },
@@ -38,6 +41,7 @@ function harness(json: boolean) {
     timers,
     exitCode,
     out: () => written,
+    err: () => errors,
   };
 }
 
@@ -85,10 +89,41 @@ describe("Ctrl-C", () => {
     expect(h.out()).toBe('{"ok":true,"data":{}}\n');
   });
 
-  it("writes no document without --json", () => {
-    const h = harness(false);
+  it("writes no document without --json, and clears the progress line before its message", () => {
+    const h = harness(false, true);
+    h.interrupt.track({ id: "sub-1" });
     h.interrupt.onSigint();
     expect(h.exitCode(() => h.interrupt.onSigint())).toBe(130);
     expect(h.out()).toBe("");
+    expect(h.err()).toBe(
+      "\r\u001b[2K✗ error: Interrupted.\n  The job carries on. Run taste wait sub-1 to pick it up.\n"
+    );
+  });
+
+  it("names the job to wait on when one was started", () => {
+    const h = harness(true);
+    h.interrupt.track({ id: "sub-1" });
+    h.interrupt.onSigint();
+    h.exitCode(() => h.interrupt.onSigint());
+    expect(JSON.parse(h.out())).toMatchObject({
+      error: {
+        hint: expect.stringContaining("taste wait sub-1") as string,
+        retryable: false,
+        details: { id: "sub-1" },
+      },
+    });
+  });
+
+  it("never invites a rerun while a paid request is in flight", () => {
+    const h = harness(true);
+    h.interrupt.track({ paid: "yes" });
+    h.interrupt.onSigint();
+    h.exitCode(() => h.timers.forEach((fn) => fn()));
+    const { error } = JSON.parse(h.out()) as {
+      error: { hint: string; retryable: boolean };
+    };
+    expect(error.hint).toContain("taste history");
+    expect(error.hint).not.toMatch(/^Run the command again/);
+    expect(error.retryable).toBe(false);
   });
 });

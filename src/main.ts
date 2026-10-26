@@ -17,6 +17,8 @@ for (const stream of [process.stdout, process.stderr]) {
 const interrupt = createInterrupt({
   json: process.argv.slice(2).includes("--json"),
   write: (text) => process.stdout.write(text),
+  writeErr: (text) => process.stderr.write(text),
+  clearLine: process.stderr.isTTY === true,
   exit: (code) => process.exit(code),
   later: (fn, ms) => setTimeout(fn, ms).unref(),
 });
@@ -27,20 +29,21 @@ const [out, err] = [process.stdout, process.stderr].map((stream) =>
   detectTerminal(stream, process.env, { motion: true })
 ) as [TerminalInfo, TerminalInfo];
 
-const exitCode = await run(
-  process.argv.slice(2),
-  processIo(
-    {
-      terminal: {
-        ...out,
-        colorLevel: Math.min(out.colorLevel, err.colorLevel) as ColorLevel,
-        motion: out.motion && err.motion,
-      },
-      stdout: interrupt.watch((text) => process.stdout.write(text)),
-      stderr: (text) => process.stderr.write(text),
+const io = processIo(
+  {
+    terminal: {
+      ...out,
+      colorLevel: Math.min(out.colorLevel, err.colorLevel) as ColorLevel,
+      motion: out.motion && err.motion,
     },
-    interrupt.signal
-  )
+    stdout: interrupt.watch((text) => process.stdout.write(text)),
+    stderr: (text) => process.stderr.write(text),
+  },
+  interrupt.signal
 );
+const exitCode = await run(process.argv.slice(2), {
+  ...io,
+  inFlight: (params) => interrupt.track(params),
+});
 interrupt.finish(exitCode);
 process.exitCode = exitCode;

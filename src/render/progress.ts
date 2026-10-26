@@ -2,6 +2,7 @@
 // note per step elsewhere, and the line that closes it. Pure: text in, text out.
 import { plain } from "../output/output.ts";
 import type { Theme } from "../output/theme.ts";
+import { fit } from "./fit.ts";
 
 const FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"] as const;
 
@@ -18,14 +19,18 @@ function formatElapsed(ms: number): string {
   return `${Math.floor(seconds / 60)}m ${rest}s`;
 }
 
+// Kept to width - 1 columns: a line that wraps can't be redrawn in place, and would add a row a frame.
 function renderProgressLine(
   frame: number,
   step: string,
   elapsedMs: number,
-  theme: Theme
+  theme: Theme,
+  width: number
 ): string {
   const spinner = FRAMES[frame % FRAMES.length] ?? FRAMES[0];
-  return `${theme.accent(spinner)} ${humanizeStep(step)} ${theme.dim(`· ${formatElapsed(elapsedMs)}`)}`;
+  const tail = `· ${formatElapsed(elapsedMs)}`;
+  const room = width - 1 - (spinner.length + 1) - (tail.length + 1);
+  return `${theme.accent(spinner)} ${fit(humanizeStep(step), room)} ${theme.dim(tail)}`;
 }
 
 function renderStepNote(step: string, elapsedMs: number, theme: Theme): string {

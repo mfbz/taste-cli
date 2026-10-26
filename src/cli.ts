@@ -6,10 +6,11 @@ import {
 
 import pkg from "../package.json" with { type: "json" };
 import { extract } from "./commands/extract.ts";
+import { DEFAULT_TIMEOUT_S, FORMATS } from "./commands/job.ts";
 import { kit } from "./commands/kit.ts";
 import { login } from "./commands/login.ts";
 import { logout } from "./commands/logout.ts";
-import { DEFAULT_TIMEOUT_S, FORMATS, wait } from "./commands/wait.ts";
+import { wait } from "./commands/wait.ts";
 import { whoami } from "./commands/whoami.ts";
 import { createContext } from "./context.ts";
 import type { Context } from "./context.ts";

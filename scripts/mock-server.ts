@@ -429,15 +429,24 @@ function parseJson(text: string): unknown {
   }
 }
 
-function startMock(options: MockOptions & { port?: number }): Promise<Mock> {
+// onRequest hears each answered request as "METHOD /path", so a test can act on what the mock saw
+// instead of on a timer.
+function startMock(
+  options: MockOptions & {
+    port?: number;
+    onRequest?: (request: string) => void;
+  }
+): Promise<Mock> {
   const handle = createMockHandler(options);
   const server = createServer(
     (request: IncomingMessage, response: ServerResponse) => {
       void read(request)
         .then((text) => {
+          const method = request.method ?? "GET";
+          const url = new URL(request.url ?? "/", "http://127.0.0.1");
           const answer = handle({
-            method: request.method ?? "GET",
-            url: new URL(request.url ?? "/", "http://127.0.0.1"),
+            method,
+            url,
             body: parseJson(text),
             text,
             key: String(request.headers["x-api-key"] ?? ""),
@@ -446,6 +455,7 @@ function startMock(options: MockOptions & { port?: number }): Promise<Mock> {
             "content-type": "application/json",
           });
           response.end(JSON.stringify(answer.body));
+          options.onRequest?.(`${method} ${url.pathname}`);
         })
         // A body that never arrives whole, or a bug here: the API's plain-text
         // 500, and the mock keeps serving.

@@ -96,6 +96,27 @@ describe("CliError", () => {
     expect(whileWaiting(notFound, "sub-1")).toBe(notFound);
   });
 
+  it("is never retryable once the hint is taste wait or the paid one", () => {
+    for (const code of [
+      "NETWORK",
+      "TIMEOUT",
+      "UPSTREAM",
+      "RATE_LIMITED",
+      "INTERRUPTED",
+      "WAIT_TIMEOUT",
+    ] as const) {
+      const resume = toErrorReport(new CliError(code, { id: "sub-1" }));
+      expect(resume.hint, code).toContain("taste wait sub-1");
+      expect(resume.retryable, code).toBe(false);
+    }
+    for (const code of ["NETWORK", "TIMEOUT", "INTERRUPTED"] as const)
+      expect(
+        toErrorReport(new CliError(code, { paid: "yes" })).retryable,
+        code
+      ).toBe(false);
+    expect(toErrorReport(new CliError("NETWORK")).retryable).toBe(true);
+  });
+
   it("lists every section name the API knows in the sections hint", () => {
     const hint = toErrorReport(new CliError("USAGE_INVALID_SECTIONS")).hint;
     for (const name of SECTION_NAME.options) expect(hint).toContain(name);

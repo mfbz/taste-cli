@@ -8,6 +8,7 @@ import type { SubmissionResult } from "../api/schemas.ts";
 import { plain } from "../output/output.ts";
 import type { Theme } from "../output/theme.ts";
 import type { ColorLevel } from "../output/terminal.ts";
+import { fit } from "./fit.ts";
 import { normalizeHex, renderColorRow } from "./swatches.ts";
 import type { Color } from "./swatches.ts";
 
@@ -64,11 +65,6 @@ function design(result: SubmissionResult) {
   return DESIGN.parse(result.result?.design_system ?? {});
 }
 
-function fit(value: string, room: number): string {
-  if (room <= 0) return "";
-  return value.length <= room ? value : `${value.slice(0, room - 1)}…`;
-}
-
 function hostOf(url: string): string {
   return URL.parse(url)?.hostname || url;
 }
@@ -104,9 +100,11 @@ function families(d: ReturnType<typeof design>): string[] {
     ),
     ...TYPEFACES.parse(typography.typefaces).map((t) => t.family),
   ];
-  return [
-    ...new Set(names.map((name) => plain(name ?? "").trim()).filter(Boolean)),
-  ];
+  // A CSS expression such as var(--mono) is not a family a person can look up.
+  const real = names
+    .map((name) => plain(name ?? "").trim())
+    .filter((name) => name !== "" && !/[()]/.test(name));
+  return [...new Set(real)];
 }
 
 function renderBrandSummary(

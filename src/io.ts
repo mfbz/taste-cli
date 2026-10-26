@@ -43,6 +43,9 @@ type Io = {
   askSecret?: (message: string) => Promise<string | null>;
   // Aborted by Ctrl-C.
   signal?: AbortSignal;
+  // What is in flight, as error params ({ paid: "yes" } or { id }), so a hard stop after Ctrl-C
+  // never invites a second paid run.
+  inFlight?: (params: Readonly<Record<string, string>>) => void;
 };
 
 // A key is a few hundred bytes at most; anything far bigger isn't one, and isn't read whole.

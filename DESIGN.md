@@ -45,7 +45,7 @@ While `extract`, `kit` or `wait` waits on a job, progress goes to stderr. In a t
 ⠋ Crawling · 12s
 ```
 
-Without motion (a pipe, CI, `TASTE_NO_MOTION`) each step is one plain line instead (`Crawling · 12s`); under `--json`, nothing. The line is cleared before anything else is written, and the wait ends with a `success` check mark:
+The line is cut with `…` to one column less than the terminal's width, so it never wraps (a wrapped line would add a row every frame). A warning or note written meanwhile clears the line first and draws it again after. Without motion (a pipe, CI, `TASTE_NO_MOTION`) each step is one plain line instead (`Crawling · 12s`); under `--json`, nothing. The line is cleared before anything else is written, and the wait ends with a `success` check mark:
 
 ```text
 ✓ Extracted Stripe in 48s
@@ -54,7 +54,7 @@ Without motion (a pipe, CI, `TASTE_NO_MOTION`) each step is one plain line inste
 
 ## Brand summary
 
-What `extract`, `kit` and `wait` print on stdout for a finished extraction. The brand name in bold, the tagline dimmed, then dimmed labels in a 7-column gutter. Each colour is a swatch (`██` in the brand's own colour, truecolor or the nearest of 256), its hex and its name dimmed; with 16 colours or none, the hex and name alone, since a near miss would mislead. Lines are cut with `…` to the terminal's width. Fields the result doesn't have are left out, never filled in.
+What `extract`, `kit` and `wait` print on stdout for a finished extraction. The brand name in bold, the tagline dimmed, then dimmed labels in a 7-column gutter. Each colour is a swatch (`██` in the brand's own colour, truecolor or the nearest of 256), its hex and its name dimmed; with 16 colours or none, the hex and name alone, since a near miss would mislead. Lines are cut with `…` to the terminal's width; a terminal narrower than 40 columns, or one that reports no width, gets 40-column lines that it may wrap. Fields the result doesn't have are left out, never filled in.
 
 ```text
 Stripe

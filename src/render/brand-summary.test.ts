@@ -47,6 +47,34 @@ describe("renderBrandSummary", () => {
     );
   });
 
+  it("lists each type family once, and skips CSS expressions", () => {
+    const text = renderBrandSummary(result("extract-full"), plain);
+    const line = text.split("\n").find((l) => l.startsWith("Type")) ?? "";
+    expect(line).toBe(
+      "Type   Matter TRIAL, Azeret Semimono, Matter, Neue Montreal"
+    );
+    const css = SUBMISSION_RESULT.parse({
+      submission_id: "sub-1",
+      status: "completed",
+      source_url: "https://example.com/",
+      result: {
+        design_system: {
+          typography: {
+            titles: {
+              variants: [
+                { name: "Inter" },
+                { name: "calc(1rem)" },
+                { name: "Inter" },
+                { name: "var(--display)" },
+              ],
+            },
+          },
+        },
+      },
+    });
+    expect(renderBrandSummary(css, plain)).toContain("Type   Inter\n");
+  });
+
   it("has no ANSI without colour, and truecolor swatches with it", () => {
     expect(renderBrandSummary(result("extract-full"), plain)).not.toMatch(ANSI);
     const coloured = renderBrandSummary(result("extract-full"), {

@@ -93,9 +93,9 @@ describe("--json output", () => {
     expect(JSON.parse(h.out())).toMatchObject({ ok: true });
   });
 
-  it("keeps a live status line out of both streams", () => {
+  it("keeps a live line out of both streams", () => {
     const h = harness(true);
-    h.output.status("\r⠋ Crawling");
+    h.output.live("⠋ Crawling");
     expect(h.out() + h.err()).toBe("");
   });
 
@@ -133,11 +133,26 @@ describe("human output", () => {
     expect(plain(h.err(), { newlines: true })).toContain("error:");
   });
 
-  it("writes a live status line to stderr as is, without a newline", () => {
+  it("draws a live line in place on stderr, and clears it", () => {
     const h = harness(false);
-    h.output.status("\r⠋ Crawling");
-    expect(h.err()).toBe("\r⠋ Crawling");
+    h.output.live("⠋ Crawling");
+    h.output.live(null);
+    expect(h.err()).toBe("\r\u001b[2K⠋ Crawling\r\u001b[2K");
     expect(h.out()).toBe("");
+  });
+
+  it("clears the live line for a warning or a note, then draws it again", () => {
+    const h = harness(false);
+    h.output.live("⠋ Crawling");
+    h.output.warn("The keychain is locked.");
+    h.output.note("Started.");
+    expect(h.err()).toBe(
+      [
+        "\r\u001b[2K⠋ Crawling",
+        "\r\u001b[2Kwarning: The keychain is locked.\n\r\u001b[2K⠋ Crawling",
+        "\r\u001b[2KStarted.\n\r\u001b[2K⠋ Crawling",
+      ].join("")
+    );
   });
 
   it("writes notes to stderr", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { runCli } from "../fake-io.ts";
-import { fixtures, jobSeams, recorded } from "./job-seams.ts";
+import { fixtures, jobSeams, recorded } from "../job-seams.ts";
 
 const SUBMISSION = "00000000-0000-4000-8000-000000000200";
 const CHECK = "00000000-0000-4000-8000-000000000900";
@@ -36,6 +36,13 @@ describe("taste wait", () => {
     expect(err).toContain("✓ Checked tastelabs.com");
     const json = await runCli(["wait", CHECK, "--json"], io);
     expect(json.doc()).toEqual({ ok: true, data: verdict });
+  });
+
+  it("prints an adherence verdict as JSON with --format json", async () => {
+    const { io } = jobSeams();
+    const { code, out } = await runCli(["wait", CHECK, "--format", "json"], io);
+    expect(code).toBe(0);
+    expect(JSON.parse(out)).toEqual(verdict);
   });
 
   it("follows a running adherence job to its verdict", async () => {

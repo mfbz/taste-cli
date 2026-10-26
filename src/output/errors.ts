@@ -375,7 +375,10 @@ function report(code: ErrorCode, params: Params = {}): FullReport {
     code,
     message: fill(message, params),
     hint: fill(hint, params),
-    retryable: CATALOGUE[code].retryable && !paid,
+    // Retryable means running the same command again is safe and costs nothing extra; never when the
+    // hint is taste wait (the job runs on) or the paid one (it may have been charged).
+    retryable:
+      CATALOGUE[code].retryable && !paid && !(hasJob && DETAIL_CODES.has(code)),
     exitCode: exit,
     ...(DETAIL_CODES.has(code) && hasJob
       ? { details: { id: String(params.id) } }

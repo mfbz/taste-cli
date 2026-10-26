@@ -1,11 +1,11 @@
 // Test seams for the job commands (extract, kit, wait): the fake Taste Engine seeded from the recorded
 // fixtures, an instant sleep and a clock that only moves when the poller sleeps.
-import { fixtureState, loadFixtures } from "../api/fixtures.ts";
-import { createFakeApi } from "../api/fake-api.ts";
-import type { FakeApi, FakeState } from "../api/fake-api.ts";
-import { SUBMISSION_RESULT } from "../api/schemas.ts";
-import type { SubmissionResult } from "../api/schemas.ts";
-import type { Io } from "../io.ts";
+import { fixtureState, loadFixtures } from "./api/fixtures.ts";
+import { createFakeApi } from "./api/fake-api.ts";
+import type { FakeApi, FakeState } from "./api/fake-api.ts";
+import { SUBMISSION_RESULT } from "./api/schemas.ts";
+import type { SubmissionResult } from "./api/schemas.ts";
+import type { Io } from "./io.ts";
 
 const fixtures = loadFixtures();
 

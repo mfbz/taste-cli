@@ -28,6 +28,8 @@ type Context = {
   // Aborted by Ctrl-C; a fresh, never aborted one when the wiring has none.
   signal: AbortSignal;
   readFile: (path: string, maxBytes: number) => Promise<Uint8Array>;
+  // Tells the hard stop what a Ctrl-C would leave behind: a paid request in flight, or a job's id.
+  inFlight: (params: Readonly<Record<string, string>>) => void;
   store(): Promise<SecretStore>;
   auth: Provider;
   // The signed in client by default; login passes a key it is about to check.
@@ -83,6 +85,7 @@ function createContext(io: Io, output: Output): Context {
     sleep,
     signal: signal ?? new AbortController().signal,
     readFile: (path, maxBytes) => need(io.readFile)(path, maxBytes),
+    inFlight: (params) => io.inFlight?.(params),
     store,
     auth,
     api: (provider) =>

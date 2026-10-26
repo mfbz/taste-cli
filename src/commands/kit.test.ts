@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { runCli } from "../fake-io.ts";
 import { readLocalFile } from "../io.ts";
-import { jobSeams, recorded } from "./job-seams.ts";
+import { jobSeams, recorded } from "../job-seams.ts";
 
 const SAMPLE = fileURLToPath(
   new URL("../../fixtures-input/sample-guidelines.pdf", import.meta.url)

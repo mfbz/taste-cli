@@ -5,8 +5,14 @@ import { basename } from "node:path";
 
 import type { Context } from "../context.ts";
 import { CliError } from "../output/errors.ts";
-import { awaitSubmission, showAccepted, showSubmission } from "./wait.ts";
-import type { Format } from "./wait.ts";
+import {
+  awaitJob,
+  showAccepted,
+  showSubmission,
+  startJob,
+  submissionJob,
+} from "./job.ts";
+import type { Format } from "./job.ts";
 
 type KitOptions = { format: Format; wait: boolean; timeout: number };
 
@@ -27,16 +33,19 @@ async function kit(
   if (bytes.length === 0 || !isPdf(bytes)) throw new CliError("INVALID_FILE");
 
   const api = ctx.api();
-  const accepted = await api.createBrandKit({ name: basename(file), bytes });
+  const accepted = await startJob(ctx, () =>
+    api.createBrandKit({ name: basename(file), bytes })
+  );
   if (!options.wait) {
     showAccepted(ctx, accepted);
     return;
   }
-  const result = await awaitSubmission(
+  const id = accepted.submission_id;
+  const result = await awaitJob(
     ctx,
-    api,
-    accepted.submission_id,
-    options.timeout * 1000
+    id,
+    options.timeout * 1000,
+    submissionJob(api, id)
   );
   showSubmission(ctx, result, options.format);
 }

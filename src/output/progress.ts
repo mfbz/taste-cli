@@ -1,6 +1,6 @@
 // A job's live progress on stderr. In a terminal that allows motion, one line redraws in place with a
-// spinner, the step and the time so far; elsewhere each step is one note. Under --json, nothing. The
-// line is always cleared before anything else is written, so an error never lands on a spinner.
+// spinner, the step and the time so far, never wider than the terminal; elsewhere each step is one
+// note. Under --json, nothing. Output keeps the line out of the way of anything else on stderr.
 import {
   renderDone,
   renderProgressLine,
@@ -17,14 +17,14 @@ type Progress = {
 };
 
 const FRAME_MS = 80;
-const CLEAR_LINE = "\r\u001b[2K";
 
 function startProgress(options: {
   output: Output;
   motion: boolean;
   now: () => number;
+  width: number;
 }): Progress {
-  const { output, now } = options;
+  const { output, now, width } = options;
   const motion = options.motion && !output.json;
   const started = now();
   let current = "";
@@ -32,8 +32,8 @@ function startProgress(options: {
   let timer: ReturnType<typeof setInterval> | undefined;
 
   const draw = () => {
-    output.status(
-      `${CLEAR_LINE}${renderProgressLine(frame, current, now() - started, output.theme)}`
+    output.live(
+      renderProgressLine(frame, current, now() - started, output.theme, width)
     );
     frame += 1;
   };
@@ -41,7 +41,7 @@ function startProgress(options: {
     if (timer === undefined) return;
     clearInterval(timer);
     timer = undefined;
-    output.status(CLEAR_LINE);
+    output.live(null);
   };
 
   return {
