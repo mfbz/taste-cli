@@ -8,9 +8,8 @@ import { CliError } from "../output/errors.ts";
 import {
   awaitJob,
   checkOut,
-  saveFiles,
+  finishSubmission,
   showAccepted,
-  showSubmission,
   startedSubmission,
   startJob,
   submissionJob,
@@ -55,8 +54,7 @@ async function kit(
     options.timeout * 1000,
     submissionJob(api, id)
   );
-  const skipped = await saveFiles(ctx, api, id, options);
-  showSubmission(ctx, result, options.format, skipped);
+  await finishSubmission(ctx, api, id, result, options);
 }
 
 export { kit };

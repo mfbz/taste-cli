@@ -4,7 +4,7 @@ An unofficial command line for the [Taste Engine](https://docs.tastelabs.com), T
 
 > taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engine API.
 
-Extract a brand from a website or a guidelines PDF, check a site against a brand, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
+Extract a brand from a website or a guidelines PDF, export it as a DESIGN.md, check a site against a brand, search brands, find similar ones and enhance prompts, from a terminal, a script, CI or an agent. Every behaviour below is specified in full in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Contents
 
@@ -18,6 +18,7 @@ Extract a brand from a website or a guidelines PDF, check a site against a brand
 - [Brand checks in CI](#brand-checks-in-ci)
 - [Pick a job up again](#pick-a-job-up-again): `wait`
 - [Save the files](#save-the-files): `--out`
+- [Export a DESIGN.md](#export-a-designmd): `--format design-md`
 - [Search brands](#search-brands): `search`, `similar`
 - [Enhance a prompt](#enhance-a-prompt): `enhance`
 - [History](#history): `history`
@@ -29,7 +30,7 @@ Extract a brand from a website or a guidelines PDF, check a site against a brand
 
 ## Status
 
-Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. Commands still being built are listed as planned in [TASTE-CLI.md](TASTE-CLI.md).
+Early development. Today `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, exports it as a DESIGN.md, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. Commands still being built are listed as planned in [TASTE-CLI.md](TASTE-CLI.md).
 
 ## Install
 
@@ -93,6 +94,7 @@ taste extract stripe.com --deep                        # slower, deeper analysis
 taste extract stripe.com --force                       # again, even if Taste has a recent result
 taste extract stripe.com --map --max-urls 20           # find the site's pages and extract them too
 taste extract stripe.com --format json > stripe.json   # the whole result, as Taste sent it
+taste extract stripe.com --format design-md > DESIGN.md  # the brand as a DESIGN.md file
 taste extract stripe.com --no-wait                     # print the job's id and return
 taste extract stripe.com --timeout 1200                # wait up to 20 minutes
 ```
@@ -104,7 +106,7 @@ Spends credits.
 - `--deep`: Taste's slower, deeper analysis. Not with `--sections` (`USAGE_CONFLICTING_OPTIONS`).
 - `--force`: extract again even when Taste holds a recent result.
 - `--map`: find the site's pages and extract them too; `--max-urls <n>` (1 to 200) caps how many. Not with `--sections` (`SELECTIVE_MAP_UNSUPPORTED`); `--max-urls` needs `--map` (`USAGE_NEEDS_OPTION`). Map mode has only been run against the local mock so far.
-- `--format <format>`: `summary` (the default) or `json`.
+- `--format <format>`: `summary` (the default), `json`, or `design-md`, the brand as a DESIGN.md file (see [Export a DESIGN.md](#export-a-designmd)).
 - `--no-wait`: print the job's id alone on stdout and return at once; stderr says `Started. Run taste wait <id> to pick it up.` Under `--json` the data is `{"id","status"}`.
 - `--timeout <seconds>`: stop waiting after this long (default 600, at most 86400). The job carries on: `WAIT_TIMEOUT` names `taste wait <id>`.
 - `--out <dir>`, `--overwrite`: save the result's files, see [Save the files](#save-the-files).
@@ -119,6 +121,7 @@ While it waits, progress goes to stderr (one line redrawn in place in a terminal
 taste kit guidelines.pdf
 taste kit guidelines.pdf --no-wait
 taste kit guidelines.pdf --out acme --format json
+taste kit guidelines.pdf --format design-md > DESIGN.md
 ```
 
 Spends credits. Extracts a brand kit from a brand guidelines PDF. The file is checked before the upload: it must exist and be a file (`FILE_NOT_FOUND`), be at most 50 MB (`FILE_TOO_LARGE`) and be a PDF that isn't empty (`INVALID_FILE`). It takes `--format`, `--no-wait`, `--timeout`, `--out` and `--overwrite` as `extract` does, with the same progress, summary and `--json` shapes.
@@ -180,11 +183,12 @@ jobs:
 ```sh
 taste wait <id>                      # an extraction, a brand kit or a brand adherence check
 taste wait <id> --format json        # the whole result
+taste wait <id> --format design-md > DESIGN.md   # an extraction or a brand kit as a DESIGN.md, for free
 taste wait <id> --timeout 1200
 taste wait <id> --out stripe         # save a finished extraction's files, for free
 ```
 
-Free. Picks up a job started with `--no-wait`, or one interrupted or out of time, and ends as the command that started it would. The id may be an extraction, a brand kit or a brand adherence check; one that is neither fails with `NOT_FOUND`. A check ends as `taste check` without `--min` does. `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED`. `--timeout` and `--format` work as for `extract`.
+Free. Picks up a job started with `--no-wait`, or one interrupted or out of time, and ends as the command that started it would. The id may be an extraction, a brand kit or a brand adherence check; one that is neither fails with `NOT_FOUND`. A check ends as `taste check` without `--min` does. `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED`, and `--format design-md` with `USAGE_FORMAT_UNSUPPORTED`. `--timeout` and `--format` work as for `extract`.
 
 `--json` data: the result, or for a check the verdict, exactly as Taste returned it.
 
@@ -202,6 +206,25 @@ taste wait <id> --out stripe --overwrite         # save them again, for free
 - Nothing is ever written outside the folder or through a symlink: a file path from Taste that would leave it fails with `BUNDLE_PATH_UNSAFE`, and nothing is written.
 - An asset that is gone for good (refused at its own address, or over 100 MB) is skipped with a warning; under `--json` the data gains `"skipped":[{"path","status"}]`.
 - Once the job is done, every failure to save keeps its id (`error.details.id`) and says how to get it again for free: `taste wait <id> --out`, or `taste wait <id>` for `BUNDLE_INVALID`.
+
+## Export a DESIGN.md
+
+```sh
+taste extract stripe.com --format design-md > DESIGN.md           # extract, then write the file
+taste kit guidelines.pdf --format design-md > DESIGN.md           # from a brand guidelines PDF
+taste wait <id> --format design-md > DESIGN.md                    # from a finished job, for free
+taste extract stripe.com --format design-md --out stripe          # print it, and save stripe/DESIGN.md with the other files
+```
+
+`--format design-md` turns a finished extraction or brand kit into a [DESIGN.md](https://github.com/google-labs-code/design.md), the format coding agents read to follow a design system. The file goes to stdout and progress to stderr, so redirecting stdout gives a clean file. With `--out` it is also saved as `DESIGN.md` in the folder.
+
+- It follows the DESIGN.md format version `alpha`: front matter with `name`, `description` and the tokens (`colors`, `typography`, `spacing`, `components`), then the sections Overview, Colors, Typography, Layout, Elevation & Depth, Components and Do's and Don'ts.
+- Only what the extraction holds is written. A token or section with nothing behind it is left out, never guessed. Token names are the extraction's own, such as `blurple` or `heading-xl`.
+- It is rendered on your computer from the result: no extra request, no extra credits.
+- It ends with where and when it was extracted: `Extracted from https://stripe.com/ on 2026-10-20 with the Taste Engine, via taste-cli 0.0.0 (unofficial).`
+- `--json` still prints the result as Taste sent it.
+
+How each field maps, and the examples rendered from recorded results, are in [TASTE-CLI.md](TASTE-CLI.md) and `src/design-md/__golden__/`.
 
 ## Search brands
 

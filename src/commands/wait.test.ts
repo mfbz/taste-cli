@@ -113,6 +113,28 @@ describe("taste wait", () => {
     }
   });
 
+  it("prints --format design-md to stdout, and saves it as DESIGN.md with --out", async () => {
+    const base = await mkdtemp(join(tmpdir(), "taste-wait-"));
+    try {
+      const downloads: Record<string, Uint8Array> = {};
+      for (const file of manifest.files)
+        if (file.url) downloads[file.url] = new Uint8Array([7]);
+      const { io } = jobSeams({ downloads });
+      const dir = join(base, "taste");
+      const { code, out, err } = await runCli(
+        ["wait", TASTE, "--format", "design-md", "--out", dir],
+        io
+      );
+      expect(code).toBe(0);
+      expect(out).toMatch(/^---\nversion: alpha\nname: "Taste"\n/);
+      expect(out).toContain("on 2026-10-21 with the Taste Engine");
+      expect(err).not.toContain("version: alpha");
+      expect(await readFile(join(dir, "DESIGN.md"), "utf8")).toBe(out);
+    } finally {
+      await rm(base, { recursive: true, force: true });
+    }
+  });
+
   it("refuses --out for a brand adherence check, after one read confirms it", async () => {
     const { api, io } = jobSeams();
     const { code, doc } = await runCli(

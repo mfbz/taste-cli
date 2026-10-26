@@ -340,6 +340,11 @@ const CATALOGUE = {
     "--out saves the files of an extraction or a brand kit, and that id is a brand adherence check.",
     "Leave out --out. With --format json the verdict is printed whole."
   ),
+  USAGE_FORMAT_UNSUPPORTED: entry(
+    2,
+    "--format design-md writes an extraction or a brand kit as a DESIGN.md, and that id is a brand adherence check.",
+    "Use --format summary or --format json."
+  ),
   // Ctrl-C while a paid job runs: the job carries on server side, so say how to pick it up.
   INTERRUPTED: entry(
     130,
