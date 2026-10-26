@@ -6,7 +6,7 @@ taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engi
 
 ## Status
 
-Built: `taste --version`, `taste --help`, the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit` and `taste wait` with `--out` to save a result's files, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`. Every other command below is planned: its section is filled in by the pull request that builds it.
+Built: `taste --version`, `taste --help`, the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), the job commands `taste extract`, `taste kit`, `taste check` and `taste wait` with `--out` to save a result's files, `taste search`, `taste similar`, `taste enhance`, `taste history` and `taste share`. Every other command below is planned: its section is filled in by the pull request that builds it.
 
 ## What it is
 
@@ -26,6 +26,7 @@ Planned global flags: `--no-motion`, `-y, --yes`.
 ### Output contract
 
 - `--json` writes exactly one JSON document on stdout, errors included: `{"ok":true,"data":…}` or `{"ok":false,"error":{"code","message","hint","retryable"}}`, for every path including help, version, usage errors and Ctrl-C. Progress never reaches stdout.
+- `error.details` is there only where a code carries structured data: `{"id"}`, the job to `taste wait` on, once a job has started; for `BELOW_THRESHOLD` the check's whole `--json` data (see `taste check`).
 - Without `--json`, results go to stdout and errors, notes, progress and prompts to stderr. A pipe gets no ANSI.
 - Exit codes: 0 ok, 1 failure, 2 usage, 130 interrupted.
 - Errors come only from a catalogue (`src/output/errors.ts`): code, message, hint, retryable. Untrusted server text is stripped of control characters before display.
@@ -66,12 +67,12 @@ Where a sign in is kept:
 
 ## Credits
 
-Credits are real money. These rules hold for every command that spends them (today `extract`, `kit`, `search`, `similar` and `enhance`):
+Credits are real money. These rules hold for every command that spends them (today `extract`, `kit`, `check`, `search`, `similar` and `enhance`):
 
 - The command's `--help` says it spends credits. A command typed directly does not ask for confirmation: typing it is the decision. (The planned menu will confirm before spending.)
 - Every flag, the address and the file are checked before the one request that spends credits, so a mistake costs nothing.
 - A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds. Not after a network failure, a timeout or any other 5xx; a busy search that stays busy ends with `SEARCH_BUSY`.
-- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says where to look before running it again, never to try again: `taste history` for an extraction or a brand kit, `taste history searches` for a search or similar brands, and for an enhancement, which no history lists, the credits in the Taste account. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
+- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says where to look before running it again, never to try again: `taste history` for an extraction, a brand kit or a check, `taste history searches` for a search or similar brands, and for an enhancement, which no history lists, the credits in the Taste account. `taste history` with no options lists extractions and brand kits newest first, running ones included, so a job that did start is the first row, with the id to `taste wait` on.
 - Once a job has started, it runs on Taste's side whatever happens to taste: Ctrl-C, `--timeout`, a network failure or a Taste error while waiting all end with the job's id and the hint `taste wait <id>`, which picks it up for free (`error.details.id` under `--json`).
 - Failed jobs, searches and similar-brand requests are refunded by Taste.
 
@@ -245,7 +246,27 @@ Acceptance (proven by `src/commands/similar.test.ts`, `src/commands/resolve-bran
 
 ### `taste check <candidate-url> --against <reference-url>`
 
-Planned.
+Judges how closely a site follows a reference brand, such as a preview deployment against production. **Spends credits.** One `POST /judge/brand-adherence` (`{candidate_url, reference_url}`), then free polling of `GET /judge/brand-adherence/{id}` for its steps until it ends, then one read of `GET /judge/brand-adherence/{id}/result`.
+
+- `<candidate-url>`, `--against <reference-url>`: both checked as `taste extract` checks its address (a bare domain means `https://`, `PRIVATE_URL` and `INVALID_URL` before any request). `--against` is required (`USAGE_MISSING_ARGUMENT`).
+- `--min <score>`: a score from 0 to 1, such as `0.8`, the check must reach. Anything else (`2`, `-0.1`, `high`) fails with `USAGE_INVALID_VALUE` (exit 2) before any request. Below it, the command exits 1 with `BELOW_THRESHOLD`; a verdict with no score never reaches it. Without `--min` a finished check exits 0 whatever its score.
+- `--no-wait`, `--timeout <seconds>`: as `taste extract`. `--min` with `--no-wait` fails with `USAGE_CONFLICTING_OPTIONS`: there is no verdict to judge.
+
+Progress on stderr as `taste extract`, ending with `✓ Checked <candidate host> in 4m 01s`.
+
+Human output on stdout, laid out at least 40 columns wide: the score with two decimals and a 20-cell bar (`█` and `░`; none while the score is null), coloured, with `✓` or `✗` and the minimum, only with `--min`; the candidate and reference addresses; every recommendation, numbered in Taste's order and wrapped to the width; the fixes summed by `action` (`20 fixes: snap_to_token 19, align_profile_field 1`), the first three in full and `taste wait <id> --format json` for the rest; the id and `taste share <id>`. Every string from Taste is cleaned of control characters. Below `--min` the verdict is shown first, then the error on stderr.
+
+`--json`: `{"ok":true,"data":{"id","score","passed","min","recommendations","fixes"}}`: `score` is Taste's (0 to 1, or null), `passed` is `score >= min`, and `passed` and `min` are `null` without `--min`; `recommendations` and `fixes` are as Taste sent them. Below `--min`: `{"ok":false,"error":{"code":"BELOW_THRESHOLD",…,"details":<that same data, with passed false>}}`, so a script reads the findings without another call. With `--no-wait`, `{"ok":true,"data":{"id","status"}}`.
+
+A failed check (the job's status `failed`, or a `424` on its result) ends with `ADHERENCE_FAILED`, its message carrying the job's own reason cleaned of control characters, and `error.details.id`. Failed checks are refunded by Taste. A failure while the `POST` is in flight has the paid hint pointing at `taste history`; once the check has started, every failure while waiting names `taste wait <id>`.
+
+Errors: as `taste extract` without the `--out` and section errors, plus `BELOW_THRESHOLD` and `ADHERENCE_FAILED`.
+
+Acceptance (proven by `src/commands/check.test.ts` and `src/render/verdict.test.ts`):
+
+- The recorded `check-pass` verdict renders its score, its numbered recommendations and `taste share <id>`.
+- The recorded `check-fail` verdict with `--min 0.8` exits 1 with `BELOW_THRESHOLD` and `error.details.score` 0.15; `check-pass` with `--min 0.8` exits 0; without `--min` it exits 0 with `passed` and `min` null; `--min 2` exits 2.
+- A partial verdict (score null) draws no bar; the glyph shows only against a minimum; fixes are summed by action with the first three in full.
 
 ### `taste enhance "<prompt>" --brand <id|url>`
 
@@ -293,7 +314,7 @@ Acceptance (proven by `src/commands/history.test.ts`):
 
 Picks up a job started earlier, with `--no-wait` or one interrupted or out of time, and ends it as the command that started it would. Free: it only reads. The id may be an extraction or brand kit (`GET /design/submissions/{id}`) or a brand adherence check (on a 404 there, `GET /judge/brand-adherence/{id}`); an id that is neither fails with `NOT_FOUND`. Takes `--format`, `--timeout` and `--out` as `taste extract` does; `--out` with a check's id fails with `USAGE_OUT_UNSUPPORTED` (exit 2) before waiting on it, once a read of the check confirms it is one; an id that is neither stays `NOT_FOUND`. With `--out`, it is the free way to save a finished extraction's files again.
 
-An extraction or brand kit ends as `taste extract` does. An adherence check ends with `✓ Checked <candidate host> in 4m 01s` on stderr and, on stdout, the score, the candidate and reference addresses, the recommendations and the id, or with `--format json` the verdict as Taste sent it, indented; `--json` data is the verdict exactly as `GET /judge/brand-adherence/{id}/result` returned it.
+An extraction or brand kit ends as `taste extract` does. An adherence check ends as `taste check` without `--min` does (`✓ Checked <candidate host> in 4m 01s` on stderr, the verdict on stdout, a failed check `ADHERENCE_FAILED`), or with `--format json` the verdict as Taste sent it, indented; `--json` data is the verdict exactly as `GET /judge/brand-adherence/{id}/result` returned it.
 
 Acceptance (proven by `src/commands/wait.test.ts`):
 

@@ -7,6 +7,7 @@ import {
 
 import pkg from "../package.json" with { type: "json" };
 import { INDUSTRY, PAGE_TYPE } from "./api/schemas.ts";
+import { check } from "./commands/check.ts";
 import { extract } from "./commands/extract.ts";
 import { history, HISTORY_LISTS } from "./commands/history.ts";
 import { enhance } from "./commands/enhance.ts";
@@ -43,6 +44,7 @@ const SPENDS = "\nSpends credits from your Taste account.";
 const PAID_NOTE = `${SPENDS} A paid request is never retried by itself, except a search Taste turned away as busy (503), which Taste refunds.`;
 const LISTED_NOTE = `${PAID_NOTE} A failed request is refunded. If it fails on the way, check taste history searches before you run it again.`;
 const ENHANCE_NOTE = `${SPENDS} It is never retried by itself. If it fails on the way it may still have been charged: enhancements aren't listed in taste history, so check your credits in your Taste account before you run it again.`;
+const CHECK_NOTE = `${PAID_NOTE} A failed check is refunded. Ctrl-C stops waiting, not the check: taste wait <id> picks it up for free.`;
 const BRAND_HELP =
   "an extraction's id, or the address of a site you extracted in full (looked up for free)";
 const SEARCH_FILTERS = `\nIndustries: ${INDUSTRY.options.join(", ")}.\nPage types: ${PAGE_TYPE.options.join(", ")}.`;
@@ -83,6 +85,14 @@ function integer(min: number, max: number) {
 }
 
 const seconds = integer(1, 86_400);
+
+// A score to clear, 0 to 1, such as 0.8.
+function fraction(text: string): number {
+  const value = Number(text);
+  if (!/^[01]?(?:\.\d+)?$/.test(text) || text === "" || value > 1)
+    throw new InvalidArgumentError("out of range");
+  return value;
+}
 
 // How a job command shows its result.
 function formatOption() {
@@ -270,6 +280,32 @@ function buildProgram(io: Io, output: Output, captured: Captured) {
     .action(
       withContext(io, output, (ctx, brand, options) =>
         similar(ctx, brand, options)
+      )
+    );
+  program
+    .command("check")
+    .description(
+      "check how closely a site follows a reference brand (spends credits)"
+    )
+    .argument("<candidate>", "the site to check, such as a preview address")
+    .requiredOption(
+      "--against <reference>",
+      "the site whose brand it should follow, such as acme.com"
+    )
+    .option(
+      "--min <score>",
+      "fail with exit 1 when the score is below this, 0 to 1, such as 0.8",
+      fraction
+    )
+    .option("--no-wait", "print the job's id and return at once")
+    .option("--timeout <seconds>", TIMEOUT_HELP, seconds, DEFAULT_TIMEOUT_S)
+    .addHelpText(
+      "after",
+      `\nIn CI: taste check $PREVIEW_URL --against acme.com --min 0.8 --json\n${CHECK_NOTE.slice(1)}`
+    )
+    .action(
+      withContext(io, output, (ctx, candidate, options) =>
+        check(ctx, candidate, options)
       )
     );
   program
