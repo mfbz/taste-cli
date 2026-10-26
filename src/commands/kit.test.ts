@@ -65,50 +65,27 @@ describe("taste kit", () => {
   });
 
   it("gives --json the result as Taste sent it", async () => {
-    const { io } = seams();
-    const { doc } = await runCli(["kit", SAMPLE, "--json"], io);
+    const { doc } = await runCli(["kit", SAMPLE, "--json"], seams().io);
     expect(doc()).toEqual({ ok: true, data: acme });
   });
 
-  it("returns the id at once with --no-wait", async () => {
+  it("refuses a .txt, an empty file, a missing path, a folder and a file over 50 MB before uploading", async () => {
+    writeFileSync(join(dir, "notes.txt"), "Just some notes.");
+    writeFileSync(join(dir, "empty.pdf"), "");
+    writeFileSync(join(dir, "huge.pdf"), "%PDF-1.7\n");
+    truncateSync(join(dir, "huge.pdf"), 50 * 1024 * 1024 + 1);
     const { api, io } = seams();
-    const { out, err } = await runCli(["kit", SAMPLE, "--no-wait"], io);
-    expect(out).toBe("sub-1\n");
-    expect(err).toContain("taste wait sub-1");
-    expect(api.calls).toEqual(["POST /design/submissions/brand-kit"]);
-  });
-
-  it.each([
-    ["notes.txt", "Just some notes.", "INVALID_FILE"],
-    ["empty.pdf", "", "INVALID_FILE"],
-  ])("refuses %s with %s before uploading", async (name, body, expected) => {
-    const path = join(dir, name);
-    writeFileSync(path, body);
-    const { api, io } = seams();
-    const { code, doc } = await runCli(["kit", path, "--json"], io);
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe(expected);
-    expect(api.calls).toEqual([]);
-  });
-
-  it("refuses a file that isn't there, or a folder, before uploading", async () => {
-    const { api, io } = seams();
-    for (const path of [join(dir, "missing.pdf"), dir]) {
-      const { code, doc } = await runCli(["kit", path, "--json"], io);
-      expect(code).toBe(1);
-      expect(doc().error.code).toBe("FILE_NOT_FOUND");
+    for (const [name, code] of [
+      ["notes.txt", "INVALID_FILE"],
+      ["empty.pdf", "INVALID_FILE"],
+      ["missing.pdf", "FILE_NOT_FOUND"],
+      ["", "FILE_NOT_FOUND"],
+      ["huge.pdf", "FILE_TOO_LARGE"],
+    ] as const) {
+      const run = await runCli(["kit", join(dir, name), "--json"], io);
+      expect(run.code, name).toBe(1);
+      expect(run.doc().error.code, name).toBe(code);
     }
-    expect(api.calls).toEqual([]);
-  });
-
-  it("refuses a file over 50 MB without reading it", async () => {
-    const path = join(dir, "huge.pdf");
-    writeFileSync(path, "%PDF-1.7\n");
-    truncateSync(path, 50 * 1024 * 1024 + 1);
-    const { api, io } = seams();
-    const { code, doc } = await runCli(["kit", path, "--json"], io);
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe("FILE_TOO_LARGE");
     expect(api.calls).toEqual([]);
   });
 

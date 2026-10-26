@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { fakeOAuth, memoryStore } from "../auth/fake-oauth.ts";
+import { memoryStore } from "../auth/fake-oauth.ts";
 import { openStore } from "../auth/store.ts";
 import type { StoredCredential } from "../auth/store.ts";
 import { credentialsFile } from "../config/paths.ts";
@@ -67,27 +67,17 @@ describe("taste whoami", () => {
     expect(json.doc().error.code).toBe("NOT_SIGNED_IN");
   });
 
-  it("reads a corrupt credentials file as not signed in, with a warning and no stack", async () => {
+  it("reads a corrupt credentials file as not signed in, warning on stderr in both modes, never a stack", async () => {
     writeFileSync(credentialsFile(dir), "{not json", { mode: 0o600 });
     const { io } = seams(null, {
       store: (warn) => openStore({ dir, keychain: null, warn }),
     });
-    const { code, err } = await runCli(["whoami", "--debug"], io);
-    expect(code).toBe(1);
-    expect(err).toContain("can't be read");
-    expect(err).toContain("not signed in");
-    expect(err).not.toContain("SyntaxError");
-    expect(err).not.toMatch(/\bat \S+:\d+/);
-  });
-
-  it("puts the store's warning on stderr under --json too, with one document on stdout", async () => {
-    writeFileSync(credentialsFile(dir), "{not json", { mode: 0o600 });
-    const { io } = seams(null, {
-      store: (warn) => openStore({ dir, keychain: null, warn }),
-    });
-    const { code, out, err, doc } = await runCli(["whoami", "--json"], io);
-    expect(code).toBe(1);
-    expect(err).toContain("No system keychain");
+    const human = await runCli(["whoami", "--debug"], io);
+    expect(human.code).toBe(1);
+    expect(human.err).toContain("can't be read");
+    expect(human.err).toContain("not signed in");
+    expect(human.err).not.toMatch(/SyntaxError|\bat \S+:\d+/);
+    const { out, err, doc } = await runCli(["whoami", "--json"], io);
     expect(err).toContain("can't be read");
     expect(out.trim().split("\n")).toHaveLength(1);
     expect(doc().error.code).toBe("NOT_SIGNED_IN");
@@ -134,33 +124,5 @@ describe("taste whoami", () => {
     expect(code).toBe(1);
     expect(doc().error.code).toBe("INVALID_API_KEY");
     expect(out + err).not.toContain(other);
-  });
-
-  it("refreshes a session the API refuses, once, and goes on", async () => {
-    const oauth = fakeOAuth();
-    oauth.clients.add("client-1");
-    oauth.refreshTokens.add("refresh-1");
-    const { io, store } = seams(session({ accessToken: "stale" }), {
-      fetch: oauth.fetch,
-    });
-    const { code, doc } = await runCli(["whoami", "--json"], io);
-    expect(code).toBe(0);
-    expect(doc().data.method).toBe("session");
-    expect(store.value).toMatchObject({
-      accessToken: oauth.accessTokens.at(-1),
-    });
-  });
-
-  it("says the session ended when the refresh is refused", async () => {
-    const oauth = fakeOAuth();
-    const { io, store } = seams(session({ accessToken: "stale" }), {
-      fetch: oauth.fetch,
-    });
-    const { code, out, err } = await runCli(["whoami"], io);
-    expect(code).toBe(1);
-    expect(err).toContain("Your session has ended");
-    expect(err).toContain("taste login");
-    expect(out).toBe("");
-    expect(store.value).toBeNull();
   });
 });

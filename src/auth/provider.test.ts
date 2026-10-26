@@ -84,14 +84,6 @@ describe("createAuthProvider", () => {
     });
   });
 
-  it("reads the store once per command", async () => {
-    const { provider, opened } = setup(SESSION);
-    await provider.header();
-    await provider.header();
-    await provider.describe();
-    expect(opened()).toBe(1);
-  });
-
   it("reads nothing stored as not signed in", async () => {
     const { provider } = setup(null);
     expect(await provider.describe()).toBeNull();

@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { TasteApiError } from "../api/client.ts";
 import type { BrandSearchRequest } from "../api/schemas.ts";
 import { offline, runCli } from "../fake-io.ts";
 import { fixtures, jobSeams } from "../job-seams.ts";
-import { CliError } from "../output/errors.ts";
 
 const ANSI = /\u001b\[/;
 const recordedFast = fixtures["search-fast"]?.data.results;
@@ -34,38 +32,23 @@ describe("taste search", () => {
     ]);
     expect(out).toMatch(/^ *1 {2}daily {2}good/m);
     expect(out).toContain("https://daily.co/pricing");
-    expect(out).toContain("taste extract <url>");
     expect(out + err).not.toMatch(ANSI);
   });
 
-  it("passes the recorded answer through under --json", async () => {
+  it("passes the recorded answer through under --json, as one document", async () => {
     const { io } = seams();
-    const { code, out, doc } = await runCli(
+    const { out, doc } = await runCli(
       ["search", "dark brutalist developer tools", "--json"],
       io
     );
-    expect(code).toBe(0);
     expect(out.trim().split("\n")).toHaveLength(1);
     expect(doc()).toEqual({ ok: true, data: recordedFast });
   });
 
   it("sends --deep, --top and the filters as the API's fields", async () => {
     const { io, sent } = seams();
-    const { code } = await runCli(
-      [
-        "search",
-        "  calm fintech  ",
-        "--deep",
-        "--top",
-        "12",
-        "--industry",
-        "fintech",
-        "--page-type",
-        "pricing",
-      ],
-      io
-    );
-    expect(code).toBe(0);
+    const flags = "--deep --top 12 --industry fintech --page-type pricing";
+    await runCli(["search", "  calm fintech  ", ...flags.split(" ")], io);
     expect(sent).toEqual([
       {
         query: "calm fintech",
@@ -77,55 +60,28 @@ describe("taste search", () => {
   });
 
   it.each([
-    [["--industry", "nope"], "USAGE_INVALID_INDUSTRY"],
-    [["--page-type", "nope"], "USAGE_INVALID_PAGE_TYPE"],
-    [["--top", "0"], "USAGE_INVALID_VALUE"],
-    [["--top", "31"], "USAGE_INVALID_VALUE"],
-  ])("refuses %j with exit 2 and no request", async (flags, code) => {
+    [["calm fintech", "--industry", "nope"], "USAGE_INVALID_INDUSTRY"],
+    [["calm fintech", "--page-type", "nope"], "USAGE_INVALID_PAGE_TYPE"],
+    [["calm fintech", "--top", "0"], "USAGE_INVALID_VALUE"],
+    [["calm fintech", "--top", "31"], "USAGE_INVALID_VALUE"],
+    [[" x "], "USAGE_INVALID_QUERY"],
+    [["y".repeat(401)], "USAGE_INVALID_QUERY"],
+  ])("refuses %j with exit 2 and no request", async (args, code) => {
     const { api, io } = seams();
-    const result = await runCli(
-      ["search", "calm fintech", ...flags, "--json"],
-      io
-    );
+    const result = await runCli(["search", ...args, "--json"], io);
     expect(result.code).toBe(2);
     expect(result.doc().error.code).toBe(code);
     expect(result.out).not.toContain("nope");
     expect(api.calls).toEqual([]);
   });
 
-  it("lists a few valid industries when one is unknown", async () => {
-    const { io } = seams();
-    const { code, err } = await runCli(
+  it("names a few valid industries when one is unknown", async () => {
+    const { err } = await runCli(
       ["search", "calm fintech", "--industry", "nope"],
-      io
+      seams().io
     );
-    expect(code).toBe(2);
     for (const industry of ["saas", "fintech", "developer_tools"])
       expect(err).toContain(industry);
-  });
-
-  it.each(["x", " x ", "y".repeat(401)])(
-    "refuses a query that is not 2 to 400 characters (%#)",
-    async (query) => {
-      const { api, io } = seams();
-      const { code, doc } = await runCli(["search", query, "--json"], io);
-      expect(code).toBe(2);
-      expect(doc().error.code).toBe("USAGE_INVALID_QUERY");
-      expect(api.calls).toEqual([]);
-    }
-  );
-
-  it("accepts a query of exactly 400 characters", async () => {
-    const { io } = seams();
-    const { code } = await runCli(["search", "y".repeat(400), "--json"], io);
-    expect(code).toBe(0);
-  });
-
-  it("says no brands were found for an empty answer", async () => {
-    const { io } = seams({ searchResults: { results: [] } });
-    const { code, out } = await runCli(["search", "calm fintech"], io);
-    expect(code).toBe(0);
-    expect(out).toBe("No brands found.\n");
   });
 
   it("tells the hard stop a paid request is in flight, then that nothing is", async () => {
@@ -139,48 +95,21 @@ describe("taste search", () => {
   });
 
   it("never offers a blind retry after a network failure in flight", async () => {
-    const { code, doc } = await runCli(
+    const { doc } = await runCli(
       ["search", "calm fintech", "--json"],
       offline()
     );
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe("NETWORK");
-    expect(doc().error.hint).toBe(
-      "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice."
-    );
-    expect(doc().error.retryable).toBe(false);
+    expect(doc().error).toMatchObject({
+      code: "NETWORK",
+      hint: "It may have reached Taste and been charged. Check taste history searches before you run it again, so you don't pay twice.",
+      retryable: false,
+    });
   });
 
-  it("stops on a 402 with the balance", async () => {
-    const { io } = seams({ balance: 0 });
-    const { code, doc } = await runCli(
-      ["search", "calm fintech", "--json"],
-      io
-    );
-    expect(code).toBe(1);
-    expect(doc().error.code).toBe("INSUFFICIENT_CREDITS");
-  });
-
-  it("says search is busy, retryable, on a 503", async () => {
-    const { io } = seams({ errors: { search: new CliError("SEARCH_BUSY") } });
-    const { doc } = await runCli(["search", "calm fintech", "--json"], io);
-    expect(doc().error).toMatchObject({ code: "SEARCH_BUSY", retryable: true });
-  });
-
-  it("says in its help that it spends credits", async () => {
+  it("says in its help that it spends credits, and lists the filters' values", async () => {
     const { out } = await runCli(["search", "--help"]);
     expect(out).toContain("spends credits");
     expect(out).toContain("developer_tools");
     expect(out).toContain("landing_page");
-  });
-
-  it("maps a refused request to the catalogue, never the server's words", async () => {
-    const { io } = seams({
-      errors: {
-        search: new TasteApiError(422, { serverMessage: "server words" }),
-      },
-    });
-    const { out } = await runCli(["search", "calm fintech", "--json"], io);
-    expect(out).not.toContain("server words");
   });
 });

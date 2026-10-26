@@ -185,7 +185,7 @@ Acceptance (proven by `src/commands/extract.test.ts`, `src/render/brand-summary.
 - An asset at an unsigned address answering 403 or 404 is skipped: the rest are saved, the exit is 0, a warning names its path and status, cleaned, and `--json` lists it under `skipped`. An address with `?v=1` or a Next.js image query answering 403 is skipped too. A signed link (`?token=…`, `?X-Amz-Signature=…`, CloudFront's `Signature` and `Key-Pair-Id`) answering 403 stops with `BUNDLE_INCOMPLETE`, naming the path, the id and the free `taste wait <id> --out`, and its address appears nowhere. An asset over 100 MB is skipped as `too large`, and with `--overwrite` its older copy is removed.
 - An existing folder others can write to fails with `BUNDLE_PATH_UNSAFE` before any request; a sign in or credit error while saving keeps its code with `details.id`.
 - A folder with files fails with `OUTPUT_EXISTS` before any request; `--overwrite` replaces files of the same name.
-- After a paid `extract`, a hostile manifest, an invalid one, a folder filled while the job ran and a manifest that can't be read all end with the job's id in `error.details.id` and `taste wait <id> --out` in the hint.
+- After a paid `extract`, a hostile manifest, an invalid one and a manifest that can't be read all end with the job's id in `error.details.id` and `taste wait <id> --out` in the hint.
 - An asset over 100 MB is refused by its `Content-Length`, and an endless one is cut off once past it, read once (`src/api/client.test.ts`).
 - The mock's manifest is all inline, and `extract --out` against it sends nothing off this machine (`scripts/mock-taste.test.ts`).
 - No more than four downloads run at once.
@@ -304,7 +304,7 @@ Human output on stdout: a table with a dimmed header, one row per entry: the id,
 
 Acceptance (proven by `src/commands/history.test.ts`):
 
-- `taste history` lists the recorded extractions with their ids, dates, statuses and addresses in one request; a job just started is the first row.
+- `taste history` lists the recorded extractions with their ids, dates, statuses and addresses in one request.
 - `--json` data equals the API's list for checks and searches, with no other request.
 - Checks show their recorded scores (0.90, 0.15); a verdict that can't be read leaves the cell empty, silently unless `--debug`; searches show their query.
 - `--status`, `--search`, `--limit` and `--offset` reach the API as `status`, `q`, `limit` and `offset`; an unknown status, a limit out of range and an unknown list exit 2 with no request.

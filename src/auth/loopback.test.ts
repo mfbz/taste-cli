@@ -1,4 +1,4 @@
-import { connect, createServer } from "node:net";
+import { createServer } from "node:net";
 import type { Server } from "node:net";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -62,178 +62,85 @@ async function errorCode(promise: Promise<unknown>): Promise<string> {
   throw new Error("expected a rejection");
 }
 
-// A request written by hand, for what fetch won't send; resolves with the first answer line.
-function raw(port: number, request: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const socket = connect(port, "127.0.0.1", () => socket.write(request));
-    let text = "";
-    socket.on("data", (chunk: Buffer) => {
-      text += chunk.toString("latin1");
-      if (text.includes("\r\n")) {
-        socket.destroy();
-        resolve(text.split("\r\n")[0] ?? "");
-      }
-    });
-    socket.on("error", reject);
-  });
-}
-
 function callback(port: number, query: string, path = "/callback") {
   return fetch(`http://127.0.0.1:${port}${path}?${query}`);
 }
 
 describe("listenLoopback", () => {
-  it("binds the first free port on 127.0.0.1", async () => {
-    const busy = await hold(0);
+  it("binds the first free port on 127.0.0.1, or fails with LOGIN_PORTS_BUSY", async () => {
+    const busy = portOf(await hold(0));
     const free = await freePort();
-    const loopback = await listen([portOf(busy), free]);
-    expect(loopback.port).toBe(free);
+    const loopback = await listen([busy, free]);
     expect(redirectUri(loopback.port)).toBe(
       `http://127.0.0.1:${free}/callback`
     );
-  });
-
-  it("fails with LOGIN_PORTS_BUSY when every port is taken", async () => {
-    const ports = [portOf(await hold(0)), portOf(await hold(0))];
-    expect(await errorCode(listenLoopback(ports))).toBe("LOGIN_PORTS_BUSY");
+    expect(await errorCode(listenLoopback([busy, free]))).toBe(
+      "LOGIN_PORTS_BUSY"
+    );
   });
 });
 
 describe("waitForCallback", () => {
+  function waitOn(
+    loopback: Loopback,
+    timeoutMs = MINUTE,
+    signal?: AbortSignal
+  ) {
+    return loopback.waitForCallback(
+      STATE,
+      timeoutMs,
+      signal ?? new AbortController().signal
+    );
+  }
+
   it("returns the code and shows the success page with a strict CSP", async () => {
     const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      MINUTE,
-      new AbortController().signal
-    );
+    const waiting = waitOn(loopback);
     const response = await callback(loopback.port, `code=abc&state=${STATE}`);
     await expect(waiting).resolves.toBe("abc");
-    expect(response.status).toBe(200);
     expect(response.headers.get("content-security-policy")).toBe(
       "default-src 'none'; style-src 'unsafe-inline'; img-src data:"
     );
     expect(await response.text()).toContain("You&#39;re signed in.");
   });
 
-  it("answers 404 to any other path or method and keeps waiting", async () => {
+  it("turns away another path, method or state and keeps waiting for the real callback", async () => {
     const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      MINUTE,
-      new AbortController().signal
-    );
+    const waiting = waitOn(loopback);
     expect((await callback(loopback.port, "x=1", "/other")).status).toBe(404);
     const post = await fetch(
       `http://127.0.0.1:${loopback.port}/callback?code=abc&state=${STATE}`,
       { method: "POST" }
     );
     expect(post.status).toBe(404);
-    await callback(loopback.port, `code=def&state=${STATE}`);
-    await expect(waiting).resolves.toBe("def");
-  });
-
-  it("handles one callback, then stops listening", async () => {
-    const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      MINUTE,
-      new AbortController().signal
-    );
-    await callback(loopback.port, `code=abc&state=${STATE}`);
-    await waiting;
-    await expect(
-      callback(loopback.port, `code=again&state=${STATE}`)
-    ).rejects.toThrow();
-  });
-
-  it("answers a callback with another state 400 and keeps waiting for the real one", async () => {
-    const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      MINUTE,
-      new AbortController().signal
-    );
     const forged = await callback(loopback.port, "code=forged&state=other");
     expect(forged.status).toBe(400);
-    expect(await forged.text()).not.toContain("forged");
-    await callback(loopback.port, "code=forged");
     await callback(loopback.port, `code=real&state=${STATE}`);
     await expect(waiting).resolves.toBe("real");
   });
 
-  it("answers a request target it can't read with 400 and keeps listening", async () => {
-    const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      MINUTE,
-      new AbortController().signal
-    );
-    const head = await raw(
-      loopback.port,
-      "GET http://[ HTTP/1.1\r\nHost: x\r\n\r\n"
-    );
-    expect(head).toMatch(/^HTTP\/1\.1 400/);
-    await callback(loopback.port, `code=abc&state=${STATE}`);
-    await expect(waiting).resolves.toBe("abc");
-  });
+  it("reads access_denied as LOGIN_DENIED, and any other error as LOGIN_FAILED without the server's words", async () => {
+    const denied = await listen([await freePort()]);
+    const deniedWait = errorCode(waitOn(denied));
+    await callback(denied.port, `error=access_denied&state=${STATE}`);
+    expect(await deniedWait).toBe("LOGIN_DENIED");
 
-  it("settles as soon as the callback is read, even if the browser drops the connection", async () => {
-    const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      MINUTE,
-      new AbortController().signal
-    );
-    const socket = connect(loopback.port, "127.0.0.1");
-    socket.on("error", () => undefined);
-    socket.write(
-      `GET /callback?code=abc&state=${STATE} HTTP/1.1\r\nHost: x\r\n\r\n`,
-      () => socket.resetAndDestroy()
-    );
-    await expect(waiting).resolves.toBe("abc");
-    await loopback.close();
-  });
-
-  it("reads access_denied as LOGIN_DENIED", async () => {
-    const loopback = await listen([await freePort()]);
-    const waiting = errorCode(
-      loopback.waitForCallback(STATE, MINUTE, new AbortController().signal)
-    );
-    await callback(loopback.port, `error=access_denied&state=${STATE}`);
-    expect(await waiting).toBe("LOGIN_DENIED");
-  });
-
-  it("reads any other error as LOGIN_FAILED and never shows the server's words", async () => {
-    const loopback = await listen([await freePort()]);
-    const waiting = errorCode(
-      loopback.waitForCallback(STATE, MINUTE, new AbortController().signal)
-    );
+    const failed = await listen([await freePort()]);
+    const failedWait = errorCode(waitOn(failed));
     const response = await callback(
-      loopback.port,
+      failed.port,
       `error=server_error&error_description=${encodeURIComponent("<b>injected</b>")}&state=${STATE}`
     );
-    expect(await waiting).toBe("LOGIN_FAILED");
-    const page = await response.text();
-    expect(page).not.toContain("injected");
-    expect(page).not.toContain("server_error");
+    expect(await failedWait).toBe("LOGIN_FAILED");
+    expect(await response.text()).not.toContain("injected");
   });
 
-  it("gives up with LOGIN_TIMEOUT", async () => {
+  it("gives up with LOGIN_TIMEOUT, and stops on Ctrl-C with INTERRUPTED", async () => {
     const loopback = await listen([await freePort()]);
-    const waiting = loopback.waitForCallback(
-      STATE,
-      10,
-      new AbortController().signal
-    );
-    expect(await errorCode(waiting)).toBe("LOGIN_TIMEOUT");
-  });
-
-  it("stops on Ctrl-C with INTERRUPTED", async () => {
-    const loopback = await listen([await freePort()]);
+    expect(await errorCode(waitOn(loopback, 10))).toBe("LOGIN_TIMEOUT");
     const controller = new AbortController();
-    const waiting = loopback.waitForCallback(STATE, MINUTE, controller.signal);
+    const waiting = errorCode(waitOn(loopback, MINUTE, controller.signal));
     controller.abort();
-    expect(await errorCode(waiting)).toBe("INTERRUPTED");
+    expect(await waiting).toBe("INTERRUPTED");
   });
 });

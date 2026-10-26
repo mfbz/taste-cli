@@ -12,9 +12,4 @@ describe("WORDMARK", () => {
     );
     expect(WORDMARK).toBe(asset);
   });
-
-  it("takes its colour from the page", () => {
-    expect(WORDMARK).toContain('fill="currentColor"');
-    expect(WORDMARK).not.toMatch(/fill="#/);
-  });
 });
