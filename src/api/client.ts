@@ -104,6 +104,7 @@ type Deps = {
   // Ctrl-C: aborts the request in flight and any retry wait, and the call ends with INTERRUPTED.
   signal?: AbortSignal;
 };
+type ErrorParams = Record<string, string>;
 type Query = Readonly<Record<string, string | number | boolean | undefined>>;
 // "read": free and safe to repeat, retried on a network failure or 5xx. "once": spends credits or
 // changes something, and a failed send may still have reached the server, so it is never repeated.
@@ -113,6 +114,8 @@ type Exchange = {
   url: URL;
   method: string;
   retry: Retry;
+  // Spends credits: a failure in flight may still have been charged, and the error says so.
+  paid?: boolean;
   authenticated: boolean;
   json?: unknown;
   form?: FormData;
@@ -218,6 +221,11 @@ function assetUrl(raw: string): URL {
   return url;
 }
 
+// AbortSignal.timeout rejects the fetch, or the body read, with a TimeoutError.
+function isTimeout(error: unknown): boolean {
+  return error instanceof Error && error.name === "TimeoutError";
+}
+
 function shouldRetry(retry: Retry, status: number): boolean {
   if (retry === "read") return status >= 500;
   return retry === "busy" && status === 503;
@@ -261,8 +269,8 @@ function createTasteApi(deps: Deps): TasteApi {
     return { status: response.status, headers: response.headers, bytes };
   }
 
-  function interrupted(cause?: unknown): CliError {
-    return new CliError("INTERRUPTED", {}, { cause });
+  function interrupted(cause?: unknown, params: ErrorParams = {}): CliError {
+    return new CliError("INTERRUPTED", params, { cause });
   }
 
   async function pause(ms: number): Promise<void> {
@@ -285,12 +293,15 @@ function createTasteApi(deps: Deps): TasteApi {
       try {
         answer = await send(x, credential);
       } catch (error) {
-        if (deps.signal?.aborted) throw interrupted(error);
+        const params: ErrorParams = x.paid ? { paid: "yes" } : {};
+        if (deps.signal?.aborted) throw interrupted(error, params);
         if (x.retry === "read" && attempt < ATTEMPTS) {
           await pause(BACKOFF_MS * 2 ** (attempt - 1));
           continue;
         }
-        throw new CliError("NETWORK", {}, { cause: error });
+        throw new CliError(isTimeout(error) ? "TIMEOUT" : "NETWORK", params, {
+          cause: error,
+        });
       }
       if (answer.status === 401 && x.authenticated && !refreshed) {
         refreshed = true;
@@ -350,6 +361,7 @@ function createTasteApi(deps: Deps): TasteApi {
     authenticated: true,
     json,
   });
+  const paid = (x: Exchange): Exchange => ({ ...x, paid: true });
   const id = encodeURIComponent;
 
   return {
@@ -358,13 +370,15 @@ function createTasteApi(deps: Deps): TasteApi {
     createSubmission: (body, query = {}) =>
       call(
         SUBMISSION_ACCEPTED,
-        write(
-          "POST",
-          endpoint("/design/submissions", {
-            map: query.map,
-            max_urls: query.maxUrls,
-          }),
-          body
+        paid(
+          write(
+            "POST",
+            endpoint("/design/submissions", {
+              map: query.map,
+              max_urls: query.maxUrls,
+            }),
+            body
+          )
         )
       ),
 
@@ -379,6 +393,7 @@ function createTasteApi(deps: Deps): TasteApi {
         url: endpoint("/design/submissions/brand-kit"),
         method: "POST",
         retry: "once",
+        paid: true,
         authenticated: true,
         form,
         timeoutMs: LONG_TIMEOUT_MS,
@@ -426,13 +441,13 @@ function createTasteApi(deps: Deps): TasteApi {
 
     enhance: (body) =>
       call(ENHANCE_RESPONSE, {
-        ...write("POST", endpoint("/design/prompts/enhance"), body),
+        ...paid(write("POST", endpoint("/design/prompts/enhance"), body)),
         timeoutMs: LONG_TIMEOUT_MS,
       }),
 
     search: (body) =>
       call(BRAND_SEARCH_RESULTS, {
-        ...write("POST", endpoint("/search"), body),
+        ...paid(write("POST", endpoint("/search"), body)),
         retry: "busy",
       }),
 
@@ -440,12 +455,14 @@ function createTasteApi(deps: Deps): TasteApi {
     similar: (submissionId, topK) =>
       call(
         SIMILAR_BRANDS_RESULTS,
-        get(
-          endpoint("/search/similar", {
-            submission_id: submissionId,
-            top_k: topK,
-          }),
-          "once"
+        paid(
+          get(
+            endpoint("/search/similar", {
+              submission_id: submissionId,
+              top_k: topK,
+            }),
+            "once"
+          )
         )
       ),
 
@@ -458,7 +475,7 @@ function createTasteApi(deps: Deps): TasteApi {
     createAdherence: (body) =>
       call(
         ADHERENCE_ACCEPTED,
-        write("POST", endpoint("/judge/brand-adherence"), body)
+        paid(write("POST", endpoint("/judge/brand-adherence"), body))
       ),
 
     listAdherence: ({ limit, offset, q, status }) =>
@@ -502,10 +519,16 @@ function createTasteApi(deps: Deps): TasteApi {
             timeoutMs: LONG_TIMEOUT_MS,
           });
         } catch (error) {
-          if (error instanceof CliError && error.code === "NETWORK")
+          if (
+            error instanceof CliError &&
+            (error.code === "NETWORK" || error.code === "TIMEOUT")
+          )
             throw new CliError(
               "DOWNLOAD_FAILED",
-              { file, status: "network" },
+              {
+                file,
+                status: error.code === "TIMEOUT" ? "timeout" : "network",
+              },
               { cause: error }
             );
           throw error;

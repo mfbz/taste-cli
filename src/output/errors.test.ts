@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { SECTION_NAME } from "../api/schemas.ts";
 import {
   CATALOGUE,
   CliError,
   isUpstreamError,
   toErrorReport,
+  whileWaiting,
 } from "./errors.ts";
 import type { ErrorCode } from "./errors.ts";
 
@@ -34,6 +36,7 @@ describe("the catalogue", () => {
       SEARCH_BUSY: [1, true],
       UPSTREAM: [1, true],
       NETWORK: [1, true],
+      TIMEOUT: [1, true],
       WAIT_TIMEOUT: [1, true],
       INTERRUPTED: [130, true],
       INTERNAL: [1, false],
@@ -69,6 +72,39 @@ describe("CliError", () => {
     const report = toErrorReport(new CliError("INTERRUPTED", { id: "sub_1" }));
     expect(report.exitCode).toBe(130);
     expect(report.hint).toContain("taste wait sub_1");
+  });
+
+  it("says a paid request that failed in flight may have run, and is not to be retried blindly", () => {
+    for (const code of ["NETWORK", "TIMEOUT", "INTERRUPTED"] as const) {
+      const report = toErrorReport(new CliError(code, { paid: "yes" }));
+      expect(report.hint, code).toContain("taste history");
+      expect(report.retryable, code).toBe(false);
+    }
+    expect(toErrorReport(new CliError("NETWORK")).hint).not.toContain(
+      "taste history"
+    );
+  });
+
+  it("gives a failure while waiting on a started job its id, and the way back with taste wait", () => {
+    const upstream500 = Object.assign(new Error("boom"), { status: 500 });
+    for (const error of [new CliError("NETWORK"), upstream500]) {
+      const report = toErrorReport(whileWaiting(error, "sub-1"));
+      expect(report.hint).toContain("taste wait sub-1");
+      expect(report.details).toEqual({ id: "sub-1" });
+    }
+    const notFound = new CliError("NOT_FOUND");
+    expect(whileWaiting(notFound, "sub-1")).toBe(notFound);
+  });
+
+  it("lists every section name the API knows in the sections hint", () => {
+    const hint = toErrorReport(new CliError("USAGE_INVALID_SECTIONS")).hint;
+    for (const name of SECTION_NAME.options) expect(hint).toContain(name);
+  });
+
+  it("names the real --sections and --map flags when they can't be combined", () => {
+    const hint = toErrorReport(new CliError("SELECTIVE_MAP_UNSUPPORTED")).hint;
+    expect(hint).toContain("--sections");
+    expect(hint).toContain("--map");
   });
 
   it("tells how to resume after a timeout, with the id", () => {

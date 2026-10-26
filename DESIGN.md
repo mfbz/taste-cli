@@ -1,6 +1,6 @@
 # DESIGN.md: how taste-cli looks and behaves in a terminal
 
-This file is binding for anything a person sees. The opening and the result layouts are not designed yet; each lands here with the change that builds it, and a test keeps the code and this file in step.
+This file is binding for anything a person sees. The opening and most result layouts are not designed yet; each lands here with the change that builds it, and a test keeps the code and this file in step.
 
 ## Output modes
 
@@ -36,6 +36,44 @@ Signed in as person@example.com (browser session).
 ```
 
 A `success` check mark starts a line that reports a change; `whoami` only reports, so it has none. The email is the server's text, cleaned of control characters before it is shown.
+
+## Job progress
+
+While `extract`, `kit` or `wait` waits on a job, progress goes to stderr. In a terminal that allows motion, one line redraws in place every 80 ms: a `signal` spinner, the step in words and the time so far, dimmed.
+
+```text
+⠋ Crawling · 12s
+```
+
+Without motion (a pipe, CI, `TASTE_NO_MOTION`) each step is one plain line instead (`Crawling · 12s`); under `--json`, nothing. The line is cleared before anything else is written, and the wait ends with a `success` check mark:
+
+```text
+✓ Extracted Stripe in 48s
+✓ Extracted Stripe (cached)
+```
+
+## Brand summary
+
+What `extract`, `kit` and `wait` print on stdout for a finished extraction. The brand name in bold, the tagline dimmed, then dimmed labels in a 7-column gutter. Each colour is a swatch (`██` in the brand's own colour, truecolor or the nearest of 256), its hex and its name dimmed; with 16 colours or none, the hex and name alone, since a near miss would mislead. Lines are cut with `…` to the terminal's width. Fields the result doesn't have are left out, never filled in.
+
+```text
+Stripe
+Style  Flat Design, Corporate
+Tone   Confident, Technical, Precise
+
+Palette
+  ██ #RRGGBB  Blurple
+  ██ #RRGGBB  Deep Navy
+
+Type   sohne-var, SourceCodePro
+
+Source https://stripe.com/
+Id     <id>
+
+All of it: taste wait <id> --format json
+```
+
+An adherence verdict (from `wait`) is the score in bold, the candidate and reference addresses, then the recommendations as a dashed list.
 
 ## Errors
 

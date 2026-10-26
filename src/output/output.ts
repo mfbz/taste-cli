@@ -10,6 +10,8 @@ type Output = {
   result<T>(data: T, human: (theme: Theme) => string): void;
   /** Progress or context for a person, on stderr; silent with --json so stdout stays one document. */
   note(text: string): void;
+  /** A live line that redraws itself (progress), on stderr as is; silent with --json. */
+  status(text: string): void;
   /** Something a person must know (a credential ignored or left behind), on stderr in every mode. */
   warn(text: string): void;
   /** Reports a failure the same way everywhere and returns the exit code. */
@@ -36,7 +38,13 @@ function plain(text: string, options: { newlines?: boolean } = {}): string {
 
 function createOutput(options: OutputOptions): Output {
   const { json, debug, theme, stdout, stderr } = options;
-  const document = (value: unknown) => stdout(`${JSON.stringify(value)}\n`);
+  // One document per run, whatever happens after it: a late failure never adds a second.
+  let documented = false;
+  const document = (value: unknown) => {
+    if (documented) return;
+    documented = true;
+    stdout(`${JSON.stringify(value)}\n`);
+  };
   return {
     json,
     theme,
@@ -46,6 +54,9 @@ function createOutput(options: OutputOptions): Output {
     },
     note(text) {
       if (!json) stderr(`${text}\n`);
+    },
+    status(text) {
+      if (!json) stderr(text);
     },
     warn(text) {
       stderr(`${theme.warning("warning:")} ${plain(text)}\n`);

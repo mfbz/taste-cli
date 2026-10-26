@@ -394,6 +394,63 @@ describe("createTasteApi retries", () => {
     expect((error as CliError).code).toBe("NETWORK");
   });
 
+  it("says a timed out GET didn't answer in time, after its retries", async () => {
+    const timeout = () => new DOMException("timed out", "TimeoutError");
+    const { api, fetch } = setup([timeout(), timeout(), timeout()]);
+    const error = (await caught(api.getSubmission("sub-1"))) as CliError;
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(error.code).toBe("TIMEOUT");
+    const report = toErrorReport(error);
+    expect(report.message).toBe("The Taste Engine didn't answer in time.");
+    expect(report.retryable).toBe(true);
+  });
+
+  it("warns that a paid POST that failed in flight may still have run, and never says to retry", async () => {
+    const failures = [
+      [new TypeError("fetch failed"), "NETWORK"],
+      [new DOMException("timed out", "TimeoutError"), "TIMEOUT"],
+    ] as const;
+    for (const [failure, code] of failures) {
+      const { api, fetch } = setup([failure]);
+      const error = await caught(
+        api.createSubmission({ url: "https://stripe.com/" })
+      );
+      expect(fetch).toHaveBeenCalledTimes(1);
+      const report = toErrorReport(error);
+      expect(report.code).toBe(code);
+      expect(report.retryable).toBe(false);
+      expect(report.hint).toContain("taste history");
+      expect(report.hint).not.toMatch(/try again/i);
+    }
+  });
+
+  it("warns the same way when Ctrl-C lands during a paid POST", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const { api } = setup(
+      [new DOMException("aborted", "AbortError")],
+      keyAuth(),
+      controller.signal
+    );
+    const report = toErrorReport(
+      await caught(
+        api.createBrandKit({ name: "a.pdf", bytes: new Uint8Array(1) })
+      )
+    );
+    expect(report.code).toBe("INTERRUPTED");
+    expect(report.hint).toContain("taste history");
+  });
+
+  it("keeps the usual hint for a free write that failed in flight", async () => {
+    const { api } = setup([new TypeError("fetch failed")]);
+    const report = toErrorReport(
+      await caught(api.setSubmissionVisibility("sub-1", true))
+    );
+    expect(report.code).toBe("NETWORK");
+    expect(report.retryable).toBe(true);
+    expect(report.hint).not.toContain("taste history");
+  });
+
   it("retries a GET on 5xx with backoff and returns the answer", async () => {
     const { api, fetch, slept } = setup([
       { status: 502, text: "bad gateway" },

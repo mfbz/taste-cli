@@ -74,5 +74,5 @@ function createTheme(level: ColorLevel): Theme {
   };
 }
 
-export { PALETTE, createTheme };
+export { PALETTE, createTheme, rgb, to256 };
 export type { Style, Theme };

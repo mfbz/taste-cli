@@ -6,7 +6,7 @@ taste-cli is unofficial, not affiliated with Taste Labs, built on the Taste Engi
 
 ## Status
 
-Built: `taste --version`, `taste --help`, the global flags `--json` and `--debug`, the usage-error path, and signing in: `taste login`, `taste logout` and `taste whoami`. Every other command below is planned: its section is filled in by the pull request that builds it.
+Built: `taste --version`, `taste --help`, the global flags `--json` and `--debug`, the usage-error path, signing in (`taste login`, `taste logout` and `taste whoami`), and the job commands `taste extract`, `taste kit` and `taste wait`. Every other command below is planned: its section is filled in by the pull request that builds it.
 
 ## What it is
 
@@ -31,7 +31,8 @@ Planned global flags: `--no-motion`, `-y, --yes`.
 - Errors come only from a catalogue (`src/output/errors.ts`): code, message, hint, retryable. Untrusted server text is stripped of control characters before display.
 - Warnings a person must see (a saved sign in ignored, a keychain that may still hold one) go to stderr in both modes, prefixed `warning:`; under `--json` stdout still carries only the one document.
 - Ctrl-C aborts what is in flight and the command ends through the usual output. A second Ctrl-C, or a command that hasn't stopped two seconds later, ends the process at once, with the same exit code and document.
-- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up.
+- After Ctrl-C the hint says to run the command again, or, when a job was started, `taste wait <id>` to pick it up. The hard stop never adds a second document: once the command has written its own, it exits without another, and a Ctrl-C after the command finished exits with the command's own code.
+- A request that gets no answer within its deadline fails with `TIMEOUT` ("The Taste Engine didn't answer in time."), a connection that fails with `NETWORK` ("Couldn't reach the Taste Engine.").
 
 Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 
@@ -42,6 +43,8 @@ Acceptance (proven by `src/cli.test.ts` and `src/main.test.ts`):
 - A Taste key (`taste_` followed by long random text) or a token (a JWT) anywhere in argv, as a whole argument or a whole option value, is refused with `KEY_IN_ARGV` (exit 2) before any command runs, and is never echoed. File names and words that only start with `taste_`, such as `taste_logo_final.pdf` or `taste_engine_reviews`, go through (`src/cli.test.ts`).
 - `--debug` adds only the error's class name and stack frames; an error's message and its cause never reach output, in either mode (`src/cli.test.ts`).
 - Ctrl-C ends a running command with exit 130 and, under `--json`, one `INTERRUPTED` document (`src/main.test.ts`); without a job the hint is "Run the command again." (`src/output/output.test.ts`).
+- A second Ctrl-C, or one after the command wrote its document, never writes a second document (`src/interrupt.test.ts`, `src/output/output.test.ts`).
+- A timed out request is `TIMEOUT`, distinct from `NETWORK` (`src/api/client.test.ts`).
 - Store warnings reach stderr under `--json` too, with exactly one document on stdout (`src/output/output.test.ts`, `src/commands/whoami.test.ts`).
 
 ### Configuration
@@ -60,7 +63,14 @@ Where a sign in is kept:
 
 ## Credits
 
-Credits are real money. Commands that spend them say so in `--help` and in the menu; a paid request is never retried automatically. Planned in detail with the first paid command.
+Credits are real money. These rules hold for every command that spends them (today `extract` and `kit`):
+
+- The command's `--help` says it spends credits. A command typed directly does not ask for confirmation: typing it is the decision. (The planned menu will confirm before spending.)
+- Every flag, the address and the file are checked before the one request that spends credits, so a mistake costs nothing.
+- A paid request is never retried automatically, not after a network failure, a timeout or a 5xx.
+- A paid request that fails in flight (`NETWORK`, `TIMEOUT`, or Ctrl-C while it is being sent) may still have reached Taste and been charged. Its error is not retryable and the hint says to check `taste history` before running it again, never to try again.
+- Once a job has started, it runs on Taste's side whatever happens to taste: Ctrl-C, `--timeout`, a network failure or a Taste error while waiting all end with the job's id and the hint `taste wait <id>`, which picks it up for free (`error.details.id` under `--json`).
+- Failed jobs are refunded by Taste.
 
 ## Commands
 
@@ -122,11 +132,43 @@ Acceptance (proven by `src/commands/whoami.test.ts` and `src/auth/provider.test.
 
 ### `taste extract <url>`
 
-Planned.
+Extracts a brand from a website. **Spends credits.** One `POST /design/submissions`, then free polling until the job ends, then one read of the result.
+
+- `<url>`: a public `http` or `https` address; a bare domain such as `stripe.com` means `https://stripe.com/`. An address on this computer or a private network (`localhost`, `127.0.0.1`, `10.x`, `192.168.x`, `*.local`, `file:`) fails with `PRIVATE_URL` before any request; anything else unusable with `INVALID_URL`.
+- `--sections <names>`: extract only these sections, separated by commas (the API's names: `profile`, `layout`, `colors`, `typography`, `surfaces`, `elevation`, `interactions`, `actions`, `navigation`, `data_display`, `structure`, `icons`, `assets`, `sections`, `brand_assets`). An unknown or empty name fails with `USAGE_INVALID_SECTIONS`, whose hint lists them.
+- `--deep`: Taste's slower, deeper analysis (`enable_deep_analysis`). Can't be combined with `--sections` (`USAGE_CONFLICTING_OPTIONS`).
+- `--force`: extract again even when Taste holds a recent result.
+- `--map`, `--max-urls <n>`: map mode, which finds the site's pages and extracts them too, up to `n` (1 to 200). `--map` with `--sections` fails with `SELECTIVE_MAP_UNSUPPORTED` before any request, as the API would; `--max-urls` without `--map` fails with `USAGE_NEEDS_OPTION`. Unverified: map mode has only been run against the mock, and taste waits on the one submission id the API returns.
+- `--format <format>`: `summary` (the default) or `json`, the whole result as Taste sent it, indented, for a file or another tool.
+- `--no-wait`: print the job's id on stdout and return at once; stderr says `taste wait <id>`.
+- `--timeout <seconds>`: stop waiting after this long (default 600, at most 86400). The job carries on; the error is `WAIT_TIMEOUT` with `taste wait <id>`.
+
+While it waits, progress goes to stderr: in a terminal that allows motion one line redraws in place (`⠋ Crawling · 12s`); elsewhere each step is one line (`Crawling · 12s`); under `--json` nothing. It ends with `✓ Extracted <brand> in 48s`, or `✓ Extracted <brand> (cached)` when Taste served a recent result.
+
+Human output on stdout: the brand and its tagline, the style classification, the tone, the palette (a truecolor or 256-colour swatch, the hex and the name; the hex and name alone without colour), the type families, the source address, the id, and `taste wait <id> --format json` for everything. Fields the result doesn't have are left out. Every string from Taste is cleaned of control characters.
+
+`--json`: `{"ok":true,"data":<the result exactly as GET /design/submissions/{id}/result returned it>}`; with `--no-wait`, `{"ok":true,"data":{"id":string,"status":string}}`.
+
+Errors: `INVALID_URL`, `PRIVATE_URL`, `USAGE_INVALID_SECTIONS`, `USAGE_CONFLICTING_OPTIONS`, `USAGE_NEEDS_OPTION`, `USAGE_INVALID_VALUE`, `SELECTIVE_MAP_UNSUPPORTED`, `INSUFFICIENT_CREDITS`, `JOB_FAILED` (with the job's own reason), `WAIT_TIMEOUT`, `INTERRUPTED`, `NETWORK`, `TIMEOUT`, `UPSTREAM`, `RATE_LIMITED`, and the sign in errors of `taste whoami`.
+
+Acceptance (proven by `src/commands/extract.test.ts`, `src/render/brand-summary.test.ts` and `scripts/mock-taste.test.ts`):
+
+- The summary names the brand and every primary colour of the recorded tastelabs.com and stripe.com extractions; a brand kit is summarised from its own shape; a selective result without a profile falls back to the address.
+- A pipe gets no ANSI and one note per step; a terminal gets one line redrawn in place and cleared before anything else is written.
+- `--json` data equals the recorded result; `--no-wait` prints only the id and makes only the `POST`.
+- `--map --sections colors`, `--deep --sections colors`, an unknown section, `--max-urls` without `--map` and out-of-range values exit 2 and make no request. `localhost:3000`, a private address and `file:` fail with `PRIVATE_URL` and make no request.
+- Ctrl-C during the wait exits 130 with one document whose `error.hint` contains `taste wait <id>` and whose `error.details.id` is the id, in-process and in a real process against the mock.
+- `--timeout` and a network failure while waiting end with `taste wait <id>`; a failed job shows its reason; a 402 stops before waiting.
+- `taste extract https://stripe.com --json` against the local mock gives `ok:true`.
 
 ### `taste kit <file.pdf>`
 
-Planned.
+Extracts a brand kit from a brand guidelines PDF. **Spends credits.** The file is checked before the upload: it must exist and be a file (`FILE_NOT_FOUND`), be at most 50 MB (`FILE_TOO_LARGE`, refused without reading it) and start with `%PDF-` and not be empty (`INVALID_FILE`). Then one `POST /design/submissions/brand-kit` (never served from a cache), and the same waiting, progress, `--format`, `--no-wait`, `--timeout`, output and `--json` shapes as `taste extract`.
+
+Acceptance (proven by `src/commands/kit.test.ts`):
+
+- The committed sample PDF uploads and its summary shows the brand, its colours and its type.
+- A `.txt` file, an empty file, a missing path, a folder and a file over 50 MB fail before any upload.
 
 ### `taste search "<query>"`
 
@@ -150,7 +192,15 @@ Planned.
 
 ### `taste wait <id>`
 
-Planned.
+Picks up a job started earlier, with `--no-wait` or one interrupted or out of time, and ends it as the command that started it would. Free: it only reads. The id may be an extraction or brand kit (`GET /design/submissions/{id}`) or a brand adherence check (on a 404 there, `GET /judge/brand-adherence/{id}`); an id that is neither fails with `NOT_FOUND`. Takes `--format` and `--timeout` as `taste extract` does.
+
+An extraction or brand kit ends as `taste extract` does. An adherence check ends with `✓ Checked <candidate host> in 4m 01s` on stderr and, on stdout, the score, the candidate and reference addresses, the recommendations and the id; `--json` data is the verdict exactly as `GET /judge/brand-adherence/{id}/result` returned it.
+
+Acceptance (proven by `src/commands/wait.test.ts`):
+
+- A recorded extraction's id shows its summary; `--json` data equals the recorded result.
+- A recorded adherence job's id is routed to its verdict (`GET` the submission, 404, then the job and its result); a running one is followed to its verdict.
+- An unknown id is `NOT_FOUND`; Ctrl-C ends with the same id to wait on.
 
 ### `taste share <id>`
 

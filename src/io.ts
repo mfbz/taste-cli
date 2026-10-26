@@ -2,10 +2,12 @@
 // command in-process with fakes. processIo() is the real wiring, used only by main.ts. The keychain's
 // native module and the prompt library load only when a command first needs them, so `taste
 // --version` starts without either.
+import { readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { addAbortSignal } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 
+import type { TasteApi } from "./api/client.ts";
 import { openBrowser } from "./auth/browser.ts";
 import { openStore } from "./auth/store.ts";
 import type { SecretStore } from "./auth/store.ts";
@@ -24,6 +26,10 @@ type Io = {
   // stdin and stderr are both a terminal, so a person can answer a prompt and follow a sign in.
   interactive?: boolean;
   fetch?: typeof globalThis.fetch;
+  // A Taste Engine to use instead of the HTTP client built on fetch: tests pass the fake API.
+  api?: TasteApi;
+  // A local file's bytes, refused before reading when it is larger than maxBytes.
+  readFile?: (path: string, maxBytes: number) => Promise<Uint8Array>;
   openBrowser?: (url: string) => Promise<void>;
   // Opens the credential store; warn shows its one-line warnings.
   store?: (warn: (line: string) => void) => Promise<SecretStore>;
@@ -62,6 +68,32 @@ async function readStdin(signal: AbortSignal): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+// A missing file, a folder or one that can't be read all mean the same to the person: check the path.
+async function readLocalFile(
+  path: string,
+  maxBytes: number
+): Promise<Uint8Array> {
+  let size: number;
+  try {
+    const info = await stat(path);
+    if (!info.isFile()) throw new CliError("FILE_NOT_FOUND");
+    size = info.size;
+  } catch (error) {
+    if (error instanceof CliError) throw error;
+    throw new CliError("FILE_NOT_FOUND", {}, { cause: error });
+  }
+  if (size > maxBytes) throw new CliError("FILE_TOO_LARGE");
+  let bytes: Uint8Array;
+  try {
+    bytes = new Uint8Array(await readFile(path));
+  } catch (error) {
+    throw new CliError("FILE_NOT_FOUND", {}, { cause: error });
+  }
+  // The file may have grown since stat.
+  if (bytes.length > maxBytes) throw new CliError("FILE_TOO_LARGE");
+  return bytes;
+}
+
 async function askSecret(
   message: string,
   signal: AbortSignal
@@ -85,6 +117,7 @@ function processIo(
     env: process.env,
     interactive: process.stdin.isTTY === true && process.stderr.isTTY === true,
     fetch: globalThis.fetch,
+    readFile: (path, maxBytes) => readLocalFile(path, maxBytes),
     openBrowser: (url) => openBrowser(url),
     store: (warn) => openStore({ dir, warn }),
     configDir: dir,
@@ -97,5 +130,5 @@ function processIo(
   };
 }
 
-export { processIo };
+export { processIo, readLocalFile };
 export type { Io };

@@ -189,8 +189,23 @@ const CATALOGUE = {
   ),
   SELECTIVE_MAP_UNSUPPORTED: entry(
     2,
-    "That combination of options isn't supported.",
-    "Drop --sections or --map and run it again."
+    "--sections and --map can't be used together.",
+    "Drop --sections to map the site, or --map to extract some sections of one page."
+  ),
+  USAGE_INVALID_SECTIONS: entry(
+    2,
+    "--sections takes section names, separated by commas.",
+    "Sections: profile, layout, colors, typography, surfaces, elevation, interactions, actions, navigation, data_display, structure, icons, assets, sections, brand_assets."
+  ),
+  USAGE_NEEDS_OPTION: entry(
+    2,
+    "{option} only works with {needs}.",
+    "Add {needs}, or leave out {option}."
+  ),
+  FILE_NOT_FOUND: entry(
+    1,
+    "That file doesn't exist or can't be read.",
+    "Check the path and that you can read the file."
   ),
   REQUEST_REJECTED: entry(
     1,
@@ -212,6 +227,12 @@ const CATALOGUE = {
   NETWORK: entry(
     1,
     "Couldn't reach the Taste Engine.",
+    "Check your connection and try again.",
+    true
+  ),
+  TIMEOUT: entry(
+    1,
+    "The Taste Engine didn't answer in time.",
     "Check your connection and try again.",
     true
   ),
@@ -284,15 +305,30 @@ function isJobId(value: string): boolean {
   );
 }
 
-// With a job id the job carries on server side, so the hint says how to pick it up.
+// With a job id the job carries on server side, so the hint says how to pick it up rather than run
+// it, and pay for it, again.
+const RESUME_HINT = "The job carries on. Run taste wait {id} to pick it up.";
 const JOB_HINTS: Partial<Record<ErrorCode, string>> = {
-  INTERRUPTED: "The job carries on. Run taste wait {id} to pick it up.",
+  INTERRUPTED: RESUME_HINT,
+  NETWORK: RESUME_HINT,
+  TIMEOUT: RESUME_HINT,
+  UPSTREAM: RESUME_HINT,
+  RATE_LIMITED: RESUME_HINT,
 };
+// A paid request that failed in flight (params.paid "yes") may still have reached Taste and been
+// charged, so it is never offered as a retry: running it again could pay twice.
+const PAID_HINT =
+  "It may have reached Taste and started anyway. Check taste history before you run it again, so you don't pay twice.";
+const PAID_CODES = new Set<ErrorCode>(["NETWORK", "TIMEOUT", "INTERRUPTED"]);
 
 const DETAIL_CODES = new Set<ErrorCode>([
   "INTERRUPTED",
   "WAIT_TIMEOUT",
   "JOB_FAILED",
+  "NETWORK",
+  "TIMEOUT",
+  "UPSTREAM",
+  "RATE_LIMITED",
 ]);
 
 class CliError extends Error {
@@ -329,14 +365,17 @@ function fill(template: string, params: Params): string {
 }
 
 function report(code: ErrorCode, params: Params = {}): FullReport {
-  const { exit, retryable, message } = CATALOGUE[code];
+  const { exit, message } = CATALOGUE[code];
   const hasJob = isJobId(String(params.id ?? ""));
-  const hint = (hasJob ? JOB_HINTS[code] : undefined) ?? CATALOGUE[code].hint;
+  const paid = params.paid === "yes" && PAID_CODES.has(code);
+  const hint =
+    (hasJob ? JOB_HINTS[code] : undefined) ??
+    (paid ? PAID_HINT : CATALOGUE[code].hint);
   return {
     code,
     message: fill(message, params),
     hint: fill(hint, params),
-    retryable,
+    retryable: CATALOGUE[code].retryable && !paid,
     exitCode: exit,
     ...(DETAIL_CODES.has(code) && hasJob
       ? { details: { id: String(params.id) } }
@@ -411,6 +450,18 @@ function debugInfo(error: unknown): DebugInfo {
   return { className, frames };
 }
 
+// A failure while waiting on a job that is already running (the network, Taste's side) leaves the job
+// running, so the error carries its id and the hint says taste wait instead of try again.
+function whileWaiting(error: unknown, id: string): unknown {
+  if (error instanceof CliError) {
+    if (error.params.id !== undefined || !JOB_HINTS[error.code]) return error;
+    return new CliError(error.code, { ...error.params, id }, { cause: error });
+  }
+  if (!isUpstreamError(error)) return error;
+  const code = upstreamReport(error).code as ErrorCode;
+  return JOB_HINTS[code] ? new CliError(code, { id }, { cause: error }) : error;
+}
+
 function toErrorReport(error: unknown): FullReport {
   if (error instanceof CliError) return report(error.code, error.params);
   const full = isUpstreamError(error)
@@ -419,5 +470,5 @@ function toErrorReport(error: unknown): FullReport {
   return { ...full, debug: debugInfo(error) };
 }
 
-export { CATALOGUE, CliError, isUpstreamError, toErrorReport };
+export { CATALOGUE, CliError, isUpstreamError, toErrorReport, whileWaiting };
 export type { DebugInfo, ErrorCode, ErrorReport, ExitCode };

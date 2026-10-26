@@ -1,6 +1,8 @@
+import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -14,6 +16,7 @@ import { startMock } from "./mock-server.ts";
 import type { Mock, MockOptions } from "./mock-server.ts";
 
 const KEY = ["taste", "mock", "test"].join("_");
+const MAIN = fileURLToPath(new URL("../src/main.ts", import.meta.url));
 const instant = () => Promise.resolve();
 
 let mock: Mock | undefined;
@@ -91,6 +94,51 @@ describe("the mock Taste Engine", () => {
       ok: true,
       data: { method: "env-key", email: "person@example.com" },
     });
+  });
+
+  it("runs taste extract end to end with --json", async () => {
+    const { url } = await start();
+    const { code, out, err, doc } = await runCli(
+      ["extract", "https://stripe.com", "--json"],
+      {
+        env: { TASTE_API_URL: url, TASTE_API_KEY: KEY },
+        fetch: globalThis.fetch,
+        sleep: instant,
+      }
+    );
+    expect(code).toBe(0);
+    expect(err).toBe("");
+    expect(out.trim().split("\n")).toHaveLength(1);
+    expect(doc()).toMatchObject({
+      ok: true,
+      data: { status: "completed", source_url: "https://stripe.com/" },
+    });
+  });
+
+  it("ends a real taste extract on Ctrl-C with 130 and one document naming taste wait", async () => {
+    // Not fast: the job takes seconds per step, so the interrupt lands mid-wait.
+    const { url } = await start({ fast: false });
+    const child = spawn(
+      process.execPath,
+      [MAIN, "extract", "https://stripe.com", "--json"],
+      {
+        env: { PATH: process.env.PATH, TASTE_API_URL: url, TASTE_API_KEY: KEY },
+        stdio: ["ignore", "pipe", "pipe"],
+      }
+    );
+    let stdout = "";
+    child.stdout.on("data", (chunk: Buffer) => (stdout += chunk.toString()));
+    setTimeout(() => child.kill("SIGINT"), 1_500);
+    const code = await new Promise<number | null>((resolve) =>
+      child.on("close", resolve)
+    );
+    expect(code).toBe(130);
+    expect(stdout.trim().split("\n")).toHaveLength(1);
+    const doc = JSON.parse(stdout) as {
+      error: { code: string; hint: string; details: { id: string } };
+    };
+    expect(doc.error.code).toBe("INTERRUPTED");
+    expect(doc.error.hint).toContain(`taste wait ${doc.error.details.id}`);
   });
 
   it("refuses a key that is not a mock key with the real 401", async () => {

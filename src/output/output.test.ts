@@ -83,6 +83,22 @@ describe("--json output", () => {
     expect(h.err()).toBe("warning: The saved sign in can't be read.\n");
   });
 
+  it("never writes a second document, even when a failure follows a result", () => {
+    const h = harness(true);
+    h.output.result({ id: "sub-1" }, () => "");
+    expect(h.output.fail(new CliError("INTERRUPTED", { id: "sub-1" }))).toBe(
+      130
+    );
+    expect(h.out().trim().split("\n")).toHaveLength(1);
+    expect(JSON.parse(h.out())).toMatchObject({ ok: true });
+  });
+
+  it("keeps a live status line out of both streams", () => {
+    const h = harness(true);
+    h.output.status("\r⠋ Crawling");
+    expect(h.out() + h.err()).toBe("");
+  });
+
   it("keeps notes out of the document", () => {
     const h = harness(true);
     h.output.note("waiting…");
@@ -115,6 +131,13 @@ describe("human output", () => {
     h.output.fail(new CliError("NOT_SIGNED_IN"));
     expect(h.err()).toContain("\u001b[");
     expect(plain(h.err(), { newlines: true })).toContain("error:");
+  });
+
+  it("writes a live status line to stderr as is, without a newline", () => {
+    const h = harness(false);
+    h.output.status("\r⠋ Crawling");
+    expect(h.err()).toBe("\r⠋ Crawling");
+    expect(h.out()).toBe("");
   });
 
   it("writes notes to stderr", () => {
