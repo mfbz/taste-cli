@@ -342,3 +342,29 @@ describe("anything else", () => {
     expect(JSON.stringify(report)).not.toContain("secret detail");
   });
 });
+
+describe("a file path from a download manifest", () => {
+  const message = (file: string) =>
+    toErrorReport(new CliError("DOWNLOAD_TOO_LARGE", { file })).message;
+
+  it("is shown, even when it is long and hyphenated", () => {
+    const path =
+      "site-assets/media/image/showcase-image-of-syntax-engine-features.avif";
+    expect(message(path)).toContain(path);
+  });
+
+  it("is cleaned of control characters and cut to a sane length", () => {
+    expect(message("a\u001b[2Jb.css")).toContain("a[2Jb.css");
+    const long = `${"a/".repeat(100)}x.css`;
+    const shown = message(long);
+    expect(shown).toContain("…");
+    expect(shown.length).toBeLessThan(200);
+  });
+
+  it("never carries a URL, a query or a key-shaped token", () => {
+    const key = ["taste", "live", "x".repeat(32)].join("_");
+    expect(message("https://cdn.example.com/a.png")).not.toContain("cdn");
+    expect(message("a.png?token=signed")).not.toContain("signed");
+    expect(message(`assets/${key}.png`)).not.toContain(key);
+  });
+});

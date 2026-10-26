@@ -11,6 +11,7 @@ import type {
 } from "../api/schemas.ts";
 import type { Context } from "../context.ts";
 import { checkOutDir, writeBundle } from "../download/bundle.ts";
+import type { Saved, Skipped } from "../download/bundle.ts";
 import { CliError, whileSaving, whileWaiting } from "../output/errors.ts";
 import { plain } from "../output/output.ts";
 import { startProgress } from "../output/progress.ts";
@@ -80,15 +81,19 @@ async function byKind<T>(
   }
 }
 
-// After the job completes: its files, from the download manifest, into the --out folder.
+// The most skipped files named in the warning; the rest are counted.
+const SKIPPED_SHOWN = 10;
+
+// After the job completes: its files, from the download manifest, into the --out folder. Returns the
+// files skipped because their download is gone for good (see goneForGood in download/bundle.ts).
 async function saveFiles(
   ctx: Context,
   api: TasteApi,
   id: string,
   options: OutOptions
-): Promise<void> {
-  if (options.out === undefined) return;
-  let saved: string[];
+): Promise<Skipped[]> {
+  if (options.out === undefined) return [];
+  let saved: Saved;
   try {
     const manifest = await api.getManifest(id);
     saved = await writeBundle({
@@ -101,10 +106,23 @@ async function saveFiles(
   } catch (error) {
     throw whileSaving(error, id);
   }
-  const files = saved.length === 1 ? "file" : "files";
+  const { written, skipped } = saved;
+  const files = written.length === 1 ? "file" : "files";
+  const skipNote = skipped.length ? `, skipped ${skipped.length}` : "";
   ctx.output.note(
-    `${ctx.output.theme.success("✓")} Saved ${saved.length} ${files} to ${plain(options.out)}`
+    `${ctx.output.theme.success("✓")} Saved ${written.length} ${files} to ${plain(options.out)}${skipNote}`
   );
+  if (skipped.length) {
+    const named = skipped
+      .slice(0, SKIPPED_SHOWN)
+      .map((s) => `${plain(s.path)} (${s.status})`);
+    const more = skipped.length - named.length;
+    if (more > 0) named.push(`and ${more} more`);
+    ctx.output.warn(
+      `Skipped ${skipped.length === 1 ? "a file" : `${skipped.length} files`} whose download is gone: ${named.join(", ")}`
+    );
+  }
+  return skipped;
 }
 
 // The one paid request: Ctrl-C while it is in flight must not invite a second one, and once it is
@@ -187,9 +205,12 @@ function verdictJob(api: TasteApi, id: string): JobSpec<AdherenceVerdict> {
 function showSubmission(
   ctx: Context,
   result: SubmissionResult,
-  format: Format
+  format: Format,
+  skipped: Skipped[] = []
 ): void {
-  ctx.output.result(result, (theme) =>
+  // --json names what --out skipped; the result itself stays as Taste sent it.
+  const data = skipped.length ? { ...result, skipped } : result;
+  ctx.output.result(data, (theme) =>
     format === "json"
       ? JSON.stringify(result, null, 2)
       : renderBrandSummary(result, {

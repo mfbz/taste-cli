@@ -43,8 +43,8 @@ async function wait(
     return;
   }
   const result = await awaitJob(ctx, id, timeoutMs, submissionJob(api, id));
-  await saveFiles(ctx, api, id, options);
-  showSubmission(ctx, result, options.format);
+  const skipped = await saveFiles(ctx, api, id, options);
+  showSubmission(ctx, result, options.format, skipped);
 }
 
 export { wait };

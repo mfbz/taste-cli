@@ -396,7 +396,7 @@ describe("taste extract --out", () => {
   });
 
   it("points a failed save at taste wait, never at extracting again", async () => {
-    const { io } = seams({
+    const { api, io } = seams({
       manifests: {
         "sub-1": {
           submission_id: "sub-1",
@@ -404,6 +404,7 @@ describe("taste extract --out", () => {
         },
       },
     });
+    api.download = () => Promise.reject(new CliError("NETWORK"));
     const { code, doc } = await runCli(
       ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
       io
@@ -492,5 +493,72 @@ describe("taste extract --out", () => {
       retryable: false,
       details: { id: "sub-1" },
     });
+  });
+
+  it("skips an asset that is gone, warns, and lists it under --json", async () => {
+    const path =
+      "site-assets/media/image/showcase-image-of-syntax-engine-features.avif";
+    const files = {
+      "sub-1": {
+        submission_id: "sub-1",
+        files: [
+          { path: "guidelines.json", content: "{}" },
+          { path, url: "https://cdn.example.com/x.avif?token=signed" },
+        ],
+      },
+    };
+    const human = seams({ manifests: files });
+    const out = join(base, "human");
+    const run = await runCli(["extract", "stripe.com", "--out", out], human.io);
+    expect(run.code).toBe(0);
+    expect(run.err).toContain(
+      `warning: Skipped a file whose download is gone: ${path} (404)`
+    );
+    expect(run.err).toContain("Saved 1 file to");
+    expect(run.err).toContain("skipped 1");
+    expect(run.err).not.toContain("token=signed");
+    expect(await readdir(out)).toEqual(["guidelines.json"]);
+
+    const json = seams({ manifests: files });
+    const doc = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "json"), "--json"],
+      json.io
+    );
+    expect(doc.code).toBe(0);
+    expect(doc.doc().data).toEqual({
+      ...taste,
+      skipped: [{ path, status: 404 }],
+    });
+  });
+
+  it("names the file, not the link, when a download that may pass fails", async () => {
+    const path =
+      "site-assets/media/image/showcase-image-of-syntax-engine-features.avif";
+    const { api, io } = seams({
+      manifests: {
+        "sub-1": {
+          submission_id: "sub-1",
+          files: [
+            { path: "a.txt", content: "a" },
+            { path, url: "https://cdn.example.com/x.avif?token=signed" },
+          ],
+        },
+      },
+    });
+    api.download = () =>
+      Promise.reject(
+        new CliError("DOWNLOAD_FAILED", { file: "x.avif", status: 503 })
+      );
+    const { code, doc } = await runCli(
+      ["extract", "stripe.com", "--out", join(base, "x"), "--json"],
+      io
+    );
+    expect(code).toBe(1);
+    expect(doc().error).toMatchObject({
+      code: "BUNDLE_INCOMPLETE",
+      message: `Saved 1 of 2 files and skipped 0, then ${path} couldn't be saved.`,
+      details: { id: "sub-1" },
+    });
+    expect(JSON.stringify(doc())).not.toContain("token=signed");
   });
 });

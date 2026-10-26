@@ -113,7 +113,7 @@ describe("writeBundle", () => {
     for (const file of recorded.files)
       if (file.url) downloads[file.url] = new TextEncoder().encode(file.path);
     const api = createFakeApi({ downloads });
-    const written = await writeBundle({
+    const { written } = await writeBundle({
       api,
       manifest: recorded,
       dir,
@@ -307,7 +307,7 @@ describe("writeBundle", () => {
 
   it("uses inline content when an entry has both content and a url", async () => {
     const api = createFakeApi();
-    const written = await writeBundle({
+    const { written } = await writeBundle({
       api,
       manifest: manifest([
         { path: "guidelines.json", content: "{}", url: `${CDN}g.json` },
@@ -341,8 +341,13 @@ describe("writeBundle", () => {
       { path: "b.css", url: `${CDN}b.css` },
       { path: "c.txt", content: "c" },
     ]);
+    const api = createFakeApi();
+    api.download = () =>
+      Promise.reject(
+        new CliError("DOWNLOAD_FAILED", { file: "b.css", status: 502 })
+      );
     const error = await writeBundle({
-      api: createFakeApi(),
+      api,
       manifest: files,
       dir,
       overwrite: false,
@@ -350,10 +355,63 @@ describe("writeBundle", () => {
     }).catch((e: unknown) => e);
     expect(error).toMatchObject({
       code: "BUNDLE_INCOMPLETE",
-      params: { written: 1, total: 3, file: "b.css" },
+      params: { written: 1, skipped: 0, total: 3, file: "b.css" },
     });
     expect(await listAll(dir)).toEqual(["a.txt"]);
   });
+
+  it("skips an asset that is gone for good and saves the rest", async () => {
+    const api = createFakeApi();
+    // A 403, as a brand's own CDN answered for one asset in a live run.
+    api.download = (url) =>
+      url.endsWith("gone.avif")
+        ? Promise.reject(
+            new CliError("DOWNLOAD_FAILED", { file: "gone.avif", status: 403 })
+          )
+        : Promise.resolve(new TextEncoder().encode("c"));
+    const saved = await writeBundle({
+      api,
+      manifest: manifest([
+        { path: "a.txt", content: "a" },
+        { path: "media/gone.avif", url: `${CDN}gone.avif` },
+        { path: "c.css", url: `${CDN}c.css` },
+      ]),
+      dir,
+      overwrite: false,
+      concurrency: 1,
+    });
+    expect(saved).toEqual({
+      written: ["a.txt", "c.css"],
+      skipped: [{ path: "media/gone.avif", status: 403 }],
+    });
+    expect(await listAll(dir)).toEqual(["a.txt", "c.css"]);
+  });
+
+  // A 5xx, a request timeout, too many requests and a network failure may all pass.
+  it.each([503, 408, 429, "network"])(
+    "stops on %s, which may pass, naming the file",
+    async (status) => {
+      const api = createFakeApi();
+      api.download = () =>
+        Promise.reject(
+          new CliError("DOWNLOAD_FAILED", { file: "b.css", status })
+        );
+      const error = await writeBundle({
+        api,
+        manifest: manifest([
+          { path: "a.txt", content: "a" },
+          { path: "b.css", url: `${CDN}b.css` },
+        ]),
+        dir,
+        overwrite: false,
+        concurrency: 1,
+      }).catch((e: unknown) => e);
+      expect(error).toMatchObject({
+        code: "BUNDLE_INCOMPLETE",
+        params: { written: 1, skipped: 0, total: 2, file: "b.css" },
+      });
+    }
+  );
 
   it("removes a half-written file when a write fails", async () => {
     const failing: typeof open = async (path, flags, mode) => {
@@ -379,7 +437,7 @@ describe("writeBundle", () => {
     }).catch((e: unknown) => e);
     expect(error).toMatchObject({
       code: "BUNDLE_INCOMPLETE",
-      params: { written: 1, total: 2, file: "b.txt" },
+      params: { written: 1, skipped: 0, total: 2, file: "b.txt" },
     });
     expect(await listAll(dir)).toEqual(["a.txt"]);
   });
@@ -413,7 +471,7 @@ describe("writeBundle", () => {
       path: `f${i}.bin`,
       url: `${CDN}f${i}.bin`,
     }));
-    const written = await writeBundle({
+    const { written } = await writeBundle({
       api,
       manifest: manifest(files),
       dir,

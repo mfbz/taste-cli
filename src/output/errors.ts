@@ -290,7 +290,7 @@ const CATALOGUE = {
   // The job is finished and paid for, so the way to the files again is wait, which is free.
   BUNDLE_INCOMPLETE: entry(
     1,
-    "Saved {written} of {total} files, then {file} couldn't be saved.",
+    "Saved {written} of {total} files and skipped {skipped}, then {file} couldn't be saved.",
     "The result is safe on Taste. Run taste wait {id} --out with the same folder and --overwrite to save it all, for free."
   ),
   OUTPUT_EXISTS: entry(
@@ -337,6 +337,10 @@ const KEY_PREFIX = /^(?:--?)?(?:sk-|gh[pousr]-|npm-|xox|akia|asia|aiza)/;
 // stays readable. The output layer strips control characters before a person sees it.
 const TEXT_PARAMS = new Set(["reason"]);
 const TEXT_LIMIT = 120;
+// A file's path from a download manifest: server text but no secret, so it is shown, cleaned of
+// control characters, cut, with key-shaped tokens redacted. Never a URL: the signed link stays out.
+const PATH_PARAMS = new Set(["file"]);
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/g;
 const KEY_TOKEN =
   /\btaste_\S+|\bsk-[A-Za-z0-9_-]{8,}|\beyJ[\w-]+\.[\w-]+(?:\.[\w-]+)?/g;
 // A job id: a UUID or a short simple id, never something shaped like a key.
@@ -422,6 +426,15 @@ function fill(template: string, params: Params): string {
     if (TEXT_PARAMS.has(name)) {
       const text = value.trim().slice(0, TEXT_LIMIT).replace(KEY_TOKEN, "…");
       return text === "" ? "…" : text;
+    }
+    if (PATH_PARAMS.has(name)) {
+      if (/:\/\/|[?#]/.test(value)) return "…";
+      const path = value.replace(CONTROL, "").replace(KEY_TOKEN, "…");
+      const cut =
+        [...path].length > TEXT_LIMIT
+          ? `${[...path].slice(0, TEXT_LIMIT - 1).join("")}…`
+          : path;
+      return cut === "" ? "…" : cut;
     }
     if (KEY_SHAPED.test(value)) return "…";
     const safe = NAME_PARAMS.has(name)

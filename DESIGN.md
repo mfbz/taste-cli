@@ -81,6 +81,13 @@ With `--out`, one more line on stderr once the files are saved, before the summa
 ✓ Saved 23 files to stripe
 ```
 
+When the download of an asset is gone for good, the line counts it, and one warning names it by path and status:
+
+```text
+✓ Saved 79 files to taste, skipped 1
+warning: Skipped a file whose download is gone: site-assets/media/image/hero.avif (403)
+```
+
 ## History
 
 `taste history` prints a table on stdout: a dimmed header, columns padded to their widest cell and two spaces apart. In a terminal the last column (the address or query) is cut with `…` to one column less than the width, keeping at least 16 columns; a pipe gets it whole. Dates are UTC, to the minute.

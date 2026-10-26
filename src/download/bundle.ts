@@ -26,6 +26,8 @@ type BundleDeps = {
   // A seam for tests that make a write fail halfway.
   open?: typeof open;
 };
+type Skipped = { path: string; status: number };
+type Saved = { written: string[]; skipped: Skipped[] };
 type Planned = {
   // Relative, joined with "/", as reported back.
   rel: string;
@@ -44,6 +46,19 @@ const BAD_SEGMENT = /[:<>"|?*\u0000-\u001f\u007f-\u009f]|[. ]$/;
 // saved on one system can be copied to another.
 const RESERVED = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\..*)?$/i;
 const NEW_FOLDER_MODE = 0o700;
+
+// The one rule for a download that fails: a permanent refusal (a 4xx other than 408 timeout and 429
+// too many requests) means the asset is gone, often from the brand's own site, and is skipped; any
+// other failure (network, timeout, 5xx, 408, 429) may pass, so it stops the save. Returns the status
+// of a skip, or undefined.
+function goneForGood(error: unknown): number | undefined {
+  if (!(error instanceof CliError) || error.code !== "DOWNLOAD_FAILED")
+    return undefined;
+  const status = error.params.status;
+  if (typeof status !== "number" || status < 400 || status > 499)
+    return undefined;
+  return status === 408 || status === 429 ? undefined : status;
+}
 
 function unsafe(): CliError {
   return new CliError("BUNDLE_PATH_UNSAFE");
@@ -197,7 +212,7 @@ async function openRoot(
   return root;
 }
 
-async function writeBundle(deps: BundleDeps): Promise<string[]> {
+async function writeBundle(deps: BundleDeps): Promise<Saved> {
   const { api, manifest, overwrite, signal } = deps;
   const openFile = deps.open ?? open;
   const planned = plan(manifest);
@@ -212,6 +227,7 @@ async function writeBundle(deps: BundleDeps): Promise<string[]> {
   }
 
   const written: string[] = [];
+  const skipped: Skipped[] = [];
   // The first file that failed; others running at the time may fail too, but are not the cause.
   let failed: string | undefined;
   async function save(file: Planned): Promise<void> {
@@ -219,6 +235,11 @@ async function writeBundle(deps: BundleDeps): Promise<string[]> {
     try {
       await saveOne(file);
     } catch (error) {
+      const status = goneForGood(error);
+      if (status !== undefined) {
+        skipped.push({ path: file.rel, status });
+        return;
+      }
       failed ??= file.rel;
       throw error;
     }
@@ -257,13 +278,15 @@ async function writeBundle(deps: BundleDeps): Promise<string[]> {
       "BUNDLE_INCOMPLETE",
       {
         written: written.length,
+        skipped: skipped.length,
         total: planned.length,
         file: failed ?? "…",
       },
       { cause: error }
     );
   }
-  return written;
+  return { written, skipped };
 }
 
 export { checkOutDir, safeJoin, writeBundle };
+export type { Saved, Skipped };

@@ -80,8 +80,8 @@ async function extract(
     options.timeout * 1000,
     submissionJob(api, id)
   );
-  await saveFiles(ctx, api, id, options);
-  showSubmission(ctx, result, options.format);
+  const skipped = await saveFiles(ctx, api, id, options);
+  showSubmission(ctx, result, options.format, skipped);
 }
 
 export { extract };
