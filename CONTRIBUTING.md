@@ -85,7 +85,7 @@ Nothing is published, and nothing can be while the repository is private: the re
 
 Before the first release:
 
-1. Claim the name: from a clean checkout of `main`, `npm publish --access public` by hand with your own npm account and two-factor authentication. This publishes the empty `0.0.0`; npm only offers trusted publishing for a package that exists.
+1. Publish `0.0.1` by hand: from a clean checkout of `main`, `npm ci`, then `npm publish --access public` with your own npm account and two-factor authentication (`prepack` builds it). npm only offers trusted publishing for a package that exists, so this first version has no provenance; every later one, from `0.0.2`, goes through the workflow.
 2. On npmjs.com, in the package's settings: add a trusted publisher for this repository's `release.yml` with environment `npm`, then set publishing access to "Require two-factor authentication and disallow tokens".
 3. On GitHub: create the `npm` environment, allowed to deploy from `main` only.
 
