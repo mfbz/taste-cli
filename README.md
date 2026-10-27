@@ -35,19 +35,17 @@ A command line for the [Taste Engine](https://docs.tastelabs.com), Taste Labs' d
 
 ## Status
 
-Every command is built: `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, exports it as a DESIGN.md, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. It isn't released yet: it runs from source (see [Install](#install)), and the few paths that have only run against the local mock say so where they are described.
+Every command is built: `taste` signs in, extracts a brand from a website or a brand guidelines PDF, saves its files, exports it as a DESIGN.md, checks a site against a brand, picks up a job started earlier, searches brands, finds similar ones, enhances prompts, lists your history and shares a result. The few paths that have only run against the local mock say so where they are described.
 
 ## Install
 
-Node.js 24 or later. taste-cli isn't on npm; run it from source:
+Node.js 24 or later.
 
 ```sh
-git clone https://github.com/mfbz/taste-cli.git
-cd taste-cli
-npm ci
-npm run build
-npm link        # puts `taste` on your PATH
+npm install -g @mfbz/taste-cli
 ```
+
+Or run it once without installing: `npx @mfbz/taste-cli --help`. To run it from source, see [Development](#development).
 
 ```sh
 taste --help      # every command; --help after a command for its flags
@@ -300,17 +298,10 @@ jobs:
     if: github.event.deployment_status.state == 'success' && github.event.deployment.environment != 'Production'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          repository: mfbz/taste-cli
-          path: taste-cli
-          token: ${{ secrets.TASTE_CLI_TOKEN }} # read access, while the repository is private
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - run: npm ci && npm run build && npm link
-        working-directory: taste-cli
-      - run: taste check "$PREVIEW_URL" --against https://acme.com --min 0.8
+      - run: npx -y @mfbz/taste-cli@0.0.1 check "$PREVIEW_URL" --against https://acme.com --min 0.8
         env:
           TASTE_API_KEY: ${{ secrets.TASTE_API_KEY }}
           PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
@@ -318,7 +309,7 @@ jobs:
 
 - Each run spends credits, as `taste check` does anywhere.
 - The preview must be readable without signing in: with Vercel's Deployment Protection on, Taste can't open it.
-- taste-cli isn't on npm yet, so this builds it from the repository, as in [Install](#install). While the repository is private, `TASTE_CLI_TOKEN` is a token that can read it.
+- Pin the version (`@0.0.1` here), so a new release never changes a gate without you choosing it.
 - In CI there is no animation and no colour: the verdict prints as plain text in the log, and `BELOW_THRESHOLD` exits 1, which fails the job.
 
 ## Scripts and agents
@@ -335,7 +326,7 @@ taste extract stripe.com --no-wait --json | jq -r '.data.id'                # st
 
 - **CI:** `--min` turns `check` into a pass or fail step, as in [Brand checks in CI](#brand-checks-in-ci).
 - **Agents:** `--json` gives one document per run, errors included, with a stable `code` to branch on and `retryable` to say whether running it again is safe ([Machine output](#machine-output), [Error codes](#error-codes)). A key is never taken on the command line, so an agent's transcript never holds one.
-- **The skill:** [`skills/taste/SKILL.md`](skills/taste/SKILL.md) teaches a coding agent to use taste well: always `--json`, ask the person before anything that spends credits, `--format design-md` for a DESIGN.md, `--no-wait` and `taste wait` for long jobs, and what to do on each error code. Once the repository is public, `npx skills add mfbz/taste-cli` installs it; until then, copy `skills/taste/` into your agent's skills folder.
+- **The skill:** [`skills/taste/SKILL.md`](skills/taste/SKILL.md) teaches a coding agent to use taste well: always `--json`, ask the person before anything that spends credits, `--format design-md` for a DESIGN.md, `--no-wait` and `taste wait` for long jobs, and what to do on each error code. `npx skills add mfbz/taste-cli` installs it, or copy `skills/taste/` into your agent's skills folder.
 
 ## Machine output
 
