@@ -93,15 +93,15 @@ describe("waitForCallback", () => {
     );
   }
 
-  it("returns the code and shows the success page with a strict CSP", async () => {
+  it("returns the code and tells the browser in one line of plain text", async () => {
     const loopback = await listen([await freePort()]);
     const waiting = waitOn(loopback);
     const response = await callback(loopback.port, `code=abc&state=${STATE}`);
     await expect(waiting).resolves.toBe("abc");
-    expect(response.headers.get("content-security-policy")).toBe(
-      "default-src 'none'; style-src 'unsafe-inline'; img-src data:"
+    expect(response.headers.get("content-type")).toBe(
+      "text/plain; charset=utf-8"
     );
-    expect(await response.text()).toContain("You&#39;re signed in.");
+    expect(await response.text()).toContain("Signed in.");
   });
 
   it("turns away another path, method or state and keeps waiting for the real callback", async () => {

@@ -1,14 +1,13 @@
 // The local end of a browser sign in: a server on 127.0.0.1 only, which takes exactly one callback
 // on GET /callback and then closes. Only a callback carrying our state counts: anything else gets a
-// fixed failure page and the wait goes on, so another page can neither sign us in nor cancel the sign
-// in. No page ever repeats anything from the request.
+// fixed failure line and the wait goes on, so another page can neither sign us in nor cancel the sign
+// in. The browser gets one line of plain text, and never anything from the request.
 import { createServer } from "node:http";
 import { setTimeout as delay } from "node:timers/promises";
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
 
 import { CATALOGUE, CliError } from "../output/errors.ts";
 import type { ErrorCode } from "../output/errors.ts";
-import { failurePage, PAGE_HEADERS, successPage } from "./success-page.ts";
 
 type Loopback = {
   port: number;
@@ -23,6 +22,18 @@ type Handler = (url: URL, res: ServerResponse) => void;
 type Outcome = { code: string } | { failure: ErrorCode };
 
 const HOST = "127.0.0.1";
+const HEADERS = {
+  "content-type": "text/plain; charset=utf-8",
+  "content-security-policy": "default-src 'none'",
+  "cache-control": "no-store",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff",
+  // One callback per sign in: no reason to keep the browser's connection open.
+  connection: "close",
+} as const;
+const SIGNED_IN =
+  "Signed in. You can close this tab and go back to the terminal.";
+const GO_BACK = "Go back to the terminal to try again.";
 // How long a page being sent may hold up closing the server.
 const SEND_GRACE_MS = 1000;
 // Registered all at once, because the server only accepts a redirect it knows to the exact port. Four,
@@ -51,16 +62,12 @@ function outcome(params: URLSearchParams): Outcome {
 }
 
 function plain(res: ServerResponse, status: number, text: string): void {
-  res.writeHead(status, {
-    ...PAGE_HEADERS,
-    "content-type": "text/plain; charset=utf-8",
-  });
+  res.writeHead(status, HEADERS);
   res.end(`${text}\n`);
 }
 
 function failure(res: ServerResponse, code: ErrorCode): void {
-  res.writeHead(400, PAGE_HEADERS);
-  res.end(failurePage(CATALOGUE[code].message));
+  plain(res, 400, `${CATALOGUE[code].message} ${GO_BACK}`);
 }
 
 async function listenLoopback(ports: readonly number[]): Promise<Loopback> {
@@ -129,8 +136,7 @@ async function listenLoopback(ports: readonly number[]): Promise<Loopback> {
           return failure(res, "LOGIN_FAILED");
         const result = outcome(url.searchParams);
         if ("code" in result) {
-          res.writeHead(200, PAGE_HEADERS);
-          res.end(successPage());
+          plain(res, 200, SIGNED_IN);
         } else failure(res, result.failure);
         // Settled now, not when the page is sent: a browser that drops the connection must not leave
         // the sign in waiting. close() lets the page finish first.

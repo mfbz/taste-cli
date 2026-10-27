@@ -13,13 +13,12 @@ type Theme = {
 // tastelabs.com is monochrome: paper type, grey for anything secondary, colour only in content. So is
 // taste, with the terminal's own foreground as the paper, so a light theme stays readable: bold for
 // emphasis, plain for ✓ and warnings, grey for labels and asides, faint for the score bar's track and the version. signal, the one colour in chrome, marks errors, because a failure
-// must stand out. A brand's own colours are content and keep their hex. field is the sign in page's.
+// must stand out. A brand's own colours are content and keep their hex.
 const PALETTE = {
   paper: "#F3F3EF",
   grey: "#8B8B8B",
   faint: "#5A5A5A",
   signal: "#FF3D00",
-  field: "#1E1E1E",
 } as const;
 const RESET = "\u001b[0m";
 // 256-colour and 16-colour codes picked by hand: the colour cube has no greys this close.

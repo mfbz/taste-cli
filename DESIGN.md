@@ -18,7 +18,6 @@ The look of tastelabs.com: monochrome, quiet and high contrast. Type is `paper`,
 | `grey`   | `#8B8B8B` | labels, taglines, hints, notes, the opening's tagline and rule                       |
 | `faint`  | `#5A5A5A` | the score bar's track, the opening's version                                         |
 | `signal` | `#FF3D00` | errors with `✗`, and a score below `--min`: the only colour in chrome                |
-| `field`  | `#1E1E1E` | the sign in page's ground, never painted in a terminal                               |
 
 `paper` is never painted in a terminal: emphasis is bold in the terminal's own foreground. With 256 colours `grey` is 245, `faint` 240 and `signal` 202; with 16, `grey` and `faint` bright black (90) and `signal` red (31). It reads the same on a dark or a light theme; `NO_COLOR` gives plain text. Motion is off in CI, with `NO_COLOR`, `TERM=dumb` and `TASTE_NO_MOTION`.
 
@@ -39,7 +38,7 @@ Then one `grey` line says who taste is signed in as (`Signed in as <email>.`, `S
 
 ## The sign in page
 
-The page the browser shows when `taste login` finishes: `field` ground, `paper` type in a monospace stack, the TASTE wordmark inline above one line of copy ("You're signed in. You can close this tab and go back to the terminal."). It is self-contained: no fonts, images or scripts are fetched, and a strict content security policy holds it to that. A failed sign in shows the catalogue message and "Go back to the terminal to try again.", never words from the request. The wordmark is Taste Labs' trademark (`assets/brand/NOTICE.md`).
+When `taste login` finishes, the browser gets one line of plain text: "Signed in. You can close this tab and go back to the terminal." A failed sign in gets the catalogue message and "Go back to the terminal to try again.", never words from the request. No HTML, no styles, nothing fetched.
 
 ## Sign in results
 
